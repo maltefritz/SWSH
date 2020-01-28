@@ -3,13 +3,16 @@ Created on Wed Jan 22 09:54:59 2020
 
 @author: Jonas Freißmann
 """
+import os
 import pandas as pd
 from ratipl import calculate_radiation
 
 
 # Einlesen der Ausgangsdaten des DWD
 col_names = ['SID', 'Datum', 'QN', 'AtmoGS', 'Diffus', 'Global', 'SSD', 'Zenit', 'WOZ', 'eor']
-data = pd.read_csv("strahlung.csv", sep=";", na_values=-999)
+path = os.path.dirname(os.path.dirname(__file__))    # Absoluter Pfad zwei Ebenen höher
+read_path = os.path.join(path, "Eingangsdaten\\strahlung.csv")
+data = pd.read_csv(read_path, sep=";", na_values=-999)
 data.columns = col_names
 
 
@@ -37,7 +40,8 @@ data_hor = data_hor[woz_filter]
 
 
 # Ausgabe der umgeformten horizontalen Einstrahlungsdaten als csv-Datei
-data_hor.to_csv("Strahlung_horizontal_" + str(year) + ".csv", sep=";", na_rep="#N/A")
+write_path1 = os.path.join(path, "Ergebnisse\\Strahlung_horizontal_" + str(year) + ".csv")
+data_hor.to_csv(write_path1, sep=";", na_rep="#N/A")
 
 
 # Standort Randbedinungen
@@ -64,4 +68,5 @@ data_gen = calculate_radiation(phi=latitude,
 # Ausgabe der Ergebnisse als csv-Datei
 col_names = ['Datum', 'Global', 'Direkt', 'Diffus', 'Reflekt']
 data_gen.columns = col_names
-data_gen.to_csv("Strahlung_geneigt_" + str(year) + ".csv", sep=";", na_rep="#N/A")
+write_path2 = os.path.join(path, "Ergebnisse\\Strahlung_geneigt_" + str(year) + ".csv")
+data_gen.to_csv(write_path2, sep=";", na_rep="#N/A")
