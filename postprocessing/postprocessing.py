@@ -19,7 +19,7 @@ def pp_Ref():
     -------
     None.
     """
-    # Daten einlesen
+    # %% Daten einlesen
     dirpath = path.abspath(path.join(__file__, "../.."))
     inv = pd.read_csv(path.join(dirpath,
                                 'Ergebnisse\\Ref_Ergebnisse\\Ref_Invest.csv'),
@@ -33,7 +33,7 @@ def pp_Ref():
     ausgaben = float(inv['ausgaben'])
     total_heat_demand = float(inv['total_heat_demand'])
 
-    # Ergebnisse der Investitionsrechnungen
+    # %% Ergebnisse der Investitionsrechnungen
     netpresentvalue = npv(invest_ges, objective)/1e6
     lcoh = LCOH(invest_ges, ausgaben, total_heat_demand)
 
@@ -43,11 +43,17 @@ def pp_Ref():
     print("Kapitalwert (NPV): " + '{:.3f}'.format(netpresentvalue) + " Mio. €")
     print("Wärmegestehungskosten (LCOH): " + '{:.2f}'.format(lcoh) + " €/MWh")
 
-    # Visualisierung
+    # %% Visualisierung
     ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
     ax.grid(b=False, which='major', axis='x')
 
     ax = zplt.line(data=wnw, xlabel='Date', ylabel='Wärmeleistung in MW')
+    ax.grid(b=False, which='minor', axis='x')
+
+    idx = pd.date_range('2016-04-01 00:00:00', '2016-04-07 23:00:00', freq='h')
+
+    ax = zplt.line(data=wnw.loc[idx, :], xlabel='Date',
+                   ylabel='Wärmeleistung in MW')
     ax.grid(b=False, which='minor', axis='x')
 
     filename = path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_plots.pdf')
@@ -62,7 +68,7 @@ def pp_TES():
     -------
     None.
     """
-    # Daten einlesen
+    # %% Daten einlesen
     dirpath = path.abspath(path.join(__file__, "../.."))
     inv = pd.read_csv(path.join(dirpath,
                                 'Ergebnisse\\TES_Ergebnisse\\TES_Invest.csv'),
@@ -80,7 +86,7 @@ def pp_TES():
     ausgaben = float(inv['ausgaben'])
     total_heat_demand = float(inv['total_heat_demand'])
 
-    # Ergebnisse der Investitionsrechnungen
+    # %% Ergebnisse der Investitionsrechnungen
     netpresentvalue = npv(invest_ges, objective)/1e6
     lcoh = LCOH(invest_ges, ausgaben, total_heat_demand)
 
@@ -90,7 +96,7 @@ def pp_TES():
     print("Kapitalwert (NPV): " + '{:.3f}'.format(netpresentvalue) + " Mio. €")
     print("Wärmegestehungskosten (LCOH): " + '{:.2f}'.format(lcoh) + " €/MWh")
 
-    # Visualisierung
+    # %% Visualisierung
     ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
     ax.grid(b=False, which='major', axis='x')
 
@@ -105,6 +111,20 @@ def pp_TES():
     ax = zplt.line(data=tes, xlabel='Date', ylabel='Speicherstand in MWh')
     ax.grid(b=False, which='minor', axis='x')
 
+    idx = pd.date_range('2016-04-01 00:00:00', '2016-04-07 23:00:00', freq='h')
+
+    ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
+                   xlabel='Date', ylabel='Wärmeleistung in MW')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=wnw.loc[idx, ['TES Ein', 'TES Aus', 'Wärmebedarf']],
+                   xlabel='Date', ylabel='Wärmeleistung in MW')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=tes.loc[idx, :], xlabel='Date',
+                   ylabel='Speicherstand in MWh')
+    ax.grid(b=False, which='minor', axis='x')
+
     filename = path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_plots.pdf')
     shared.create_multipage_pdf(file_name=filename)
     plt.show()
@@ -117,7 +137,7 @@ def pp_Sol():
     -------
     None.
     """
-    # Daten einlesen
+    # %% Daten einlesen
     dirpath = path.abspath(path.join(__file__, "../.."))
     inv = pd.read_csv(path.join(dirpath,
                                 'Ergebnisse\\Sol_Ergebnisse\\Sol_Invest.csv'),
@@ -135,7 +155,7 @@ def pp_Sol():
     ausgaben = float(inv['ausgaben'])
     total_heat_demand = float(inv['total_heat_demand'])
 
-    # Ergebnisse der Investitionsrechnungen
+    # %% Ergebnisse der Investitionsrechnungen
     netpresentvalue = npv(invest_ges, objective)/1e6
     lcoh = LCOH(invest_ges, ausgaben, total_heat_demand)
 
@@ -145,7 +165,7 @@ def pp_Sol():
     print("Kapitalwert (NPV): " + '{:.3f}'.format(netpresentvalue) + " Mio. €")
     print("Wärmegestehungskosten (LCOH): " + '{:.2f}'.format(lcoh) + " €/MWh")
 
-    # Visualisierung
+    # %% Visualisierung
     ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
     ax.grid(b=False, which='major', axis='x')
 
@@ -164,6 +184,24 @@ def pp_Sol():
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['Solar', 'Wärmebedarf']], xlabel='Date',
+                   ylabel='Wärmeleistung in MW')
+    ax.grid(b=False, which='minor', axis='x')
+
+    idx = pd.date_range('2016-04-01 00:00:00', '2016-04-07 23:00:00', freq='h')
+
+    ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
+                   xlabel='Date', ylabel='Wärmeleistung in MW')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=wnw.loc[idx, ['TES Ein', 'TES Aus', 'Wärmebedarf']],
+                   xlabel='Date', ylabel='Wärmeleistung in MW')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=tes.loc[idx, :], xlabel='Date',
+                   ylabel='Speicherstand in MWh')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=wnw.loc[idx, ['Solar', 'Wärmebedarf']], xlabel='Date',
                    ylabel='Wärmeleistung in MW')
     ax.grid(b=False, which='minor', axis='x')
 
