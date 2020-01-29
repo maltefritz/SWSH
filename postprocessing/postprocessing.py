@@ -1,4 +1,5 @@
-"""
+"""Module for postprocessing of Solph simulations.
+
 Created on Thu Jan 16 14:23:17 2020
 
 @author: Jonas Freißmann
@@ -20,9 +21,12 @@ def pp_Ref():
     """
     # Daten einlesen
     dirpath = path.abspath(path.join(__file__, "../.."))
-    inv = pd.read_csv(path.join(dirpath, 'Ergebnisse\\Invest.csv'), sep=";")
-    wnw = pd.read_csv(path.join(dirpath, 'Ergebnisse\\Ergebnis.csv'), sep=";",
-                      index_col=0, parse_dates=True)
+    inv = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\Ref_Ergebnisse\\Ref_Invest.csv'),
+                      sep=";")
+    wnw = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\Ref_Ergebnisse\\Ref_wnw.csv'),
+                      sep=";", index_col=0, parse_dates=True)
 
     invest_ges = float(inv['invest_ges'])
     objective = float(inv['objective'])
@@ -46,7 +50,7 @@ def pp_Ref():
     ax = zplt.line(data=wnw, xlabel='Date', ylabel='Wärmeleistung in MW')
     ax.grid(b=False, which='minor', axis='x')
 
-    filename = path.join(dirpath, 'Ergebnisse\\plotsRef.pdf')
+    filename = path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_plots.pdf')
     shared.create_multipage_pdf(file_name=filename)
     plt.show()
 
@@ -60,8 +64,11 @@ def pp_RefTES():
     """
     # Daten einlesen
     dirpath = path.abspath(path.join(__file__, "../.."))
-    inv = pd.read_csv(path.join(dirpath, 'Ergebnisse\\InvestTES.csv'), sep=";")
-    wnw = pd.read_csv(path.join(dirpath, 'Ergebnisse\\ErgebnisTES.csv'),
+    inv = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\TES_Ergebnisse\\TES_Invest.csv'),
+                      sep=";")
+    wnw = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\TES_Ergebnisse\\TES_wnw.csv'),
                       sep=";", index_col=0, parse_dates=True)
 
     invest_TES = invest_stes(float(inv['Q_tes']))
@@ -91,7 +98,7 @@ def pp_RefTES():
                    xlabel='Date', ylabel='Wärmeleistung in MW')
     ax.grid(b=False, which='minor', axis='x')
 
-    filename = path.join(dirpath, 'Ergebnisse\\plotsTES.pdf')
+    filename = path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_plots.pdf')
     shared.create_multipage_pdf(file_name=filename)
     plt.show()
 
@@ -105,8 +112,11 @@ def pp_RefTESSol():
     """
     # Daten einlesen
     dirpath = path.abspath(path.join(__file__, "../.."))
-    inv = pd.read_csv(path.join(dirpath, 'Ergebnisse\\InvestSol.csv'), sep=";")
-    wnw = pd.read_csv(path.join(dirpath, 'Ergebnisse\\ErgebnisSol.csv'),
+    inv = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\Sol_Ergebnisse\\Sol_Invest.csv'),
+                      sep=";")
+    wnw = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\Sol_Ergebnisse\\Sol_wnw.csv'),
                       sep=";", index_col=0, parse_dates=True)
 
     invest_TES = invest_stes(float(inv['Q_tes']))
@@ -144,6 +154,6 @@ def pp_RefTESSol():
                    xlabel='Date', ylabel='Wärmeleistung in MW')
     ax.grid(b=False, which='minor', axis='x')
 
-    filename = path.join(dirpath, 'Ergebnisse\\plotsSol.pdf')
+    filename = path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_plots.pdf')
     shared.create_multipage_pdf(file_name=filename)
     plt.show()
