@@ -299,3 +299,13 @@ d2 = {'invest_ges': [invest_ges], 'Q_tes': [Q_tes], 'objective': [objective],
 df2 = pd.DataFrame(data=d2)
 df2.to_csv(path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_Invest.csv'),
            sep=";")
+
+label = ['TES Ein', 'Status TES Ein', 'Speicherstand', 'TES Aus',
+         'Status TES Aus']
+data_tes.columns = label
+del data_tes[label[0]], data_tes[label[1]], data_tes[label[3]]
+del data_tes[label[4]]
+
+df3 = pd.DataFrame(data=data_tes)
+df3.to_csv(path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_Speicher.csv'),
+           sep=";")

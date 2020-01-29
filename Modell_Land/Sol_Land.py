@@ -331,7 +331,7 @@ ausgaben = (cost_stes + cost_st + cost_gas + cost_bhkw + cost_slk + cost_ehk
 
     #%% Output Ergebnisse
 
-label = ['BHKW', 'EHK','Solar', 'SLK', 'Wärmebedarf', 'TES Ein',
+label = ['BHKW', 'EHK', 'Solar', 'SLK', 'Wärmebedarf', 'TES Ein',
          'Status TES Ein', 'TES Aus', 'Status TES Aus']
 data_wnw.columns = label
 del data_wnw[label[-3]], data_wnw[label[-1]]
@@ -344,4 +344,14 @@ d2 = {'invest_ges': [invest_ges], 'Q_tes': [Q_tes], 'objective': [objective],
       'total_heat_demand': [total_heat_demand], 'ausgaben': [ausgaben]}
 df2 = pd.DataFrame(data=d2)
 df2.to_csv(path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_Invest.csv'),
+           sep=";")
+
+label = ['TES Ein', 'Status TES Ein', 'Speicherstand', 'TES Aus',
+         'Status TES Aus']
+data_tes.columns = label
+del data_tes[label[0]], data_tes[label[1]], data_tes[label[3]]
+del data_tes[label[4]]
+
+df3 = pd.DataFrame(data=data_tes)
+df3.to_csv(path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_Speicher.csv'),
            sep=";")

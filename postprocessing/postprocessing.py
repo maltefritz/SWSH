@@ -55,7 +55,7 @@ def pp_Ref():
     plt.show()
 
 
-def pp_RefTES():
+def pp_TES():
     """Calculate NPV and LCOH and generate plots for TES system.
 
     Returns
@@ -70,6 +70,9 @@ def pp_RefTES():
     wnw = pd.read_csv(path.join(dirpath,
                                 'Ergebnisse\\TES_Ergebnisse\\TES_wnw.csv'),
                       sep=";", index_col=0, parse_dates=True)
+    tes = pd.read_csv(path.join(
+        dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_Speicher.csv'), sep=";",
+        index_col=0, parse_dates=True)
 
     invest_TES = invest_stes(float(inv['Q_tes']))
     invest_ges = invest_TES + float(inv['invest_ges'])
@@ -80,6 +83,7 @@ def pp_RefTES():
     # Ergebnisse der Investitionsrechnungen
     netpresentvalue = npv(invest_ges, objective)/1e6
     lcoh = LCOH(invest_ges, ausgaben, total_heat_demand)
+
     print("Referenzsystem + Wärmespeicher")
     print("Erebnisse der Investitionsrechnungen:")
     print()
@@ -98,12 +102,15 @@ def pp_RefTES():
                    xlabel='Date', ylabel='Wärmeleistung in MW')
     ax.grid(b=False, which='minor', axis='x')
 
+    ax = zplt.line(data=tes, xlabel='Date', ylabel='Speicherstand in MWh')
+    ax.grid(b=False, which='minor', axis='x')
+
     filename = path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_plots.pdf')
     shared.create_multipage_pdf(file_name=filename)
     plt.show()
 
 
-def pp_RefTESSol():
+def pp_Sol():
     """Calculate NPV and LCOH and generate plots for Sol system.
 
     Returns
@@ -118,6 +125,9 @@ def pp_RefTESSol():
     wnw = pd.read_csv(path.join(dirpath,
                                 'Ergebnisse\\Sol_Ergebnisse\\Sol_wnw.csv'),
                       sep=";", index_col=0, parse_dates=True)
+    tes = pd.read_csv(path.join(
+        dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_Speicher.csv'), sep=";",
+        index_col=0, parse_dates=True)
 
     invest_TES = invest_stes(float(inv['Q_tes']))
     invest_ges = invest_TES + float(inv['invest_ges'])
@@ -150,8 +160,11 @@ def pp_RefTESSol():
                    xlabel='Date', ylabel='Wärmeleistung in MW')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['Solar', 'Wärmebedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW')
+    ax = zplt.line(data=tes, xlabel='Date', ylabel='Speicherstand in MWh')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=wnw[['Solar', 'Wärmebedarf']], xlabel='Date',
+                   ylabel='Wärmeleistung in MW')
     ax.grid(b=False, which='minor', axis='x')
 
     filename = path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_plots.pdf')
