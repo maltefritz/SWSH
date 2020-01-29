@@ -1,9 +1,10 @@
-"""
+"""Referenzenergiesystem.
+
 Created on Tue Nov 26 11:11:34 2019
 
-@author: Malte Fritz
+@author: Malte Fritz und Jonas Freißmann
 
-Erstes Referenzsystem (label='referenz'):
+Komponenten:
     - BHKW
     - Elektroheizkessel
     - Spitzenlastkessel
@@ -121,7 +122,8 @@ gas_source = solph.Source(label='Gasquelle',
 
 elec_source = solph.Source(label='Stromquelle',
                            outputs={enw: solph.Flow(
-                                    variable_costs=elec_consumer_charges+data['el_spot_price'])})
+                                    variable_costs=(elec_consumer_charges
+                                                    + data['el_spot_price']))})
 
 es_ref.add(gas_source, elec_source)
 
@@ -155,12 +157,10 @@ slk = solph.Transformer(label='Spitzenlastkessel',
                         outputs={wnw: solph.Flow(nominal_value=Q_slk,
                                                  max=1,
                                                  min=0,
-                                                 variable_costs=op_cost_slk+energy_tax)},
+                                                 variable_costs=(op_cost_slk+energy_tax))},
                         conversion_factors={wnw: eta_slk})
 
-# BHKW noch mit TESPy auslegen und die entsprechenden Variablen ergänzen.
-# Variablen evtl aussourcen.
-# Variablen Kosten nachvollziehen aus Markus Quelle und zusätzlich die für BHKWs recherchieren.
+
 bhkw = solph.components.GenericCHP(
                         label='BHKW',
                         fuel_input={gnw: solph.Flow(
@@ -186,7 +186,8 @@ es_ref.add(ehk, slk, bhkw)
     # %% Solve
 # Was bedeutet tee?
 model = solph.Model(es_ref)
-model.solve(solver='gurobi', solve_kwargs={'tee':True}) 
+model.solve(solver='gurobi', solve_kwargs={'tee': True},
+            cmdline_options={"mipgap": "0.001"})
 
     # %% Ergebnisse Energiesystem
 
@@ -223,20 +224,26 @@ objective = abs(es_ref.results['meta']['objective'])
     #%% Gesamtkosten
 
 # costs RS
-cost_gas = data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum() * (gas_price + co2_certificate)
-cost_bhkw = data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum() * op_cost_bhkw
-cost_slk = data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum() * (op_cost_slk + energy_tax)
-cost_ehk = data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum() * op_cost_ehk
+cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
+            * (gas_price + co2_certificate))
+cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+             * op_cost_bhkw)
+cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
+            * (op_cost_slk + energy_tax))
+cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
+            * op_cost_ehk)
 
 # cost electricity
-el_flow = np.array(data_enw[(('Stromquelle', 'Elektrizitätsnetzwerk'), 'flow')])
+el_flow = np.array(data_enw[(('Stromquelle', 'Elektrizitätsnetzwerk'),
+                             'flow')])
 cost_el = np.array(data['el_price'])
 
 cost_el_array = el_flow * cost_el
 cost_el_sum = cost_el_array.sum()
 
 # erlöse electricity
-r_el = np.array(data_enw[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')]) * np.array(data['el_spot_price'])
+r_el = (np.array(data_enw[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')])
+        * np.array(data['el_spot_price']))
 R_el_sum = r_el.sum()
 
 # Gesamtkosten
@@ -249,10 +256,11 @@ label = ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']
 data_wnw.columns = label
 
 df1 = pd.DataFrame(data=data_wnw)
-df1.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_wnw.csv'), sep=";")
+df1.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_wnw.csv'),
+           sep=";")
 
 d2 = {'invest_ges': [invest_ges], 'objective': [objective],
       'total_heat_demand': [total_heat_demand], 'ausgaben': [ausgaben]}
 df2 = pd.DataFrame(data=d2)
-df2.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_Invest.csv'), sep=";")
-
+df2.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_Invest.csv'),
+           sep=";")
