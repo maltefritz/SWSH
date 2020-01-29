@@ -12,7 +12,7 @@ Energiesystem mit Speicher und ST (label='Land_2'):
 Wärmebedarf von 1/20 von dem Wärmebedarf Flensburgs aus dem Jahr 2016
 
 """
-
+import os.path as path
 import oemof.solph as solph
 import oemof.outputlib as outputlib
 import pandas as pd
@@ -22,7 +22,8 @@ import numpy as np
 
     # %% Daten einlesen
 
-filename = 'simulation_data.csv'
+dirpath = path.abspath(path.join(__file__, "../.."))
+filename = path.join(dirpath, 'Eingangsdaten\\simulation_data.csv')
 data = pd.read_csv(filename, sep=";")
 
     # %% Zeitreihe
@@ -302,11 +303,11 @@ data_wnw.columns = label
 del data_wnw[label[-3]], data_wnw[label[-1]]
 
 df1 = pd.DataFrame(data=data_wnw)
-df1.to_csv('ErgebnisTES.csv', sep=";")
+df1.to_csv(path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_wnw.csv'), sep=";")
 
 d2 = {'invest_ges': [invest_ges],'Q_tes': [Q_tes], 'objective': [objective],
       'total_heat_demand': [total_heat_demand], 'ausgaben': [ausgaben]}
 df2 = pd.DataFrame(data=d2)
-df2.to_csv('InvestTES.csv', sep=";")
+df2.to_csv(path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_Invest.csv'), sep=";")
 
     

@@ -13,18 +13,39 @@ Energiesystem mit Speicher und ST (label='Land_2'):
 Wärmebedarf von 1/20 von dem Wärmebedarf Flensburgs aus dem Jahr 2016
 
 """
-
+import os.path as path
 import oemof.solph as solph
 import oemof.outputlib as outputlib
 import pandas as pd
 import numpy as np
-from invest import invest_st
+# from invest import invest_st
 
+def invest_st(A, col_type=''):
+    """
+    Pehnt et al. 2017, Markus [38]
+    A:                Kollektorfläche der Solarthermie
+    col_type:         Kollektortyp der Solarthermie
+    specific_coasts:  Spezifische Kosten
+    invest:           Investitionskosten
+    """
+    
+    if col_type == 'flat':
+        specific_costs = -34.06 * np.log(A) + 592.48
+        invest = A * specific_costs
+        return invest
+    elif col_type == 'vacuum':
+        specific_costs = -40.63 * np.log(A) + 726.64
+        invest = A * specific_costs
+        return invest
+    else:
+        raise ValueError("Choose a valid collector type: 'flat' or 'vacuum'")
+        
 # %% Preprocessing
 
     # %% Daten einlesen
 
-filename = 'simulation_data.csv'
+dirpath = path.abspath(path.join(__file__, "../.."))
+filename = path.join(dirpath, 'Eingangsdaten\\simulation_data.csv')
 data = pd.read_csv(filename, sep=";")
 
     # %% Zeitreihe
@@ -326,11 +347,12 @@ data_wnw.columns = label
 del data_wnw[label[-3]], data_wnw[label[-1]]
 
 df1 = pd.DataFrame(data=data_wnw)
-df1.to_csv('ErgebnisSol.csv', sep=";")
+df1.to_csv(path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_wnw.csv'), sep=";")
 
 d2 = {'invest_ges': [invest_ges],'Q_tes': [Q_tes], 'objective': [objective],
       'total_heat_demand': [total_heat_demand], 'ausgaben': [ausgaben]}
 df2 = pd.DataFrame(data=d2)
-df2.to_csv('InvestSol.csv', sep=";")
+df2.to_csv(path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_Invest.csv'), sep=";")
+
 
   
