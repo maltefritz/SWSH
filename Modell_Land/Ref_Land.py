@@ -147,9 +147,9 @@ es_ref.add(elec_sink, heat_sink)
 ehk = solph.Transformer(label='Elektroheizkessel',
                         inputs={enw: solph.Flow()},
                         outputs={wnw: solph.Flow(nominal_value=Q_ehk,
-                                                max=1,
-                                                min=0,
-                                                variable_costs=op_cost_ehk)},
+                                                 max=1,
+                                                 min=0,
+                                                 variable_costs=op_cost_ehk)},
                         conversion_factors={wnw: eta_ehk})
 
 slk = solph.Transformer(label='Spitzenlastkessel',
