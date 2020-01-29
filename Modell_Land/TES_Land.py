@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
+"""Energiesystem mit Speicher.
+
 Created on Tue Nov 26 11:11:34 2019
 
-@author: Malte Fritz
+@author: Malte Fritz und Jonas Freißmann
 
-Energiesystem mit Speicher und ST (label='Land_2'):
+Komponenten:
     - BHKW
     - Elektroheizkessel
     - Spitzenlastkessel
@@ -73,7 +73,7 @@ Eta_el_min_woDH = 0.4307
 
 # Investition
 op_cost_bhkw = 4
-spez_inv_bhkw = 2e+6 * P_max_bhkw**(-0.147)    #Trendlinie aus Excel
+spez_inv_bhkw = 2e+6 * P_max_bhkw**(-0.147)    # Trendlinie aus Excel
 invest_bhkw = P_max_bhkw * spez_inv_bhkw
 
     # %% TES
@@ -129,7 +129,8 @@ gas_source = solph.Source(label='Gasquelle',
 
 elec_source = solph.Source(label='Stromquelle',
                            outputs={enw: solph.Flow(
-                                    variable_costs=elec_consumer_charges+data['el_spot_price'])})
+                                    variable_costs=(elec_consumer_charges
+                                                    + data['el_spot_price']))})
 
 es_ref.add(gas_source, elec_source)
 
@@ -167,28 +168,7 @@ slk = solph.Transformer(label='Spitzenlastkessel',
                                                  variable_costs=op_cost_slk+energy_tax)},
                         conversion_factors={wnw: eta_slk})
 
-# BHKW noch mit TESPy auslegen und die entsprechenden Variablen ergänzen.
-# Variablen evtl aussourcen.
-# Variablen Kosten nachvollziehen aus Markus Quelle und zusätzlich die für BHKWs recherchieren.
-# P_N=15
-# bhkw = solph.components.GenericCHP(
-#                         label='BHKW',
-#                         fuel_input={gnw: solph.Flow(
-#                             H_L_FG_share_max=[0.203 for p in range(0, periods)],
-#                             H_L_FG_share_min=[0.3603 for p in range(0, periods)],
-#                             nominal_value=Q_in_bhkw)},
-#                         electrical_output={enw: solph.Flow(
-#                             variable_costs=op_cost_bhkw,
-#                             P_max_woDH=[21.1 for p in range(0, periods)],
-#                             P_min_woDH=[11.5 for p in range(0, periods)],
-#                             Eta_el_max_woDH=[0.4685 for p in range(0, periods)],
-#                             Eta_el_min_woDH=[0.4307 for p in range(0, periods)])},
-#                         heat_output={wnw: solph.Flow(
-#                             Q_CW_min=[0 for p in range(0, periods)])},
-#                         Beta=[0 for p in range(0, periods)],
-#                         back_pressure=False)
 
-# P_N=13
 bhkw = solph.components.GenericCHP(
                         label='BHKW',
                         fuel_input={gnw: solph.Flow(
@@ -214,21 +194,22 @@ es_ref.add(ehk, slk, bhkw)
 
 tes = solph.components.GenericStorage(label='Wärmespeicher',
                                       nominal_storage_capacity=Q_tes,
-                                      inputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4, 
+                                      inputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4,
                                                               max=1,
                                                               min=0.1,
                                                               variable_costs=op_cost_tes,
                                                               nonconvex=solph.NonConvex(
-                                                                  minimum_uptime=3, initial_status=0))},
+                                                                  minimum_uptime=3,
+                                                                  initial_status=0))},
                                       outputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4,
                                                                max=1,
                                                                min=0.1,
                                                                nonconvex=solph.NonConvex(
                                                                    minimum_uptime=3, initial_status=0))},
-                                      initial_storage_level=0.7, 
-                                      inflow_conversion_factor=1, 
+                                      initial_storage_level=0.7,
+                                      inflow_conversion_factor=1,
                                       outflow_conversion_factor=0.75)
-        
+
 es_ref.add(tes)
 
 # %% Processing
@@ -237,7 +218,8 @@ es_ref.add(tes)
 
 # Was bedeutet tee?
 model = solph.Model(es_ref)
-model.solve(solver='gurobi', solve_kwargs={'tee':True}, cmdline_options={"mipgap":"0.001"}) 
+model.solve(solver='gurobi', solve_kwargs={'tee': True},
+            cmdline_options={"mipgap": "0.001"})
 
     # %% Ergebnisse Energiesystem
 
@@ -276,20 +258,25 @@ objective = abs(es_ref.results['meta']['objective'])
     #%% Gesamtkosten
 
 # costs RS
-cost_gas = data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum() * (gas_price + co2_certificate)
-cost_bhkw = data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum() * op_cost_bhkw
-cost_slk = data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum() * (op_cost_slk + energy_tax)
-cost_ehk = data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum() * op_cost_ehk
-
+cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
+            * (gas_price + co2_certificate))
+cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+             * op_cost_bhkw)
+cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
+            * (op_cost_slk + energy_tax))
+cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
+            * op_cost_ehk)
 # cost electricity
-el_flow = np.array(data_enw[(('Stromquelle', 'Elektrizitätsnetzwerk'), 'flow')])
+el_flow = np.array(data_enw[(('Stromquelle', 'Elektrizitätsnetzwerk'),
+                             'flow')])
 cost_el = np.array(data['el_price'])
 
 cost_el_array = el_flow * cost_el
 cost_el_sum = cost_el_array.sum()
 
 # erlöse electricity
-r_el = np.array(data_enw[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')]) * np.array(data['el_spot_price'])
+r_el = (np.array(data_enw[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')])
+        * np.array(data['el_spot_price']))
 R_el_sum = r_el.sum()
 
 # Gesamtkosten
@@ -298,16 +285,17 @@ ausgaben = cost_gas + cost_bhkw + cost_slk + cost_ehk + cost_el_sum - R_el_sum
 
     #%% Output Ergebnisse
 
-label = ['BHKW', 'EHK', 'SLK', 'Wärmebedarf', 'TES Ein', 'Status TES Ein', 'TES Aus', 'Status TES Aus']
+label = ['BHKW', 'EHK', 'SLK', 'Wärmebedarf', 'TES Ein', 'Status TES Ein',
+         'TES Aus', 'Status TES Aus']
 data_wnw.columns = label
 del data_wnw[label[-3]], data_wnw[label[-1]]
 
 df1 = pd.DataFrame(data=data_wnw)
-df1.to_csv(path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_wnw.csv'), sep=";")
+df1.to_csv(path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_wnw.csv'),
+           sep=";")
 
-d2 = {'invest_ges': [invest_ges],'Q_tes': [Q_tes], 'objective': [objective],
+d2 = {'invest_ges': [invest_ges], 'Q_tes': [Q_tes], 'objective': [objective],
       'total_heat_demand': [total_heat_demand], 'ausgaben': [ausgaben]}
 df2 = pd.DataFrame(data=d2)
-df2.to_csv(path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_Invest.csv'), sep=";")
-
-    
+df2.to_csv(path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_Invest.csv'),
+           sep=";")
