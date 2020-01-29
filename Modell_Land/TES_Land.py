@@ -251,11 +251,11 @@ data_bhkw = outputlib.views.node(results, 'BHKW')['sequences']
 # Speicher
 data_tes = outputlib.views.node(results, 'Wärmespeicher')['sequences']
 
-    #%% Zahlungsströme Ergebnis
+    # %% Zahlungsströme Ergebnis
 
 objective = abs(es_ref.results['meta']['objective'])
 
-    #%% Gesamtkosten
+    # %% Gesamtkosten
 
 # costs RS
 cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
@@ -283,7 +283,7 @@ R_el_sum = r_el.sum()
 ausgaben = cost_gas + cost_bhkw + cost_slk + cost_ehk + cost_el_sum - R_el_sum
 
 
-    #%% Output Ergebnisse
+    # %% Output Ergebnisse
 
 label = ['BHKW', 'EHK', 'SLK', 'Wärmebedarf', 'TES Ein', 'Status TES Ein',
          'TES Aus', 'Status TES Aus']

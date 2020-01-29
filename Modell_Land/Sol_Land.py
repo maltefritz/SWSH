@@ -20,6 +20,7 @@ import pandas as pd
 import numpy as np
 # from invest import invest_st
 
+
 def invest_st(A, col_type=''):
     """Pehnt et al. 2017, Markus [38].
 
@@ -108,7 +109,7 @@ op_cost_tes = 0.66
 
     # %% Solarthermie
 
-A = 4500*2 # A = 4329,1
+A = 4500*2    # A = 4329,1
 # eta_Kol = 0,693
 # E_A = 1000
 
@@ -329,7 +330,7 @@ ausgaben = (cost_stes + cost_st + cost_gas + cost_bhkw + cost_slk + cost_ehk
             + cost_el_sum - R_el_sum)
 
 
-    #%% Output Ergebnisse
+    # %% Output Ergebnisse
 
 label = ['BHKW', 'EHK', 'Solar', 'SLK', 'Wärmebedarf', 'TES Ein',
          'Status TES Ein', 'TES Aus', 'Status TES Aus']
