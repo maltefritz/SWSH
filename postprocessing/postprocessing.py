@@ -47,13 +47,14 @@ def pp_Ref():
     ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
     ax.grid(b=False, which='major', axis='x')
 
-    ax = zplt.line(data=wnw, xlabel='Date', ylabel='Wärmeleistung in MW')
+    ax = zplt.line(data=wnw, xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     idx = pd.date_range('2016-04-01 00:00:00', '2016-04-07 23:00:00', freq='h')
 
     ax = zplt.line(data=wnw.loc[idx, :], xlabel='Date',
-                   ylabel='Wärmeleistung in MW')
+                   ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     filename = path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_plots.pdf')
@@ -101,28 +102,33 @@ def pp_TES():
     ax.grid(b=False, which='major', axis='x')
 
     ax = zplt.line(data=wnw[['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW')
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['TES Ein', 'TES Aus', 'Wärmebedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW')
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=tes, xlabel='Date', ylabel='Speicherstand in MWh')
+    ax = zplt.line(data=tes, xlabel='Date', ylabel='Speicherstand in MWh',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     idx = pd.date_range('2016-04-01 00:00:00', '2016-04-07 23:00:00', freq='h')
 
     ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW')
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw.loc[idx, ['TES Ein', 'TES Aus', 'Wärmebedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW')
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=tes.loc[idx, :], xlabel='Date',
-                   ylabel='Speicherstand in MWh')
+                   ylabel='Speicherstand in MWh', drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     filename = path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_plots.pdf')
@@ -169,40 +175,47 @@ def pp_Sol():
     ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
     ax.grid(b=False, which='major', axis='x')
 
-    ax = zplt.line(data=wnw, xlabel='Date', ylabel='Wärmeleistung in MW')
+    ax = zplt.line(data=wnw, xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW')
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['TES Ein', 'TES Aus', 'Wärmebedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW')
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=tes, xlabel='Date', ylabel='Speicherstand in MWh')
+    ax = zplt.line(data=tes, xlabel='Date', ylabel='Speicherstand in MWh',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['Solar', 'Wärmebedarf']], xlabel='Date',
-                   ylabel='Wärmeleistung in MW')
+                   ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
+    # 7-Tage Plots
     idx = pd.date_range('2016-04-01 00:00:00', '2016-04-07 23:00:00', freq='h')
 
     ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW')
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw.loc[idx, ['TES Ein', 'TES Aus', 'Wärmebedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW')
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=tes.loc[idx, :], xlabel='Date',
-                   ylabel='Speicherstand in MWh')
+                   ylabel='Speicherstand in MWh', drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw.loc[idx, ['Solar', 'Wärmebedarf']], xlabel='Date',
-                   ylabel='Wärmeleistung in MW')
+                   ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     filename = path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_plots.pdf')
