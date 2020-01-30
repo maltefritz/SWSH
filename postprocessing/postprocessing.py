@@ -55,7 +55,6 @@ def pp_Ref():
 
     ax = zplt.line(data=wnw.loc[idx, :], xlabel='Date',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
 
     filename = path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_plots.pdf')
     shared.create_multipage_pdf(file_name=filename)
@@ -120,16 +119,13 @@ def pp_TES():
     ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw.loc[idx, ['TES Ein', 'TES Aus', 'Wärmebedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=tes.loc[idx, :], xlabel='Date',
                    ylabel='Speicherstand in MWh', drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
 
     filename = path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_plots.pdf')
     shared.create_multipage_pdf(file_name=filename)
@@ -203,20 +199,16 @@ def pp_Sol():
     ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw.loc[idx, ['TES Ein', 'TES Aus', 'Wärmebedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=tes.loc[idx, :], xlabel='Date',
                    ylabel='Speicherstand in MWh', drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw.loc[idx, ['Solar', 'Wärmebedarf']], xlabel='Date',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
 
     filename = path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_plots.pdf')
     shared.create_multipage_pdf(file_name=filename)
