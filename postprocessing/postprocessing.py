@@ -51,7 +51,8 @@ def pp_Ref():
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    idx = pd.date_range('2016-04-01 00:00:00', '2016-04-07 23:00:00', freq='h')
+    # 7-Tage Plots
+    idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
 
     ax = zplt.line(data=wnw.loc[idx, :], xlabel='Date',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
@@ -114,7 +115,8 @@ def pp_TES():
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    idx = pd.date_range('2016-04-01 00:00:00', '2016-04-07 23:00:00', freq='h')
+    # 7-Tage Plots
+    idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
 
     ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
@@ -194,7 +196,7 @@ def pp_Sol():
     ax.grid(b=False, which='minor', axis='x')
 
     # 7-Tage Plots
-    idx = pd.date_range('2016-04-01 00:00:00', '2016-04-07 23:00:00', freq='h')
+    idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
 
     ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',

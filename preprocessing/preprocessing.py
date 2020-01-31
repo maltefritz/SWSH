@@ -1,7 +1,8 @@
-"""
+"""Preprocessing of weather data for tilted plane.
+
 Created on Wed Jan 22 09:54:59 2020
 
-@author: Jonas Freißmann
+@author: Malte Fritz und Jonas Freißmann
 """
 import os.path as path
 import pandas as pd
