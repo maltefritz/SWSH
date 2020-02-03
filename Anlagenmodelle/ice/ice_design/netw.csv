@@ -1,0 +1,2 @@
+m_unit;p_unit;p_min;p_max;h_unit;h_min;h_max;T_unit;T_min;T_max;fluids
+kg / s;bar;0.1;10.0;J / kg;1000.0;7000000.0;C;50.0;1200.0;['Ar', 'CH4', 'CO2', 'H2O', 'N2', 'O2']
