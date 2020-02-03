@@ -20,6 +20,8 @@ from tespy.tools.characteristics import load_default_char as ldc
 import numpy as np
 from matplotlib import pyplot as plt
 
+Q_N=abs(float(input('Gib die Nennwärmeleistung in MW ein: ')))*-1e6
+
 # %% network
 fluid_list = ['Ar', 'N2', 'O2', 'CO2', 'CH4', 'H2O']
 
@@ -269,7 +271,7 @@ Q = []
 Q_cond = []
 Q_ti = []
 
-Q_N = -65e6
+# 65
 
 heat_out.set_attr(P=Q_N)
 nw.solve(mode='design', init_path='cet_stable')
@@ -301,6 +303,8 @@ m_lp_max = mp_ls.m.val_SI
 print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
 print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
+
+Q_in_GuD = heat_in.P.val
 
 # merge the plants together: offdesign test
 print('no heat, full power')
@@ -370,7 +374,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 heat_out.set_attr(P=-40e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -380,7 +384,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 heat_out.set_attr(P=-50e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -390,7 +394,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 heat_out.set_attr(P=-60e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -408,7 +412,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 #print('maximum heat, full power')
 #heat_out.set_attr(P=np.nan)
@@ -435,7 +439,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 eta_3 = -power.P.val / heat_in.P.val
 power_3 = -power.P.val
 
@@ -447,7 +451,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 eta_4 = -power.P.val / heat_in.P.val
 power_4 = -power.P.val
 
@@ -459,7 +463,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 heat_out.set_attr(P=-10e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -469,7 +473,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 heat_out.set_attr(P=-20e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -479,7 +483,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 heat_out.set_attr(P=-30e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -489,7 +493,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 heat_out.set_attr(P=-40e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -499,7 +503,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 print('maximum heat, minimum power')
 heat_out.set_attr(P=np.nan)
@@ -513,11 +517,11 @@ mp_ls.set_attr(m=np.nan)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 power_5 = -power.P.val
 heat_out_5 = -heat_out.P.val
 heat_cond_5 = -heat_cond.P.val
-Q_ti_5 = heat_in
+Q_ti_5 = heat_in.P.val
 
 # from minimum to maximum gas turbine power at maximum heat extraction
 
@@ -532,7 +536,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 gt_power.set_attr(P=gt_power_design * 0.7)
 mp_ls.set_attr(m=0.1 * m_lp_max)
@@ -543,7 +547,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 gt_power.set_attr(P=gt_power_design * 0.8)
 mp_ls.set_attr(m=0.1 * m_lp_max)
@@ -554,7 +558,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 gt_power.set_attr(P=gt_power_design * 0.9)
 mp_ls.set_attr(m=0.1 * m_lp_max)
@@ -565,7 +569,7 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 
 gt_power.set_attr(P=gt_power_design)
 mp_ls.set_attr(m=0.1 * m_lp_max)
@@ -576,20 +580,24 @@ print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
-Q_ti += heat_in.P.val
+Q_ti += [heat_in.P.val]
 power_6 = -power.P.val
 heat_out_6 = -heat_out.P.val
+heat_cond_6 = -heat_cond.P.val
+Q_ti_6 = heat_in.P.val
 
 plt.plot(Q, P, 'x')
 plt.show()
 
 P_max_woDH = (power_1 + power_2) /2
 eta_el_max = (eta_1 + eta_2) /2
-P_min_woDH = (power_1 + power_2) /2
-eta_el_min = (eta_1 + eta_2) /2
-H_L_FG = (power_5 + heat_out_5 + heat_cond_5) / Q_ti
-beta_oben = (power_5 - P_min_woDH) / heat_out_5
-beta_unten = (power_6 - P_max_woDH) / heat_out_6
+P_min_woDH = (power_3 + power_4) /2
+eta_el_min = (eta_3 + eta_4) /2
+H_L_FG_5 = 1-(power_5 + heat_out_5 + heat_cond_5) / Q_ti_5
+H_L_FG_6 = 1-(power_6 + heat_out_6 + heat_cond_6) / Q_ti_6
+H_L_FG_share_max = (H_L_FG_5 + H_L_FG_6) /2
+beta_unten = abs((power_5 - P_min_woDH) / heat_out_5)
+beta_oben = abs((power_6 - P_max_woDH) / heat_out_6)
 beta = (beta_oben + beta_unten) /2
 
 print('_____________________________')
@@ -598,12 +606,12 @@ print()
 print('Ergebnisse:')
 print()
 print('Q_N: ' + "%.2f" % abs(Q_N/1e6) + " MW")
-print('Q_in_BHKW: ' + "%.2f" % (Q_in_BHKW/1e6) + " MW")
+print('Q_in_GuD: ' + "%.2f" % (Q_in_GuD/1e6) + " MW")
 print('P_max_woDH: ' + "%.2f" % (P_max_woDH/1e6) + " MW")
 print('eta_el_max: ' + "%.4f" % eta_el_max)
 print('P_min_woDH: ' + "%.2f" % (P_min_woDH/1e6) + " MW")
 print('eta_el_min: ' + "%.4f" % eta_el_min)
-print('H_L_FG: ' + "%.4f" % H_L_FG)
+print('H_L_FG_share_max: ' + "%.4f" % H_L_FG_share_max)
 print('beta: ' + "%.4f" % beta)
 print()
 print('_____________________________')
