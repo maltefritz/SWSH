@@ -1,0 +1,6 @@
+label;cp;busses;bus_param;bus_P_ref;bus_char;mode;design;offdesign;interface
+ambient air;source;[];[];[];[];auto;[];[];False
+fuel source;source;[];[];[];[];auto;[];[];False
+ls source;source;[];[];[];[];auto;[];[];False
+cooling water backflow;source;[];[];[];[];auto;[];[];False
+district heating backflow;source;[];[];[];[];auto;[];[];False
