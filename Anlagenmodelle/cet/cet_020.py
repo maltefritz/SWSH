@@ -159,13 +159,13 @@ gt_power.add_comps({'c': g_turb}, {'c': comp})
 heat_out = bus('heat output')
 heat_out.add_comps({'c': cond_dh})
 
-heat_cond = bus('heat output')
+heat_cond = bus('heat cond')
 heat_cond.add_comps({'c': cond})
 
 heat_in = bus('heat input')
 heat_in.add_comps({'c': c_c})
 
-nw.add_busses(power, gt_power, heat_out, heat_cond heat_in)
+nw.add_busses(power, gt_power, heat_out, heat_cond, heat_in)
 
 # %% component parameters
 
@@ -269,7 +269,9 @@ Q = []
 Q_cond = []
 Q_ti = []
 
-heat_out.set_attr(P=-65e6)
+Q_N = -65e6
+
+heat_out.set_attr(P=Q_N)
 nw.solve(mode='design', init_path='cet_stable')
 nw.print_results()
 nw.save('cet_design_maxQ')
@@ -311,8 +313,8 @@ print(mp_ls.m.val_SI / m_lp_max)
 nw.print_results()
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += [heat_in.P.val]
 
 # move to maximum heat extraction at maximum gas turbine power
 
@@ -323,8 +325,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += [heat_in.P.val]
 eta_1 = -power.P.val / heat_in.P.val
 power_1 = -power.P.val
 
@@ -335,8 +337,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += [heat_in.P.val]
 eta_2 = -power.P.val / heat_in.P.val
 power_2 = -power.P.val
 
@@ -347,8 +349,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += [heat_in.P.val]
 
 heat_out.set_attr(P=-20e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -357,8 +359,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += [heat_in.P.val]
 
 heat_out.set_attr(P=-30e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -367,8 +369,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 heat_out.set_attr(P=-40e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -377,8 +379,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 heat_out.set_attr(P=-50e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -387,8 +389,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 heat_out.set_attr(P=-60e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -405,8 +407,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 #print('maximum heat, full power')
 #heat_out.set_attr(P=np.nan)
@@ -432,8 +434,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 eta_3 = -power.P.val / heat_in.P.val
 power_3 = -power.P.val
 
@@ -444,8 +446,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 eta_4 = -power.P.val / heat_in.P.val
 power_4 = -power.P.val
 
@@ -456,8 +458,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 heat_out.set_attr(P=-10e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -466,8 +468,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 heat_out.set_attr(P=-20e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -476,8 +478,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 heat_out.set_attr(P=-30e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -486,8 +488,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 heat_out.set_attr(P=-40e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
@@ -496,8 +498,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 print('maximum heat, minimum power')
 heat_out.set_attr(P=np.nan)
@@ -510,11 +512,11 @@ nw.print_results()
 mp_ls.set_attr(m=np.nan)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 power_5 = -power.P.val
 heat_out_5 = -heat_out.P.val
-heat_cond_5 = - -heat_cond
+heat_cond_5 = -heat_cond.P.val
 Q_ti_5 = heat_in
 
 # from minimum to maximum gas turbine power at maximum heat extraction
@@ -529,8 +531,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 gt_power.set_attr(P=gt_power_design * 0.7)
 mp_ls.set_attr(m=0.1 * m_lp_max)
@@ -540,8 +542,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 gt_power.set_attr(P=gt_power_design * 0.8)
 mp_ls.set_attr(m=0.1 * m_lp_max)
@@ -551,8 +553,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 gt_power.set_attr(P=gt_power_design * 0.9)
 mp_ls.set_attr(m=0.1 * m_lp_max)
@@ -562,8 +564,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 
 gt_power.set_attr(P=gt_power_design)
 mp_ls.set_attr(m=0.1 * m_lp_max)
@@ -573,8 +575,8 @@ print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 P += [-power.P.val]
 Q += [-heat_out.P.val]
-Q_cond += [-heat_cond]
-Q_ti += [heat_in]
+Q_cond += [-heat_cond.P.val]
+Q_ti += heat_in.P.val
 power_6 = -power.P.val
 heat_out_6 = -heat_out.P.val
 
@@ -588,6 +590,7 @@ eta_el_min = (eta_1 + eta_2) /2
 H_L_FG = (power_5 + heat_out_5 + heat_cond_5) / Q_ti
 beta_oben = (power_5 - P_min_woDH) / heat_out_5
 beta_unten = (power_6 - P_max_woDH) / heat_out_6
+beta = (beta_oben + beta_unten) /2
 
 print('_____________________________')
 print('#############################')
@@ -601,7 +604,7 @@ print('eta_el_max: ' + "%.4f" % eta_el_max)
 print('P_min_woDH: ' + "%.2f" % (P_min_woDH/1e6) + " MW")
 print('eta_el_min: ' + "%.4f" % eta_el_min)
 print('H_L_FG: ' + "%.4f" % H_L_FG)
-print('H_L_FG_min: ' + "%.4f" % H_L_FG_min)
+print('beta: ' + "%.4f" % beta)
 print()
 print('_____________________________')
 print('#############################')
