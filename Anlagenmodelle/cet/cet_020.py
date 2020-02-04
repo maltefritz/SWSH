@@ -271,7 +271,7 @@ Q = []
 Q_cond = []
 Q_ti = []
 
-# 65
+# Q_N=65
 
 heat_out.set_attr(P=Q_N)
 nw.solve(mode='design', init_path='cet_stable')
@@ -282,7 +282,7 @@ print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
 print(heat_out.P.val, power.P.val, heat_in.P.val)
 print(gt_power.P.val)
 
-# design case 2: maximum gas turbine minimum heat extraction (cet_design_minQ)
+# %% design case 2: maximum gas turbine minimum heat extraction (cet_design_minQ)
 gt_power.set_attr(P=gt_power_design)
 heat_out.set_attr(P=-1e5)
 
@@ -306,298 +306,122 @@ print(mp_ls.m.val_SI / m_lp_max)
 
 Q_in_GuD = heat_in.P.val
 
-# merge the plants together: offdesign test
+# %% offdesign
+
+    # %% merge the plants together: offdesign test
+
 print('no heat, full power')
 # nw.set_printoptions(print_level='none')
 
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
 nw.print_results()
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
 Q_ti += [heat_in.P.val]
 
-# move to maximum heat extraction at maximum gas turbine power
+    # %%move to maximum heat extraction at maximum gas turbine power
 
-heat_out.set_attr(P=-1e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-eta_1 = -power.P.val / heat_in.P.val
-power_1 = -power.P.val
+Q_step = np.linspace(-1e6, Q_N, num=7)
 
-heat_out.set_attr(P=-5e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-eta_2 = -power.P.val / heat_in.P.val
-power_2 = -power.P.val
+for Q_val in Q_step:
+    heat_out.set_attr(P=Q_val)
+    nw.solve(mode='offdesign', design_path='cet_design_minQ')
+    print(Q_val)
+    P += [-power.P.val]
+    Q += [-heat_out.P.val]
+    Q_cond += [-heat_cond.P.val]
+    Q_ti += [heat_in.P.val]
 
-heat_out.set_attr(P=-10e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
+# parameter for top_left
+P_t_l = (P[0]+P[1])/2
+Q_in_t_l = (Q_ti[0]+Q_ti[1])/2
 
-heat_out.set_attr(P=-20e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-
-heat_out.set_attr(P=-30e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-
-heat_out.set_attr(P=-40e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-
-heat_out.set_attr(P=-50e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-
-heat_out.set_attr(P=-60e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-
-heat_out.set_attr(P=-65e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-
-#print('maximum heat, full power')
-#heat_out.set_attr(P=np.nan)
-#mp_ls.set_attr(m=0.1 * m_lp_max)
-#nw.solve(mode='offdesign', design_path='cet_design_minQ')
-#print(heat_out.P.val / power.P.val)
-#print(heat_out.P.val, power.P.val)
-#print(mp_ls.m.val_SI / m_lp_max)
-#nw.print_results()
-#mp_ls.set_attr(m=np.nan)
-#P += [-power.P.val]
-#Q += [-heat_out.P.val]
-
-# back to design case, but minimum gas turbine power
-print('no heat, minimum power')
-gt_power.set_attr(P=gt_power_design / 2)
-heat_out.set_attr(P=-1e5)
-nw.solve(mode='offdesign',
-         init_path='cet_design_minQ',
-         design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-eta_3 = -power.P.val / heat_in.P.val
-power_3 = -power.P.val
-
-heat_out.set_attr(P=-1e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-eta_4 = -power.P.val / heat_in.P.val
-power_4 = -power.P.val
-
-heat_out.set_attr(P=-5e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-
-heat_out.set_attr(P=-10e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-
-heat_out.set_attr(P=-20e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-
-heat_out.set_attr(P=-30e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-
-heat_out.set_attr(P=-40e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-
-print('maximum heat, minimum power')
-heat_out.set_attr(P=np.nan)
-mp_ls.set_attr(m=0.1 * m_lp_max)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-nw.print_results()
-mp_ls.set_attr(m=np.nan)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-power_5 = -power.P.val
-heat_out_5 = -heat_out.P.val
-heat_cond_5 = -heat_cond.P.val
-Q_ti_5 = heat_in.P.val
-
-# from minimum to maximum gas turbine power at maximum heat extraction
+    # %% from minimum to maximum gas turbine power at maximum heat extraction
 
 print('minimum power to maximum power at maximum heat')
 
-gt_power.set_attr(P=gt_power_design * 0.6)
+heat_out.set_attr(P=np.nan)
+gt_power.set_attr(P=gt_power_design * 0.5) # Ist die Teillast tatsächlich 50%?
 mp_ls.set_attr(m=0.1 * m_lp_max)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
+P += [-power.P.val]
+Q += [-heat_out.P.val]
+Q_cond += [-heat_cond.P.val]
+Q_ti += [heat_in.P.val]
+Q_TL = heat_out.P.val
+
+# parameter for buttom_right:
+P_b_r = P[-1]
+Q_b_r = Q[-1]
+Q_cond_b_r = Q_cond[-1]
+Q_in_b_r = Q_ti[-1]
+
+TL_step = np.linspace(0.6, 1, num=4)
+
+for TL_val in TL_step:
+    gt_power.set_attr(P=gt_power_design * TL_val)
+    mp_ls.set_attr(m=0.1 * m_lp_max)
+    nw.solve(mode='offdesign', design_path='cet_design_minQ')
+    P += [-power.P.val]
+    Q += [-heat_out.P.val]
+    Q_cond += [-heat_cond.P.val]
+    Q_ti += [heat_in.P.val]
+
+# parameter for top_right:
+P_t_r = P[-1]
+Q_t_r = Q[-1]
+Q_cond_t_r = Q_cond[-1]
+Q_in_t_r = Q_ti[-1]
+
+    # %% back to design case, but minimum gas turbine power
+
+print('no heat, minimum power')
+
+mp_ls.set_attr(m=np.nan)
+gt_power.set_attr(P=gt_power_design / 2)    # Ist die Teillast tatsächlich 50%?
+heat_out.set_attr(P=-1e5)
+nw.solve(mode='offdesign',
+          init_path='cet_design_minQ',
+          design_path='cet_design_minQ')
 P += [-power.P.val]
 Q += [-heat_out.P.val]
 Q_cond += [-heat_cond.P.val]
 Q_ti += [heat_in.P.val]
 
-gt_power.set_attr(P=gt_power_design * 0.7)
-mp_ls.set_attr(m=0.1 * m_lp_max)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
+Q_step = np.linspace(-1e6, Q_TL, num=5, endpoint=False)
 
-gt_power.set_attr(P=gt_power_design * 0.8)
-mp_ls.set_attr(m=0.1 * m_lp_max)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
+for Q_val in Q_step:
+    heat_out.set_attr(P=Q_val)
+    nw.solve(mode='offdesign', design_path='cet_design_minQ')
+    print(Q_val)
+    P += [-power.P.val]
+    Q += [-heat_out.P.val]
+    Q_cond += [-heat_cond.P.val]
+    Q_ti += [heat_in.P.val]
 
-gt_power.set_attr(P=gt_power_design * 0.9)
-mp_ls.set_attr(m=0.1 * m_lp_max)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
+# parameter for buttom_left
+P_b_l = (P[-5]+P[-6])/2
+Q_in_b_l = (Q_ti[-5]+Q_ti[-6])/2
 
-gt_power.set_attr(P=gt_power_design)
-mp_ls.set_attr(m=0.1 * m_lp_max)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
-print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
-print(heat_out.P.val, power.P.val)
-print(mp_ls.m.val_SI / m_lp_max)
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
-Q_ti += [heat_in.P.val]
-power_6 = -power.P.val
-heat_out_6 = -heat_out.P.val
-heat_cond_6 = -heat_cond.P.val
-Q_ti_6 = heat_in.P.val
+# %% postprocessing
+
+# P_Q_Diagramm
 
 plt.plot(Q, P, 'x')
 plt.show()
 
-P_max_woDH = (power_1 + power_2) /2
-eta_el_max = (eta_1 + eta_2) /2
-P_min_woDH = (power_3 + power_4) /2
-eta_el_min = (eta_3 + eta_4) /2
-H_L_FG_5 = 1-(power_5 + heat_out_5 + heat_cond_5) / Q_ti_5
-H_L_FG_6 = 1-(power_6 + heat_out_6 + heat_cond_6) / Q_ti_6
-H_L_FG_share_max = (H_L_FG_5 + H_L_FG_6) /2
-beta_unten = abs((power_5 - P_min_woDH) / heat_out_5)
-beta_oben = abs((power_6 - P_max_woDH) / heat_out_6)
+# solph Parameter
+
+P_max_woDH = P_t_l
+eta_el_max = P_t_l/Q_in_t_l
+P_min_woDH = P_b_l
+eta_el_min = P_b_l/Q_in_b_l
+H_L_FG_t_r = 1-(P_t_r + Q_t_r + Q_cond_t_r) / Q_in_t_r
+H_L_FG_b_r = 1-(P_b_r + Q_b_r + Q_cond_b_r) / Q_in_b_r
+H_L_FG_share_max = (H_L_FG_t_r + H_L_FG_b_r) /2
+beta_unten = abs((P_b_r - P_b_l) / Q_b_r)
+beta_oben = abs((P_t_r - P_t_l) / Q_t_r)
 beta = (beta_oben + beta_unten) /2
 
 print('_____________________________')
