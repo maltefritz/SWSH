@@ -233,7 +233,7 @@ es_ref.add(ehk, slk, bhkw)
 
 tes = solph.components.GenericStorage(label='Wärmespeicher',
                                       nominal_storage_capacity=Q_tes,
-                                      inputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4, 
+                                      inputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4,
                                                               max=1,
                                                               min=0.1,
                                                               variable_costs=op_cost_tes,
