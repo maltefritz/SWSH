@@ -1,25 +1,26 @@
-# -*- coding: utf-8 -*-
-"""
+"""TESPy heat pipe model using ambient air as heatsource.
+
 Created on Thu Jan  9 10:07:02 2020
 
 @author: Malte Fritz
 """
 
+import numpy as np
+import pandas as pd
+
 from tespy.networks import network
 from tespy.components import (sink, source, splitter, compressor, condenser,
-                              pump, heat_exchanger_simple, valve, drum, 
+                              pump, heat_exchanger_simple, valve, drum,
                               heat_exchanger, cycle_closer)
 from tespy.connections import connection, ref
 from tespy.tools.characteristics import char_line
 from tespy.tools.characteristics import load_default_char as ldc
 
-import numpy as np
-import pandas as pd
 
 # %% network
 
 nw = network(fluids=['water', 'NH3', 'air'],
-                 T_unit='C', p_unit='bar', h_unit='kJ / kg', m_unit='kg / s')
+             T_unit='C', p_unit='bar', h_unit='kJ / kg', m_unit='kg / s')
 
 # %% components
 
@@ -205,8 +206,8 @@ for T in T_range:
 
         else:
             nw.save('OD_air_' + str(Q/1e3))
-            eps += [abs(cd.Q.val) / (cp1.P.val + cp2.P.val + erp.P.val +
-                    fan.P.val)]
+            eps += [abs(cd.Q.val) / (cp1.P.val + cp2.P.val + erp.P.val
+                                     + fan.P.val)]
 
     df.loc[T] = eps
 
