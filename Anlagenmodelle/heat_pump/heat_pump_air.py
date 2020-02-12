@@ -16,6 +16,9 @@ from tespy.connections import connection, ref
 from tespy.tools.characteristics import char_line
 from tespy.tools.characteristics import load_default_char as ldc
 
+# Auslegung für 200kW
+
+Q_N=abs(float(input('Gib die Nennwärmeleistung in kW ein: ')))*-1e3
 
 # %% network
 
@@ -101,14 +104,14 @@ nw.add_conns(su_cp1)
 
 # compressor-system
 
-cp1_he = connection(cp1, 'out1', ic, 'in1')
-he_cp2 = connection(ic, 'out1', cp2, 'in1')
+cp1_ic = connection(cp1, 'out1', ic, 'in1')
+ic_cp2 = connection(ic, 'out1', cp2, 'in1')
 cp2_c_out = connection(cp2, 'out1', cc, 'in1')
 
 sp_ic = connection(sp, 'out2', ic, 'in2')
 ic_out = connection(ic, 'out2', amb_out2, 'in1')
 
-nw.add_conns(cp1_he, he_cp2, sp_ic, ic_out, cp2_c_out)
+nw.add_conns(cp1_ic, ic_cp2, sp_ic, ic_out, cp2_c_out)
 
 # %% component parametrization
 
@@ -152,8 +155,8 @@ ic.set_attr(pr1=0.98, pr2=0.999, design=['pr1', 'pr2'],
 # condenser system
 
 c_in_cd.set_attr(fluid={'air': 0, 'NH3': 1, 'water': 0})
-cb_dhp.set_attr(T=60, p=10, fluid={'air': 0, 'NH3': 0, 'water': 1})
-cd_cons.set_attr(T=90)
+cb_dhp.set_attr(T=50, p=10, fluid={'air': 0, 'NH3': 0, 'water': 1})
+cd_cons.set_attr(T=91)
 cons_cf.set_attr(h=ref(cb_dhp, 1, 0), p=ref(cb_dhp, 1, 0))
 
 # evaporator system cold side
@@ -170,12 +173,12 @@ ev_amb_out.set_attr(T=9, design=['T'])
 
 # compressor-system
 
-he_cp2.set_attr(T=40, p0=10, design=['T'])
+ic_cp2.set_attr(T=40, p0=10, design=['T'])
 ic_out.set_attr(T=30, design=['T'])
 
 # %% key paramter
 
-cons.set_attr(Q=-200e3)
+cons.set_attr(Q=Q_N)
 
 # %% Calculation
 
@@ -183,8 +186,11 @@ nw.solve('design')
 nw.print_results()
 nw.save('heat_pump_air')
 
+# T_range und Q_range sind die vorzugegbenden Außentemperaturen und die
+# Auslegung der Wärmepumpe
 T_range = [6, 9, 12, 15, 18, 21, 24]
-Q_range = np.array([120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
+# Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
+Q_range = np.array([10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6])
 df = pd.DataFrame(columns=Q_range / -cons.Q.val)
 
 for T in T_range:
@@ -207,8 +213,47 @@ for T in T_range:
         else:
             nw.save('OD_air_' + str(Q/1e3))
             eps += [abs(cd.Q.val) / (cp1.P.val + cp2.P.val + erp.P.val
-                                     + fan.P.val)]
+                                     + fan.P.val)]                         # Hier wird der COP berechnet: Q_out / P_in
 
     df.loc[T] = eps
 
 df.to_csv('COP_air.csv')
+
+
+# %% Paramater für Solph
+
+# Rechnung für c_0, c_1 und P_in nach solph
+# Q und P sind in MW angegeben
+COP_max = max(df.loc[T])
+COP_min = min(df.loc[T])
+Q_out_max = max(Q_range)/1e6
+Q_out_min = min(Q_range)/1e6
+s_max = 1
+s_min = Q_out_min/Q_out_max
+P_in_max = Q_out_max/COP_max
+P_in_min = Q_out_min/COP_min
+c_1 = (Q_out_max - Q_out_min)/(P_in_max - P_in_min)
+c_0 = Q_out_max - c_1 * P_in_max
+
+
+# %% Ausdruck Ergebnisse Solph
+
+print('_____________________________')
+print('#############################')
+print()
+print('Ergebnisse:')
+print()
+print('Q_N: ' + "%.2f" % abs(Q_N/1e6) + " MW")
+print('COP_max: ' + "%.4f" % COP_max)
+print('COP_min: ' + "%.4f" % COP_min)
+print('c_1: ' + "%.4f" % c_1)
+print('c_0: ' + "%.4f" % c_0)
+print('Q_out_max: ' + "%.2f" % Q_out_max + " MW")
+print('Q_out_min: ' + "%.2f" % Q_out_min + " MW")
+print('P_in_max = nominal_value: ' + "%.2f" % P_in_max + " MW")
+print('P_in_min: ' + "%.2f" % P_in_min + " MW")
+print('solph_max: ' + "%.1f" % s_max)
+print('solph_min: ' + "%.1f" % s_min)
+print()
+print('_____________________________')
+print('#############################')
