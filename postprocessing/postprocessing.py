@@ -20,18 +20,30 @@ def pp_Ref():
     None.
     """
     # %% Daten einlesen
+
     dirpath = path.abspath(path.join(__file__, "../.."))
+
+    # Invest
     inv = pd.read_csv(path.join(dirpath,
                                 'Ergebnisse\\Ref_Ergebnisse\\Ref_Invest.csv'),
                       sep=";")
-    wnw = pd.read_csv(path.join(dirpath,
-                                'Ergebnisse\\Ref_Ergebnisse\\Ref_wnw.csv'),
-                      sep=";", index_col=0, parse_dates=True)
 
     invest_ges = float(inv['invest_ges'])
     objective = float(inv['objective'])
     ausgaben = float(inv['ausgaben'])
     total_heat_demand = float(inv['total_heat_demand'])
+
+    # CO2
+    use = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\Ref_Ergebnisse\\Ref_CO2.csv'),
+                      sep=";")
+
+    co2 = pd.read_csv('emissions2016.csv', sep=";")
+
+    # Ergebnisvisualisierung
+    wnw = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\Ref_Ergebnisse\\Ref_wnw.csv'),
+                      sep=";", index_col=0, parse_dates=True)
 
     # %% Ergebnisse der Investitionsrechnungen
     netpresentvalue = npv(invest_ges, objective)/1e6
