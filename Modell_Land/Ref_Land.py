@@ -271,5 +271,5 @@ df2.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_Invest.csv'),
 df3 = pd.concat([data_gnw.iloc[:, [0, 1]], data_enw.iloc[:, [2, 3]]], axis=1)
 label = ['Q_in,BHKW', 'Q_in,SLK', 'P_in', 'P_out']
 df3.columns = label
-df3.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_C02.csv'),
+df3.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_CO2.csv'),
            sep=";")
