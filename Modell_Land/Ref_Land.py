@@ -252,6 +252,7 @@ ausgaben = cost_gas + cost_bhkw + cost_slk + cost_ehk + cost_el_sum - R_el_sum
 
     #%% Output Ergebnisse
 
+# Daten des Wärmenetzes
 label = ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']
 data_wnw.columns = label
 
@@ -259,8 +260,16 @@ df1 = pd.DataFrame(data=data_wnw)
 df1.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_wnw.csv'),
            sep=";")
 
+# Daten für die ökonomische Bewertung
 d2 = {'invest_ges': [invest_ges], 'objective': [objective],
       'total_heat_demand': [total_heat_demand], 'ausgaben': [ausgaben]}
 df2 = pd.DataFrame(data=d2)
 df2.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_Invest.csv'),
+           sep=";")
+
+# Daten für die ökologische Bewertung
+df3 = pd.concat([data_gnw.iloc[:, [0, 1]], data_enw.iloc[:, [2, 3]]], axis=1)
+label = ['Q_in,BHKW', 'Q_in,SLK', 'P_in', 'P_out']
+df3.columns = label
+df3.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_C02.csv'),
            sep=";")
