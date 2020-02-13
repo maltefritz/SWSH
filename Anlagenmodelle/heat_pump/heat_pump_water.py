@@ -7,7 +7,7 @@ Created on Thu Jan  9 10:32:24 2020
 
 from tespy.networks import network
 from tespy.components import (sink, source, splitter, compressor, condenser,
-                              pump, heat_exchanger_simple, valve, drum, 
+                              pump, heat_exchanger_simple, valve, drum,
                               heat_exchanger, cycle_closer)
 from tespy.connections import connection, ref
 from tespy.tools.characteristics import char_line
@@ -15,6 +15,10 @@ from tespy.tools.characteristics import load_default_char as ldc
 
 import numpy as np
 import pandas as pd
+
+# Auslegung für 200kW
+
+Q_N=abs(float(input('Gib die Nennwärmeleistung in kW ein: ')))*-1e3
 
 # %% network
 
@@ -129,7 +133,7 @@ kA_char2 = ldc('heat exchanger', 'kA_char2', 'EVAPORATING FLUID', char_line)
 ev.set_attr(pr1=0.999, pr2=0.99, ttd_l=5,
             kA_char1=kA_char1, kA_char2=kA_char2,
             design=['pr1', 'ttd_l'], offdesign=['zeta1', 'kA'])
-su.set_attr(pr1=0.999, pr2=0.99, ttd_u=2, design=['pr1', 'pr2', 'ttd_u'], 
+su.set_attr(pr1=0.999, pr2=0.99, ttd_u=2, design=['pr1', 'pr2', 'ttd_u'],
             offdesign=['zeta1', 'zeta2', 'kA'])
 erp.set_attr(eta_s=0.8, design=['eta_s'], offdesign=['eta_s_char'])
 
@@ -173,7 +177,7 @@ ic_out.set_attr(T=30, design=['T'])
 
 # %% key paramter
 
-cons.set_attr(Q=-200e3)
+cons.set_attr(Q=Q_N)
 
 # %% Calculation
 
@@ -182,7 +186,8 @@ nw.print_results()
 nw.save('heat_pump_water')
 
 T_range = [6, 9, 12, 15, 18, 21, 24]
-Q_range = np.array([120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
+Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
+# Q_range = np.array([10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6])
 df = pd.DataFrame(columns=Q_range / -cons.Q.val)
 
 for T in T_range:
@@ -210,3 +215,42 @@ for T in T_range:
     df.loc[T] = eps
 
 df.to_csv('COP_water.csv')
+
+
+# %% Paramater für Solph
+
+# Rechnung für c_0, c_1 und P_in nach solph
+# Q und P sind in MW angegeben
+COP_max = max(df.loc[T])
+COP_min = min(df.loc[T])
+Q_out_max = max(Q_range)/1e6
+Q_out_min = min(Q_range)/1e6
+s_max = 1
+s_min = Q_out_min/Q_out_max
+P_in_max = Q_out_max/COP_max
+P_in_min = Q_out_min/COP_min
+c_1 = (Q_out_max - Q_out_min)/(P_in_max - P_in_min)
+c_0 = Q_out_max - c_1 * P_in_max
+
+
+# %% Ausdruck Ergebnisse Solph
+
+print('_____________________________')
+print('#############################')
+print()
+print('Ergebnisse:')
+print()
+print('Q_N: ' + "%.2f" % abs(Q_N/1e6) + " MW")
+print('COP_max: ' + "%.4f" % COP_max)
+print('COP_min: ' + "%.4f" % COP_min)
+print('c_1: ' + "%.4f" % c_1)
+print('c_0: ' + "%.4f" % c_0)
+print('Q_out_max: ' + "%.2f" % Q_out_max + " MW")
+print('Q_out_min: ' + "%.2f" % Q_out_min + " MW")
+print('P_in_max = nominal_value: ' + "%.2f" % P_in_max + " MW")
+print('P_in_min: ' + "%.2f" % P_in_min + " MW")
+print('solph_max: ' + "%.1f" % s_max)
+print('solph_min: ' + "%.1f" % s_min)
+print()
+print('_____________________________')
+print('#############################')
