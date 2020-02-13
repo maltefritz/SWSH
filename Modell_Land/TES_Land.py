@@ -162,29 +162,30 @@ ehk = solph.Transformer(label='Elektroheizkessel',
 
 slk = solph.Transformer(label='Spitzenlastkessel',
                         inputs={gnw: solph.Flow()},
-                        outputs={wnw: solph.Flow(nominal_value=Q_slk,
-                                                 max=1,
-                                                 min=0,
-                                                 variable_costs=op_cost_slk+energy_tax)},
+                        outputs={wnw: solph.Flow(
+                            nominal_value=Q_slk,
+                            max=1,
+                            min=0,
+                            variable_costs=op_cost_slk+energy_tax)},
                         conversion_factors={wnw: eta_slk})
 
 
 bhkw = solph.components.GenericCHP(
-                        label='BHKW',
-                        fuel_input={gnw: solph.Flow(
-                            H_L_FG_share_max=[H_L_FG_share_max for p in range(0, periods)],
-                            H_L_FG_share_min=[H_L_FG_share_min for p in range(0, periods)],
-                            nominal_value=Q_in_bhkw)},
-                        electrical_output={enw: solph.Flow(
-                            variable_costs=op_cost_bhkw,
-                            P_max_woDH=[P_max_bhkw for p in range(0, periods)],
-                            P_min_woDH=[P_min_bhkw for p in range(0, periods)],
-                            Eta_el_max_woDH=[Eta_el_max_woDH for p in range(0, periods)],
-                            Eta_el_min_woDH=[Eta_el_min_woDH for p in range(0, periods)])},
-                        heat_output={wnw: solph.Flow(
-                            Q_CW_min=[0 for p in range(0, periods)])},
-                        Beta=[0 for p in range(0, periods)],
-                        back_pressure=False)
+    label='BHKW',
+    fuel_input={gnw: solph.Flow(
+        H_L_FG_share_max=[H_L_FG_share_max for p in range(0, periods)],
+        H_L_FG_share_min=[H_L_FG_share_min for p in range(0, periods)],
+        nominal_value=Q_in_bhkw)},
+    electrical_output={enw: solph.Flow(
+        variable_costs=op_cost_bhkw,
+        P_max_woDH=[P_max_bhkw for p in range(0, periods)],
+        P_min_woDH=[P_min_bhkw for p in range(0, periods)],
+        Eta_el_max_woDH=[Eta_el_max_woDH for p in range(0, periods)],
+        Eta_el_min_woDH=[Eta_el_min_woDH for p in range(0, periods)])},
+    heat_output={wnw: solph.Flow(
+        Q_CW_min=[0 for p in range(0, periods)])},
+    Beta=[0 for p in range(0, periods)],
+    back_pressure=False)
 
 
 es_ref.add(ehk, slk, bhkw)
@@ -192,23 +193,25 @@ es_ref.add(ehk, slk, bhkw)
     # %% Speicher
 # Saisonaler Speicher
 
-tes = solph.components.GenericStorage(label='Wärmespeicher',
-                                      nominal_storage_capacity=Q_tes,
-                                      inputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4,
-                                                              max=1,
-                                                              min=0.1,
-                                                              variable_costs=op_cost_tes,
-                                                              nonconvex=solph.NonConvex(
-                                                                  minimum_uptime=3,
-                                                                  initial_status=0))},
-                                      outputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4,
-                                                               max=1,
-                                                               min=0.1,
-                                                               nonconvex=solph.NonConvex(
-                                                                   minimum_uptime=3, initial_status=0))},
-                                      initial_storage_level=0.7,
-                                      inflow_conversion_factor=1,
-                                      outflow_conversion_factor=0.75)
+tes = solph.components.GenericStorage(
+    label='Wärmespeicher',
+    nominal_storage_capacity=Q_tes,
+    inputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4,
+                            max=1,
+                            min=0.1,
+                            variable_costs=op_cost_tes,
+                            nonconvex=solph.NonConvex(
+                                minimum_uptime=3,
+                                initial_status=0))},
+    outputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4,
+                             max=1,
+                             min=0.1,
+                             nonconvex=solph.NonConvex(
+                                 minimum_uptime=3,
+                                 initial_status=0))},
+    initial_storage_level=0.7,
+    inflow_conversion_factor=1,
+    outflow_conversion_factor=0.75)
 
 es_ref.add(tes)
 
