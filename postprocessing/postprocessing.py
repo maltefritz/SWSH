@@ -56,6 +56,7 @@ def pp_Ref():
     lcoh = LCOH(invest_ges, ausgaben, total_heat_demand)
 
     print("Referenzsystem")
+    print()
     print("Erebnisse der Investitionsrechnungen:")
     print()
     print("Kapitalwert (NPV): " + '{:.3f}'.format(netpresentvalue) + " Mio. €")
@@ -79,6 +80,7 @@ def pp_Ref():
 
     print()
     print("Erebnisse der Emissionsrechnungen:")
+    print()
     print("Gesamtemissionen (Gesamtmix): " + '{:.0f}'.format(totEm_om)
           + " t CO2")
     print("Gesamtemissionen (Verdrängungsmix): " + '{:.0f}'.format(totEm_dm)
@@ -111,16 +113,13 @@ def pp_TES():
     None.
     """
     # %% Daten einlesen
+
     dirpath = path.abspath(path.join(__file__, "../.."))
+
+    # Invest
     inv = pd.read_csv(path.join(dirpath,
                                 'Ergebnisse\\TES_Ergebnisse\\TES_Invest.csv'),
                       sep=";")
-    wnw = pd.read_csv(path.join(dirpath,
-                                'Ergebnisse\\TES_Ergebnisse\\TES_wnw.csv'),
-                      sep=";", index_col=0, parse_dates=True)
-    tes = pd.read_csv(path.join(
-        dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_Speicher.csv'), sep=";",
-        index_col=0, parse_dates=True)
 
     invest_TES = invest_stes(float(inv['Q_tes']))
     invest_ges = invest_TES + float(inv['invest_ges'])
@@ -128,15 +127,61 @@ def pp_TES():
     ausgaben = float(inv['ausgaben'])
     total_heat_demand = float(inv['total_heat_demand'])
 
+    # CO2
+    use = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\TES_Ergebnisse\\TES_CO2.csv'),
+                      sep=";", index_col=0, parse_dates=True)
+
+    co2 = pd.read_csv('emissions2016.csv', sep=";", index_col=0,
+                      parse_dates=True)
+
+    Em_om = []
+    Em_dm = []
+
+    e_fuel = 0.2012    # in t/MWh aus "Emissionsbewertung Daten"
+
+    # Ergebnisvisualisierung
+    wnw = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\TES_Ergebnisse\\TES_wnw.csv'),
+                      sep=";", index_col=0, parse_dates=True)
+    tes = pd.read_csv(path.join(
+        dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_Speicher.csv'), sep=";",
+        index_col=0, parse_dates=True)
+
     # %% Ergebnisse der Investitionsrechnungen
     netpresentvalue = npv(invest_ges, objective)/1e6
     lcoh = LCOH(invest_ges, ausgaben, total_heat_demand)
 
     print("Referenzsystem + Wärmespeicher")
+    print()
     print("Erebnisse der Investitionsrechnungen:")
     print()
     print("Kapitalwert (NPV): " + '{:.3f}'.format(netpresentvalue) + " Mio. €")
     print("Wärmegestehungskosten (LCOH): " + '{:.2f}'.format(lcoh) + " €/MWh")
+
+    # %% Ergebnisse der Emissionsrechnung
+    for idx in range(0, len(use)):
+        OM = ((use.iloc[idx, 0] + use.iloc[idx, 1]) * e_fuel
+              + use.iloc[idx, 3] * co2.iloc[idx, 0]
+              - use.iloc[idx, 2] * co2.iloc[idx, 0])
+
+        DM = ((use.iloc[idx, 0] + use.iloc[idx, 1]) * e_fuel
+              + use.iloc[idx, 3] * co2.iloc[idx, 1]
+              - use.iloc[idx, 2] * co2.iloc[idx, 1])
+
+        Em_om.append(OM)
+        Em_dm.append(DM)
+
+    totEm_om = sum(Em_om)
+    totEm_dm = sum(Em_dm)
+
+    print()
+    print("Erebnisse der Emissionsrechnungen:")
+    print()
+    print("Gesamtemissionen (Gesamtmix): " + '{:.0f}'.format(totEm_om)
+          + " t CO2")
+    print("Gesamtemissionen (Verdrängungsmix): " + '{:.0f}'.format(totEm_dm)
+          + " t CO2")
 
     # %% Visualisierung
     ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
@@ -183,16 +228,13 @@ def pp_Sol():
     None.
     """
     # %% Daten einlesen
+
     dirpath = path.abspath(path.join(__file__, "../.."))
+
+    # Invest
     inv = pd.read_csv(path.join(dirpath,
                                 'Ergebnisse\\Sol_Ergebnisse\\Sol_Invest.csv'),
                       sep=";")
-    wnw = pd.read_csv(path.join(dirpath,
-                                'Ergebnisse\\Sol_Ergebnisse\\Sol_wnw.csv'),
-                      sep=";", index_col=0, parse_dates=True)
-    tes = pd.read_csv(path.join(
-        dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_Speicher.csv'), sep=";",
-        index_col=0, parse_dates=True)
 
     invest_TES = invest_stes(float(inv['Q_tes']))
     invest_ges = invest_TES + float(inv['invest_ges'])
@@ -200,15 +242,61 @@ def pp_Sol():
     ausgaben = float(inv['ausgaben'])
     total_heat_demand = float(inv['total_heat_demand'])
 
+    # CO2
+    use = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\Sol_Ergebnisse\\Sol_CO2.csv'),
+                      sep=";", index_col=0, parse_dates=True)
+
+    co2 = pd.read_csv('emissions2016.csv', sep=";", index_col=0,
+                      parse_dates=True)
+
+    Em_om = []
+    Em_dm = []
+
+    e_fuel = 0.2012    # in t/MWh aus "Emissionsbewertung Daten"
+
+    # Ergebnisvisualisierung
+    wnw = pd.read_csv(path.join(dirpath,
+                                'Ergebnisse\\Sol_Ergebnisse\\Sol_wnw.csv'),
+                      sep=";", index_col=0, parse_dates=True)
+    tes = pd.read_csv(path.join(
+        dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_Speicher.csv'), sep=";",
+        index_col=0, parse_dates=True)
+
     # %% Ergebnisse der Investitionsrechnungen
     netpresentvalue = npv(invest_ges, objective)/1e6
     lcoh = LCOH(invest_ges, ausgaben, total_heat_demand)
 
     print("Referenzsystem + Wärmespeicher + Solarthermie")
+    print()
     print("Erebnisse der Investitionsrechnungen:")
     print()
     print("Kapitalwert (NPV): " + '{:.3f}'.format(netpresentvalue) + " Mio. €")
     print("Wärmegestehungskosten (LCOH): " + '{:.2f}'.format(lcoh) + " €/MWh")
+
+    # %% Ergebnisse der Emissionsrechnung
+    for idx in range(0, len(use)):
+        OM = ((use.iloc[idx, 0] + use.iloc[idx, 1]) * e_fuel
+              + use.iloc[idx, 3] * co2.iloc[idx, 0]
+              - use.iloc[idx, 2] * co2.iloc[idx, 0])
+
+        DM = ((use.iloc[idx, 0] + use.iloc[idx, 1]) * e_fuel
+              + use.iloc[idx, 3] * co2.iloc[idx, 1]
+              - use.iloc[idx, 2] * co2.iloc[idx, 1])
+
+        Em_om.append(OM)
+        Em_dm.append(DM)
+
+    totEm_om = sum(Em_om)
+    totEm_dm = sum(Em_dm)
+
+    print()
+    print("Erebnisse der Emissionsrechnungen:")
+    print()
+    print("Gesamtemissionen (Gesamtmix): " + '{:.0f}'.format(totEm_om)
+          + " t CO2")
+    print("Gesamtemissionen (Verdrängungsmix): " + '{:.0f}'.format(totEm_dm)
+          + " t CO2")
 
     # %% Visualisierung
     ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
@@ -256,3 +344,18 @@ def pp_Sol():
     filename = path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_plots.pdf')
     shared.create_multipage_pdf(file_name=filename)
     plt.show()
+
+
+def run_all():
+    """Run postprocessing for all modells."""
+    print('Ref_Land:')
+    pp_Ref()
+    print('####################')
+    print()
+    print('TES_Land:')
+    pp_TES()
+    print('####################')
+    print()
+    print('Sol_Land:')
+    pp_Sol()
+    print('####################')
