@@ -269,7 +269,7 @@ df2.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_Invest.csv'),
 
 # Daten für die ökologische Bewertung
 df3 = pd.concat([data_gnw.iloc[:, [0, 1]], data_enw.iloc[:, [2, 3]]], axis=1)
-label = ['Q_in,BHKW', 'Q_in,SLK', 'P_in', 'P_out']
+label = ['Q_in,BHKW', 'Q_in,SLK', 'P_out', 'P_in']
 df3.columns = label
 df3.to_csv(path.join(dirpath, 'Ergebnisse\\Ref_Ergebnisse\\Ref_CO2.csv'),
            sep=";")
