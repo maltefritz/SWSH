@@ -36,9 +36,15 @@ def pp_Ref():
     # CO2
     use = pd.read_csv(path.join(dirpath,
                                 'Ergebnisse\\Ref_Ergebnisse\\Ref_CO2.csv'),
-                      sep=";")
+                      sep=";", index_col=0, parse_dates=True)
 
-    co2 = pd.read_csv('emissions2016.csv', sep=";")
+    co2 = pd.read_csv('emissions2016.csv', sep=";", index_col=0,
+                      parse_dates=True)
+
+    Em_om = []
+    Em_dm = []
+
+    e_fuel = 0.2012    # in t/MWh aus "Emissionsbewertung Daten"
 
     # Ergebnisvisualisierung
     wnw = pd.read_csv(path.join(dirpath,
@@ -54,6 +60,29 @@ def pp_Ref():
     print()
     print("Kapitalwert (NPV): " + '{:.3f}'.format(netpresentvalue) + " Mio. €")
     print("Wärmegestehungskosten (LCOH): " + '{:.2f}'.format(lcoh) + " €/MWh")
+
+    # %% Ergebnisse der Emissionsrechnung
+    for idx in range(0, len(use)):
+        OM = ((use.iloc[idx, 0] + use.iloc[idx, 1]) * e_fuel
+              + use.iloc[idx, 2] * co2.iloc[idx, 0]
+              - use.iloc[idx, 3] * co2.iloc[idx, 0])
+
+        DM = ((use.iloc[idx, 0] + use.iloc[idx, 1]) * e_fuel
+              + use.iloc[idx, 2] * co2.iloc[idx, 1]
+              - use.iloc[idx, 3] * co2.iloc[idx, 1])
+
+        Em_om.append(OM)
+        Em_dm.append(DM)
+
+    totEm_om = sum(Em_om)
+    totEm_dm = sum(Em_dm)
+
+    print()
+    print("Erebnisse der Emissionsrechnungen:")
+    print("Gesamtemissionen (Gesamtmix): " + '{:.0f}'.format(totEm_om)
+          + " t CO2")
+    print("Gesamtemissionen (Verdrängungsmix): " + '{:.0f}'.format(totEm_dm)
+          + " t CO2")
 
     # %% Visualisierung
     ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
