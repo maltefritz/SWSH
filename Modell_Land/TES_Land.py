@@ -312,3 +312,10 @@ del data_tes[label[4]]
 df3 = pd.DataFrame(data=data_tes)
 df3.to_csv(path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_Speicher.csv'),
            sep=";")
+
+# Daten für die ökologische Bewertung
+df3 = pd.concat([data_gnw.iloc[:, [0, 1]], data_enw.iloc[:, [2, 3]]], axis=1)
+label = ['Q_in,BHKW', 'Q_in,SLK', 'P_out', 'P_in']
+df3.columns = label
+df3.to_csv(path.join(dirpath, 'Ergebnisse\\TES_Ergebnisse\\TES_CO2.csv'),
+           sep=";")
