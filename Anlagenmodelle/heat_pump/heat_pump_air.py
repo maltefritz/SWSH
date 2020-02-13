@@ -155,8 +155,8 @@ ic.set_attr(pr1=0.98, pr2=0.999, design=['pr1', 'pr2'],
 # condenser system
 
 c_in_cd.set_attr(fluid={'air': 0, 'NH3': 1, 'water': 0})
-cb_dhp.set_attr(T=50, p=10, fluid={'air': 0, 'NH3': 0, 'water': 1})
-cd_cons.set_attr(T=91)
+cb_dhp.set_attr(T=60, p=10, fluid={'air': 0, 'NH3': 0, 'water': 1})
+cd_cons.set_attr(T=90)
 cons_cf.set_attr(h=ref(cb_dhp, 1, 0), p=ref(cb_dhp, 1, 0))
 
 # evaporator system cold side
@@ -186,11 +186,11 @@ nw.solve('design')
 nw.print_results()
 nw.save('heat_pump_air')
 
-# T_range und Q_range sind die vorzugegbenden Außentemperaturen und die
-# Auslegung der Wärmepumpe
+# T_range ist die vorzugegbenden Außentemperaturen und Q_range bildet die
+# abgegebende Wärme beim Konsumenten ab und somit die Auslegung der Wärmepumpe
 T_range = [6, 9, 12, 15, 18, 21, 24]
-# Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
-Q_range = np.array([10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6])
+Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
+# Q_range = np.array([10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6])
 df = pd.DataFrame(columns=Q_range / -cons.Q.val)
 
 for T in T_range:

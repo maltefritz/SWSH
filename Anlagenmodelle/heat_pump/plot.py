@@ -11,10 +11,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 T_range = [6, 9, 12, 15, 18, 21, 24]
-# Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
-Q_range = np.array([10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6])
+Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
+# Q_range = np.array([10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6])
 
-df = pd.read_csv('COP_air.csv', index_col=0)
+df = pd.read_csv('COP_water.csv', index_col=0)
 
 colors = ['#ec6707', '#00395b', '#74adc1', '#b54036', '#ec6707',
           '#bfbfbf', '#999999', '#010101']
