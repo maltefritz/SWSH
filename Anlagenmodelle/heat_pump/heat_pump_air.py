@@ -189,8 +189,10 @@ nw.save('heat_pump_air')
 # T_range ist die vorzugegbenden Außentemperaturen und Q_range bildet die
 # abgegebende Wärme beim Konsumenten ab und somit die Auslegung der Wärmepumpe
 T_range = [6, 9, 12, 15, 18, 21, 24]
+# T_range = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
+# Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
 Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
-# Q_range = np.array([10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6])
+# Q_range = np.array([5e6, 7.5e6, 10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6, 27.5e6])
 df = pd.DataFrame(columns=Q_range / -cons.Q.val)
 
 for T in T_range:
