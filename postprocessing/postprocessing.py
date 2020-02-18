@@ -1,4 +1,4 @@
-"""Module for postprocessing of Solph simulations.
+"""Module for postprocessing of SWSH's Solph simulations.
 
 Created on Thu Jan 16 14:23:17 2020
 
@@ -78,6 +78,9 @@ def pp_Ref():
     totEm_om = sum(Em_om)
     totEm_dm = sum(Em_dm)
 
+    dfEm = pd.DataFrame({'Gesamtmix': [totEm_om],
+                         'Verdrängungsmix': [totEm_dm]})
+
     print()
     print("Erebnisse der Emissionsrechnungen:")
     print()
@@ -93,6 +96,10 @@ def pp_Ref():
     ax = zplt.line(data=wnw, xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.bar(data=dfEm.transpose().loc[:, 0],
+                  ylabel='CO2-Emissionen in t')
+    ax.grid(b=False, which='major', axis='x')
 
     # 7-Tage Plots
     idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
@@ -175,6 +182,9 @@ def pp_TES():
     totEm_om = sum(Em_om)
     totEm_dm = sum(Em_dm)
 
+    dfEm = pd.DataFrame({'Gesamtmix': [totEm_om],
+                         'Verdrängungsmix': [totEm_dm]})
+
     print()
     print("Erebnisse der Emissionsrechnungen:")
     print()
@@ -200,6 +210,10 @@ def pp_TES():
     ax = zplt.line(data=tes, xlabel='Date', ylabel='Speicherstand in MWh',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.bar(data=dfEm.transpose().loc[:, 0],
+                  ylabel='CO2-Emissionen in t')
+    ax.grid(b=False, which='major', axis='x')
 
     # 7-Tage Plots
     idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
@@ -290,6 +304,9 @@ def pp_Sol():
     totEm_om = sum(Em_om)
     totEm_dm = sum(Em_dm)
 
+    dfEm = pd.DataFrame({'Gesamtmix': [totEm_om],
+                         'Verdrängungsmix': [totEm_dm]})
+
     print()
     print("Erebnisse der Emissionsrechnungen:")
     print()
@@ -323,6 +340,10 @@ def pp_Sol():
     ax = zplt.line(data=wnw[['Solar', 'Wärmebedarf']], xlabel='Date',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.bar(data=dfEm.transpose().loc[:, 0],
+                  ylabel='CO2-Emissionen in t')
+    ax.grid(b=False, which='major', axis='x')
 
     # 7-Tage Plots
     idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
