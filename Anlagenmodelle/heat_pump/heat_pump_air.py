@@ -124,7 +124,7 @@ cons.set_attr(pr=0.99, design=['pr'], offdesign=['zeta'])
 
 # ambient air
 
-fan.set_attr(eta_s=0.5, pr=1.005, design=['eta_s'], offdesign=['eta_s_char'])
+fan.set_attr(eta_s=0.8, pr=1.005, design=['eta_s'], offdesign=['eta_s_char'])
 
 # evaporator system
 
@@ -166,15 +166,14 @@ su_cp1.set_attr(p0=5, h0=1700)
 
 # evaporator system hot side
 
-amb_fan.set_attr(T=12, p=4, fluid={'air': 1, 'NH3': 0, 'water': 0},
-                 offdesign=['v'])
-sp_su.set_attr(offdesign=['v'])
-ev_amb_out.set_attr(T=9, design=['T'])
+amb_fan.set_attr(T=12, p=4, fluid={'air': 1, 'NH3': 0, 'water': 0})
+# sp_su.set_attr(offdesign=['v'])
+ev_amb_out.set_attr(T=ref(amb_fan, 1, -4))
 
 # compressor-system
 
 ic_cp2.set_attr(T=40, p0=10, design=['T'])
-ic_out.set_attr(T=30, design=['T'])
+ic_out.set_attr(T=30, design=['T'], offdesign=['v'])
 
 # %% key paramter
 
@@ -190,8 +189,8 @@ nw.save('heat_pump_air')
 # abgegebende Wärme beim Konsumenten ab und somit die Auslegung der Wärmepumpe
 T_range = [6, 9, 12, 15, 18, 21, 24]
 # T_range = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
-# Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
-Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
+Q_range = np.array([20e3, 40e3, 60e3, 80e3, 100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
+# Q_range = np.array([10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6])
 # Q_range = np.array([5e6, 7.5e6, 10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6, 27.5e6])
 df = pd.DataFrame(columns=Q_range / -cons.Q.val)
 
@@ -215,7 +214,8 @@ for T in T_range:
         else:
             nw.save('OD_air_' + str(Q/1e3))
             eps += [abs(cd.Q.val) / (cp1.P.val + cp2.P.val + erp.P.val
-                                     + fan.P.val)]                         # Hier wird der COP berechnet: Q_out / P_in
+                                     + fan.P.val)]
+            # Hier wird der COP berechnet: Q_out / P_in
 
     df.loc[T] = eps
 
@@ -226,11 +226,13 @@ df.to_csv('COP_air.csv')
 
 # Rechnung für c_0, c_1 und P_in nach solph
 # Q und P sind in MW angegeben
-COP_max = max(df.loc[T])
-COP_min = min(df.loc[T])
+COP_max_all = df.max(axis=1)
+COP_max = max(COP_max_all)
+COP_min_all = df.min(axis=1)
+COP_min = min(COP_min_all)
 Q_out_max = max(Q_range)/1e6
 Q_out_min = min(Q_range)/1e6
-s_max = 1
+s_max = (Q_out_max*1e6)/(abs(Q_N))
 s_min = Q_out_min/Q_out_max
 P_in_max = Q_out_max/COP_max
 P_in_min = Q_out_min/COP_min
@@ -254,8 +256,8 @@ print('Q_out_max: ' + "%.2f" % Q_out_max + " MW")
 print('Q_out_min: ' + "%.2f" % Q_out_min + " MW")
 print('P_in_max = nominal_value: ' + "%.2f" % P_in_max + " MW")
 print('P_in_min: ' + "%.2f" % P_in_min + " MW")
-print('solph_max: ' + "%.1f" % s_max)
-print('solph_min: ' + "%.1f" % s_min)
+print('solph_max: ' + "%.2f" % s_max)
+print('solph_min: ' + "%.2f" % s_min)
 print()
 print('_____________________________')
 print('#############################')

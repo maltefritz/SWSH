@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 
 T_range = [6, 9, 12, 15, 18, 21, 24]
 # T_range = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
-Q_range = np.array([100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
+Q_range = np.array([20e3, 40e3, 60e3, 80e3, 100e3, 120e3, 140e3, 160e3, 180e3, 200e3, 220e3])
 # Q_range = np.array([5e6, 7.5e6, 10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6, 27.5e6])
 # Q_range = np.array([10e6, 12.5e6, 15e6, 17.5e6, 20e6, 22.5e6, 25e6])
 
@@ -35,8 +35,8 @@ for T in T_range:
 ax.set_ylabel('COP')
 ax.set_xlabel('relative load')
 plt.title('heat pump COP')
-plt.legend(loc='lower left')
-plt.ylim([0, 3.2])
+plt.legend()
+plt.ylim([0, 3.0])
 plt.xlim([0, 1.2])
 plt.show()
 

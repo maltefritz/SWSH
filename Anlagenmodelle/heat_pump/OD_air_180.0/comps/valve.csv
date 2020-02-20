@@ -1,2 +1,2 @@
 label;cp;busses;bus_param;bus_P_ref;bus_char;design;offdesign;design_path;local_design;local_offdesign;pr;pr_set;pr_var;zeta;zeta_set;zeta_var;dp_char;dp_char_set;dp_char_param;Sirr;Sirr_set
-valve;valve;[];[];[];[];[];[];nan;False;False;0.13726416181501502;False;False;8182645366.00315;False;False;0x000001B53D29B888;False;m;30.178951857549848;False
+valve;valve;[];[];[];[];[];[];nan;False;False;0.1314965986296265;False;False;7866120554.786177;False;False;0x00000215AAAED748;False;m;31.15579842366771;False
