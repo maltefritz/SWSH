@@ -14,6 +14,8 @@ from tespy.tools.characteristics import char_line, load_custom_char
 from tespy.tools.data_containers import dc_cc
 import numpy as np
 
+from matplotlib import pyplot as plt
+
 # Für das BHKW unseres Referenzsystem Land ist P_N=15MW
 Q_N=abs(float(input('Gib die Nennwärmeleistung in MW ein: ')))*-1e6
 
@@ -203,6 +205,9 @@ cons_out.set_attr(p=ref(cw_pu, 1, 0), h=ref(cw_pu, 1, 0))
 # %% solving
 heat.set_attr(P=Q_N)
 
+P_L = []
+Q_L = []
+
 mode = 'design'
 nw.solve(mode=mode) #, init_path='ice_stable') #ice_stable nicht mehr vorhanden, bzw. noch nach altem dev Stand erzeugt
 nw.print_results()
@@ -220,6 +225,8 @@ heat.set_attr(P=np.nan)
 mode = 'offdesign'
 nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
 nw.print_results()
+P_L += [-power.P.val]
+Q_L += [-heat.P.val]
 
 #############################
 #1 max P über Bypass
@@ -235,6 +242,8 @@ for m in m_bypass:
     nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
+    P_L += [-power.P.val]
+    Q_L += [-heat.P.val]
 
 # close main chimney
 fg_chbp.set_attr(m=np.nan)
@@ -243,6 +252,8 @@ fgc_ch.set_attr(m=0.01)
 nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
 print(power.P.val, heat.P.val,
       -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
+P_L += [-power.P.val]
+Q_L += [-heat.P.val]
 
 P_max_woDH = abs(power.P.val)
 eta_el_max = abs(power.P.val) / ti.P.val
@@ -262,6 +273,8 @@ for m in m_bypass:
     nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
+    P_L += [-power.P.val]
+    Q_L += [-heat.P.val]
 
 # close main chimney
 fg_chbp.set_attr(m=np.nan)
@@ -270,6 +283,8 @@ fgc_ch.set_attr(m=0.01)
 nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
 print(power.P.val, heat.P.val,
       -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
+P_L += [-power.P.val]
+Q_L += [-heat.P.val]
 
 P_min_woDH = abs(power.P.val)
 eta_el_min = abs(power.P.val) / ti.P.val
@@ -292,6 +307,8 @@ for P in ice_power:
     nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
+    P_L += [-power.P.val]
+    Q_L += [-heat.P.val]
 
 ##############################
 # max Q (Closed Bypass), from min P to max P
@@ -307,12 +324,19 @@ for P in ice_power:
     nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
+    P_L += [-power.P.val]
+    Q_L += [-heat.P.val]
     if P == ice_power[0]:
         H_L_FG_max1 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
     elif P == ice_power[-1]:
         H_L_FG_max2 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
 
 H_L_FG_max = (H_L_FG_max1 + H_L_FG_max2)/2
+
+# P_Q_Diagramm
+
+plt.plot(Q_L, P_L, 'x')
+plt.show()
 
 print('_____________________________')
 print('#############################')
