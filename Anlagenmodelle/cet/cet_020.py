@@ -149,12 +149,13 @@ y = np.array([0.976, 0.989, 0.990, 0.991, 0.992, 0.993, 0.994, 0.995, 0.996,
 
 gen1 = char_line(x=x, y=y)
 gen2 = char_line(x=x, y=y)
+gen3 = char_line(x=x, y=y)
 
 power = bus('power output')
 power.add_comps({'c': g_turb, 'char': gen1}, {'c': comp, 'char': 1},
                 {'c': comp_fuel, 'char': mot1}, {'c': turb_hp, 'char': gen2},
                 {'c': pump1, 'char': mot2},
-                {'c': turb_lp, 'char': mot3}, {'c': pump2, 'char': mot4})
+                {'c': turb_lp, 'char': gen3}, {'c': pump2, 'char': mot3})
 
 gt_power = bus('gas turbine power output')
 gt_power.add_comps({'c': g_turb}, {'c': comp})
@@ -227,8 +228,8 @@ cond.set_attr(pr1=0.99, pr2=0.98, ttd_u=5, design=['ttd_u', 'pr2'], offdesign=['
 pump1.set_attr(eta_s=0.8, eta_s_char=eta_s_p1, design=['eta_s'], offdesign=['eta_s_char'])
 pump2.set_attr(eta_s=0.8, eta_s_char=eta_s_p2, design=['eta_s'], offdesign=['eta_s_char'])
 
-
 mp_valve.set_attr(pr=1, design=['pr'])
+
 # %% connection parameters
 
 # gas turbine
