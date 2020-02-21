@@ -139,7 +139,6 @@ y = 1 / (np.array([0.01, 0.3148, 0.5346, 0.6843, 0.7835, 0.8477, 0.8885,
 mot1 = char_line(x=x, y=y)
 mot2 = char_line(x=x, y=y)
 mot3 = char_line(x=x, y=y)
-mot4 = char_line(x=x, y=y)
 
 # generator efficiency
 x = np.array([0.100, 0.345, 0.359, 0.383, 0.410, 0.432, 0.451, 0.504, 0.541,
@@ -317,9 +316,9 @@ print('no heat, full power')
 
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
 nw.print_results()
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
+P += [abs(power.P.val)]
+Q += [abs(heat_out.P.val)]
+Q_cond += [abs(heat_cond.P.val)]
 Q_ti += [heat_in.P.val]
 
     # %%move to maximum heat extraction at maximum gas turbine power
@@ -330,9 +329,9 @@ for Q_val in Q_step:
     heat_out.set_attr(P=Q_val)
     nw.solve(mode='offdesign', design_path='cet_design_minQ')
     print(Q_val)
-    P += [-power.P.val]
-    Q += [-heat_out.P.val]
-    Q_cond += [-heat_cond.P.val]
+    P += [abs(power.P.val)]
+    Q += [abs(heat_out.P.val)]
+    Q_cond += [abs(heat_cond.P.val)]
     Q_ti += [heat_in.P.val]
 
 # parameter for top_left
@@ -347,9 +346,9 @@ heat_out.set_attr(P=np.nan)
 gt_power.set_attr(P=gt_power_design * 0.5) # Ist die Teillast tatsächlich 50%?
 mp_ls.set_attr(m=0.1 * m_lp_max)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
+P += [abs(power.P.val)]
+Q += [abs(heat_out.P.val)]
+Q_cond += [abs(heat_cond.P.val)]
 Q_ti += [heat_in.P.val]
 Q_TL = heat_out.P.val
 
@@ -365,9 +364,9 @@ for TL_val in TL_step:
     gt_power.set_attr(P=gt_power_design * TL_val)
     mp_ls.set_attr(m=0.1 * m_lp_max)
     nw.solve(mode='offdesign', design_path='cet_design_minQ')
-    P += [-power.P.val]
-    Q += [-heat_out.P.val]
-    Q_cond += [-heat_cond.P.val]
+    P += [abs(power.P.val)]
+    Q += [abs(heat_out.P.val)]
+    Q_cond += [abs(heat_cond.P.val)]
     Q_ti += [heat_in.P.val]
 
 # parameter for top_right:
@@ -386,9 +385,9 @@ heat_out.set_attr(P=-1e5)
 nw.solve(mode='offdesign',
           init_path='cet_design_minQ',
           design_path='cet_design_minQ')
-P += [-power.P.val]
-Q += [-heat_out.P.val]
-Q_cond += [-heat_cond.P.val]
+P += [abs(power.P.val)]
+Q += [abs(heat_out.P.val)]
+Q_cond += [abs(heat_cond.P.val)]
 Q_ti += [heat_in.P.val]
 
 Q_step = np.linspace(-1e6, Q_TL, num=5, endpoint=False)
@@ -397,9 +396,9 @@ for Q_val in Q_step:
     heat_out.set_attr(P=Q_val)
     nw.solve(mode='offdesign', design_path='cet_design_minQ')
     print(Q_val)
-    P += [-power.P.val]
-    Q += [-heat_out.P.val]
-    Q_cond += [-heat_cond.P.val]
+    P += [abs(power.P.val)]
+    Q += [abs(heat_out.P.val)]
+    Q_cond += [abs(heat_cond.P.val)]
     Q_ti += [heat_in.P.val]
 
 # parameter for buttom_left
