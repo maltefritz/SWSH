@@ -99,8 +99,6 @@ y = np.array([0.976, 0.989, 0.990, 0.991, 0.992, 0.993, 0.994, 0.995, 0.996,
               0.997, 0.998, 0.999, 1.000, 0.999, 0.99]) * - 0.984
 gen1 = char_line(x=x, y=y)
 gen2 = char_line(x=x, y=y)
-# gen1 = load_custom_char('generator', char_line)
-# gen2 = load_custom_char('generator', char_line)
 
 power = bus('power')
 power.add_comps({'c': pump, 'char': mot}, {'c': ice, 'p': 'P', 'char': gen1})
@@ -225,8 +223,8 @@ heat.set_attr(P=np.nan)
 mode = 'offdesign'
 nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
 nw.print_results()
-P_L += [-power.P.val]
-Q_L += [-heat.P.val]
+P_L += [abs(power.P.val)]
+Q_L += [abs(heat.P.val)]
 
 #############################
 #1 max P über Bypass
@@ -242,8 +240,8 @@ for m in m_bypass:
     nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
-    P_L += [-power.P.val]
-    Q_L += [-heat.P.val]
+    P_L += [abs(power.P.val)]
+    Q_L += [abs(heat.P.val)]
 
 # close main chimney
 fg_chbp.set_attr(m=np.nan)
@@ -252,8 +250,8 @@ fgc_ch.set_attr(m=0.01)
 nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
 print(power.P.val, heat.P.val,
       -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
-P_L += [-power.P.val]
-Q_L += [-heat.P.val]
+P_L += [abs(power.P.val)]
+Q_L += [abs(heat.P.val)]
 
 P_max_woDH = abs(power.P.val)
 eta_el_max = abs(power.P.val) / ti.P.val
@@ -273,8 +271,8 @@ for m in m_bypass:
     nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
-    P_L += [-power.P.val]
-    Q_L += [-heat.P.val]
+    P_L += [abs(power.P.val)]
+    Q_L += [abs(heat.P.val)]
 
 # close main chimney
 fg_chbp.set_attr(m=np.nan)
@@ -283,8 +281,8 @@ fgc_ch.set_attr(m=0.01)
 nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
 print(power.P.val, heat.P.val,
       -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
-P_L += [-power.P.val]
-Q_L += [-heat.P.val]
+P_L += [abs(power.P.val)]
+Q_L += [abs(heat.P.val)]
 
 P_min_woDH = abs(power.P.val)
 eta_el_min = abs(power.P.val) / ti.P.val
@@ -307,8 +305,8 @@ for P in ice_power:
     nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
-    P_L += [-power.P.val]
-    Q_L += [-heat.P.val]
+    P_L += [abs(power.P.val)]
+    Q_L += [abs(heat.P.val)]
 
 ##############################
 # max Q (Closed Bypass), from min P to max P
@@ -324,8 +322,8 @@ for P in ice_power:
     nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
-    P_L += [-power.P.val]
-    Q_L += [-heat.P.val]
+    P_L += [abs(power.P.val)]
+    Q_L += [abs(heat.P.val)]
     if P == ice_power[0]:
         H_L_FG_max1 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
     elif P == ice_power[-1]:
