@@ -1,0 +1,3 @@
+label;cp;busses;bus_param;bus_P_ref;bus_char;design;offdesign;design_path;local_design;local_offdesign;P;P_set;P_var;eta_s;eta_s_set;eta_s_var;pr;pr_set;pr_var;eta_s_char;eta_s_char_set;eta_s_char_param;flow_char;flow_char_set;flow_char_param;Sirr;Sirr_set
+district heating pump;pump;[];[];[];[];['eta_s'];['eta_s_char'];nan;False;False;21.658684294695647;False;False;0.7760881517169855;False;False;1.0129951947128986;False;False;0x0000027014368288;True;nan;0x0000027012F87F48;False;nan;0.014556870505685876;False
+evaporator reciculation pump;pump;[];[];[];[];['eta_s'];['eta_s_char'];nan;False;False;9.212848643728005;False;False;0.7811432950910846;False;False;1.0101010101010102;False;False;0x0000027013120C08;True;nan;0x000002701315AB48;False;nan;0.006939461979547037;False
