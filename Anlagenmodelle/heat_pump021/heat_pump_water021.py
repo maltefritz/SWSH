@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
+"""TESPy compression heat pump model for district heating.
+
 Created on Thu Jan  9 10:07:02 2020
 
-@author: Malte Fritz
+@author: Malte Fritz and Jonas Freißmann
 """
 
 from tespy.networks import network
