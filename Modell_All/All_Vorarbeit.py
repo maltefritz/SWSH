@@ -61,26 +61,26 @@ es_ref = solph.EnergySystem(timeindex=date_time_index)
 
 # %% Komponenten
 
-    # %% Elektroheizkessel
+    # %% Elektroheizkessel check
 
 # Dimensionierung
-Q_ehk = 3
+Q_ehk = 75
 eta_ehk = 0.99
 
 # Investition
-op_cost_ehk = 0.8
-spez_inv_ehk = 60000    # Aus Markus' MA
+op_cost_ehk = 0.5
+spez_inv_ehk = 80000    # Aus Markus' MA
 invest_ehk = spez_inv_ehk * Q_ehk
 
-    # %% Spitzenlastkessel
+    # %% Spitzenlastkessel check
 
 # Dimensionierung
-Q_slk = 3
+Q_slk = 75
 eta_slk = 0.88
 
 # Investition
-op_cost_slk = 1
-spez_inv_slk = 70000    # Aus Markus' MA
+op_cost_slk = 1.1
+spez_inv_slk = 60000    # Aus Markus' MA
 invest_slk = spez_inv_slk * Q_slk
 
     # %% BHKW
@@ -89,20 +89,54 @@ invest_slk = spez_inv_slk * Q_slk
 Q_in_bhkw = 39
 P_max_bhkw = 21.1
 P_min_bhkw = 11.5
-H_L_FG_share_max = 0.203
-H_L_FG_share_min = 0.3603
-Eta_el_max_woDH = 0.4685
-Eta_el_min_woDH = 0.4307
+H_L_FG_share_max_bhkw = 0.203
+H_L_FG_share_min_bhkw = 0.3603
+Eta_el_max_woDH_bhkw = 0.4685
+Eta_el_min_woDH_bhkw = 0.4307
 
 # Investition
 op_cost_bhkw = 4
 spez_inv_bhkw = 2e+6 * P_max_bhkw**(-0.147)    # Trendlinie aus Excel
 invest_bhkw = P_max_bhkw * spez_inv_bhkw
 
-    # %% TES
+    # %% GuD - check
+
+# Dimensionierung - Noch nicht dimensioniert!
+Q_in_gud = 272.72
+P_max_gud = 150.43
+P_min_gud = 85.17
+H_L_FG_share_max_gud = 0.1469
+Eta_el_max_woDH_gud = 0.5516
+Eta_el_min_woDH_gud = 0.4997
+beta_gud = 0.1319
+
+# Investition
+op_cost_gud = 4.5
+spez_inv_gud = 1e+6
+invest_gud = P_max_gud * spez_inv_gud
+
+    # %% Wärmepumpe - check
+
+Q_hp = 75
+
+filename = path.join(dirpath, 'Eingangsdaten\\hp_char_timeseries.csv')
+hp_data = pd.read_csv(filename, sep=";")
+
+P_in_max_hp = hp_data['P_max'].to_list()
+P_in_min_hp = hp_data['P_min'].to_list()
+
+c1_hp = hp_data['c_1'].to_list()
+c0_hp = hp_data['c_0'].to_list()
+
+# Investition
+op_cost_hp = 0.88
+spez_inv_hp = 220350
+invest_hp = spez_inv_hp * Q_hp
+
+    # %% TES - nicht extra ausgelegt
 
 # Dimensionierung
-Q_tes = 150
+Q_tes = 32.5
 
 # Investition
 op_cost_tes = 0.66
@@ -135,6 +169,7 @@ act_heat_demand_local = heat_demand_local / nom_heat_demand_local
 
     # %% Kosten
 
+# Kosten für das Jahr 2016. Siehe ENKF
 gas_price = 14.14
 co2_certificate = 1.07
 elec_consumer_charges = 85.51
@@ -212,22 +247,51 @@ slk = solph.Transformer(label='Spitzenlastkessel',
 bhkw = solph.components.GenericCHP(
     label='BHKW',
     fuel_input={gnw: solph.Flow(
-        H_L_FG_share_max=[H_L_FG_share_max for p in range(0, periods)],
-        H_L_FG_share_min=[H_L_FG_share_min for p in range(0, periods)],
+        H_L_FG_share_max=[H_L_FG_share_max_bhkw for p in range(0, periods)],
+        H_L_FG_share_min=[H_L_FG_share_min_bhkw for p in range(0, periods)],
         nominal_value=Q_in_bhkw)},
     electrical_output={enw: solph.Flow(
         variable_costs=op_cost_bhkw,
         P_max_woDH=[P_max_bhkw for p in range(0, periods)],
         P_min_woDH=[P_min_bhkw for p in range(0, periods)],
-        Eta_el_max_woDH=[Eta_el_max_woDH for p in range(0, periods)],
-        Eta_el_min_woDH=[Eta_el_min_woDH for p in range(0, periods)])},
+        Eta_el_max_woDH=[Eta_el_max_woDH_bhkw for p in range(0, periods)],
+        Eta_el_min_woDH=[Eta_el_min_woDH_bhkw for p in range(0, periods)])},
     heat_output={wnw: solph.Flow(
         Q_CW_min=[0 for p in range(0, periods)])},
     Beta=[0 for p in range(0, periods)],
     back_pressure=False)
 
 
-es_ref.add(ehk, slk, bhkw)
+gud = solph.components.GenericCHP(
+    label='GuD',
+    fuel_input={gnw: solph.Flow(
+        H_L_FG_share_max=[H_L_FG_share_max_gud for p in range(0, periods)],
+        nominal_value=Q_in_gud,
+        nonconvex=solph.NonConvex(
+            minimum_downtime=5,
+            startup_costs=4000,
+            initial_status=1))},
+    electrical_output={enw: solph.Flow(
+        variable_costs=op_cost_gud,
+        P_max_woDH=[P_max_gud for p in range(0, periods)],
+        P_min_woDH=[P_min_gud for p in range(0, periods)],
+        Eta_el_max_woDH=[Eta_el_max_woDH_gud for p in range(0, periods)],
+        Eta_el_min_woDH=[Eta_el_min_woDH_gud for p in range(0, periods)])},
+    heat_output={wnw: solph.Flow(
+        Q_CW_min=[0 for p in range(0, periods)])},
+    Beta=[beta_gud for p in range(0, periods)],
+    back_pressure=False)
+
+hp = solph.components.OffsetTransformer(
+    label='Wärmepumpe',
+    inputs={enw: solph.Flow(nominal_value=1,
+                            max=P_in_max_hp,
+                            min=P_in_min_hp,
+                            nonconvex=solph.NonConvex())},
+    outputs={wnw: solph.Flow(variable_costs=op_cost_hp)},
+    coefficients=[c0_hp, c1_hp])
+
+es_ref.add(ehk, slk, bhkw, gud, hp)
 
     # %% Speicher
 # Saisonaler Speicher
