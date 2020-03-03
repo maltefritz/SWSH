@@ -20,7 +20,9 @@ import matplotlib.pyplot as plt
 from time import time
 
 Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: '))) * -1e6
-# T_amb = 9.1876779
+# T_amb and T_amb_out kommen von der Drammen District Heating Wärmepumpe aus
+# Norwegen. T_amb ist die Außentemperatur in einem Fluß und T_amb_out die
+# Differenz vom Austritt zum Eintritt
 T_amb = 8
 T_DH_vl = 90
 T_DH_rl = 50
