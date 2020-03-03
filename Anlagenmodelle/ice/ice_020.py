@@ -190,7 +190,7 @@ fgc_ch.set_attr(T=150, design=['T'])
 fg_chbp.set_attr(m=0)
 
 # cooling water cylce
-cw_pu.set_attr(p=10, T=60,
+cw_pu.set_attr(p=10, T=50,
                fluid={'CO2': 0, 'Ar': 0, 'N2': 0, 'O2': 0, 'H2O': 1, 'CH4': 0})
 
 fgc_cons.set_attr(T=90, fluid0={'H2O': 1})
