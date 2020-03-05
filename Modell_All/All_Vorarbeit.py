@@ -48,6 +48,8 @@ def invest_st(A, col_type=''):
 dirpath = path.abspath(path.join(__file__, "../.."))
 filename = path.join(dirpath, 'Eingangsdaten\\simulation_data.csv')
 data = pd.read_csv(filename, sep=";")
+filename = path.join(dirpath, 'Eingangsdaten\\All_parameters.csv')
+param = pd.read_csv(filename, sep=";", index_col=['plant', 'parameter'])
 
     # %% Zeitreihe
 
