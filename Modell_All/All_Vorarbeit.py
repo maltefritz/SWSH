@@ -142,6 +142,8 @@ Q_tes = 150000
 
 # Investition
 op_cost_tes = 0.66
+spez_inv_tes = 18750
+invest_tes = spez_inv_tes * Q_tes
 
     # %% Solarthermie check
 
@@ -180,7 +182,8 @@ energy_tax = 5.5
 
     # %% Investionskosten
 
-invest_ges = invest_bhkw + invest_ehk + invest_slk + invest_solar + invest_hp + invest_gud
+invest_ges = (invest_bhkw + invest_ehk + invest_slk + invest_solar
+              + invest_hp + invest_gud + invest_tes)
 
 # %% Energiesystem
 
@@ -367,22 +370,34 @@ objective = abs(es_ref.results['meta']['objective'])
 
 # Ausgaben
 # # Anlagenbettriebskosten
-cost_stes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
-             * op_cost_tes)
+cost_tes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
+            * op_cost_tes
+            + (param.loc[('TES', 'op_cost_fix'), 'value']
+               * param.loc[('TES', 'Q'), 'value']))
 cost_st = (data_solar_source[(('Solarthermie', 'Wärmenetzwerk'), 'flow')].sum()
            * p_solar)
 cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-             * op_cost_bhkw)
+             * op_cost_bhkw
+             + (param.loc[('BHKW', 'op_cost_fix'), 'value']
+                * param.loc[('BHKW', 'P_max_woDH'), 'value']))
 cost_gud = (data_gud[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-            * op_cost_gud)
+            * op_cost_gud
+            + (param.loc[('GuD', 'op_cost_fix'), 'value']
+               * param.loc[('GuD', 'P_max_woDH'), 'value']))
 cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
-            * (op_cost_slk + energy_tax))
+            * (op_cost_slk + energy_tax)
+            + (param.loc[('SLK', 'op_cost_fix'), 'value']
+               * param.loc[('SLK', 'Q_N'), 'value']))
 cost_hp = (data_hp[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')].sum()
-           * op_cost_hp)
+           * op_cost_hp
+           + (param.loc[('HP', 'op_cost_fix'), 'value']
+               * hp_data.loc[:, 'P_max'].max()))
 cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
-            * op_cost_ehk)
+            * op_cost_ehk
+            + (param.loc[('EHK', 'op_cost_fix'), 'value']
+               * param.loc[('EHK', 'Q_N'), 'value']))
 
-cost_Anlagen = (cost_stes + cost_st + cost_bhkw + cost_gud
+cost_Anlagen = (cost_tes + cost_st + cost_bhkw + cost_gud
                 + cost_slk + cost_hp + cost_ehk)
 
 # # Primärenergiebezugskoste
