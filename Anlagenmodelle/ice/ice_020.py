@@ -12,9 +12,11 @@ from tespy.connections import bus, ref, connection
 from tespy.networks.networks import network
 from tespy.tools.characteristics import char_line, load_custom_char
 from tespy.tools.data_containers import dc_cc
-import numpy as np
 
+import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
+
 
 # Für das BHKW unseres Referenzsystem Land ist P_N=15MW
 Q_N=abs(float(input('Gib die Nennwärmeleistung in MW ein: ')))*-1e6
@@ -207,7 +209,7 @@ P_L = []
 Q_L = []
 
 mode = 'design'
-nw.solve(mode=mode) #, init_path='ice_stable') #ice_stable nicht mehr vorhanden, bzw. noch nach altem dev Stand erzeugt
+nw.solve(mode=mode , init_path='ice_design') #ice_stable nicht mehr vorhanden, bzw. noch nach altem dev Stand erzeugt
 nw.print_results()
 nw.save('ice_design')
 print(power.P.val, heat.P.val,
@@ -221,7 +223,7 @@ ice.set_attr(P=ice_P_design)
 heat.set_attr(P=np.nan)
 
 mode = 'offdesign'
-nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
+nw.solve(mode=mode, design_path='ice_design')
 nw.print_results()
 P_L += [abs(power.P.val)]
 Q_L += [abs(heat.P.val)]
@@ -231,30 +233,31 @@ Q_L += [abs(heat.P.val)]
 
 print('Open bypass, shut down flue gas cooler at maximum power output')
 
-m_bypass = [0, 1/3, 1, 3]
+m_bypass = [0, 1/3, 1, 3, 10]
 fg_chbp.set_attr(m=np.nan)
 fgc_ch.set_attr(m=np.nan) #warum NaN setzen, wenn später mit Faktor multipliziert werden soll?
 
 for m in m_bypass:
     fg_chbp.set_attr(m=ref(fgc_ch, m, 0))
-    nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
+    nw.solve(mode=mode, design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
     P_L += [abs(power.P.val)]
     Q_L += [abs(heat.P.val)]
+    print(fg_chbp.m.val)
 
 # close main chimney
 fg_chbp.set_attr(m=np.nan)
 fgc_ch.set_attr(m=np.nan)
 fgc_ch.set_attr(m=0.01)
-nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
+nw.solve(mode=mode, design_path='ice_design')
 print(power.P.val, heat.P.val,
       -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
 P_L += [abs(power.P.val)]
 Q_L += [abs(heat.P.val)]
 
 P_max_woDH = abs(power.P.val)
-eta_el_max = abs(power.P.val) / ti.P.val
+eta_el_max_tl = abs(power.P.val) / ti.P.val
 H_L_FG_min1 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
 
 ##############################
@@ -262,13 +265,13 @@ H_L_FG_min1 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
 print('Open bypass, shut down flue gas cooler at minimum power output')
 
 ice.set_attr(P=ice_P_design * 0.55) # Pmin als 0.55*Pmax hardcodet?
-m_bypass = [0, 1 / 3, 1, 3]
+m_bypass = [0, 1/3, 1, 3, 10]
 fg_chbp.set_attr(m=np.nan)
 fgc_ch.set_attr(m=np.nan)
 
 for m in m_bypass:
     fg_chbp.set_attr(m=ref(fgc_ch, m, 0))
-    nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
+    nw.solve(mode=mode, design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
     P_L += [abs(power.P.val)]
@@ -278,14 +281,14 @@ for m in m_bypass:
 fg_chbp.set_attr(m=np.nan)
 fgc_ch.set_attr(m=np.nan)
 fgc_ch.set_attr(m=0.01)
-nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
+nw.solve(mode=mode, design_path='ice_design')
 print(power.P.val, heat.P.val,
       -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
 P_L += [abs(power.P.val)]
 Q_L += [abs(heat.P.val)]
 
 P_min_woDH = abs(power.P.val)
-eta_el_min = abs(power.P.val) / ti.P.val
+eta_el_min_bl = abs(power.P.val) / ti.P.val
 H_L_FG_min2 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
 
 H_L_FG_min = (H_L_FG_min1 + H_L_FG_min2)/2
@@ -302,7 +305,7 @@ fgc_ch.set_attr(m=0.01)
 
 for P in ice_power:
     ice.set_attr(P=P)
-    nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
+    nw.solve(mode=mode, design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
     P_L += [abs(power.P.val)]
@@ -319,17 +322,21 @@ fg_chbp.set_attr(m=0)
 
 for P in ice_power:
     ice.set_attr(P=P)
-    nw.solve(mode=mode, init_path='ice_design', design_path='ice_design')
+    nw.solve(mode=mode, design_path='ice_design')
     print(power.P.val, heat.P.val,
           -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
     P_L += [abs(power.P.val)]
     Q_L += [abs(heat.P.val)]
     if P == ice_power[0]:
         H_L_FG_max1 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
+        eta_el_min_br = abs(power.P.val) / ti.P.val
     elif P == ice_power[-1]:
         H_L_FG_max2 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
+        eta_el_max_tr = abs(power.P.val) / ti.P.val
 
 H_L_FG_max = (H_L_FG_max1 + H_L_FG_max2)/2
+eta_el_max = (eta_el_max_tr + eta_el_max_tl)/2
+eta_el_min = (eta_el_min_br + eta_el_min_bl)/2
 
 # P_Q_Diagramm
 
@@ -352,3 +359,26 @@ print('H_L_FG_min: ' + "%.4f" % H_L_FG_min)
 print()
 print('_____________________________')
 print('#############################')
+
+plant_name = 'ice'
+df = pd.DataFrame(columns=['plant', 'parameter', 'unit', 'value'])
+dfQ_N = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_N', 'unit': 'MW',
+                      'value': [abs(Q_N/1e6)]})
+dfQ_in = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_in',
+                       'unit': 'MW', 'value': [Q_in_BHKW/1e6]})
+dfP_max = pd.DataFrame({'plant': plant_name, 'parameter': 'P_max_woDH',
+                        'unit': 'MW', 'value': [P_max_woDH/1e6]})
+dfP_min = pd.DataFrame({'plant': plant_name, 'parameter': 'P_min_woDH',
+                        'unit': 'MW', 'value': [P_min_woDH/1e6]})
+dfeta_max = pd.DataFrame({'plant': plant_name, 'parameter': 'eta_el_max',
+                          'unit': 'fraction', 'value': [eta_el_max]})
+dfeta_min = pd.DataFrame({'plant': plant_name, 'parameter': 'eta_el_min',
+                          'unit': 'fraction', 'value': [eta_el_min]})
+dfH_max = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_max',
+                        'unit': 'fraction', 'value': [H_L_FG_max]})
+dfH_min = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_min',
+                        'unit': 'fraction', 'value': [H_L_FG_min]})
+df = df.append([dfQ_N, dfQ_in, dfP_max, dfP_min, dfeta_max, dfeta_min, dfH_max,
+           dfH_min], ignore_index=True)
+
+df.to_csv('data_' + plant_name + '.csv', index=False)

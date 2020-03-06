@@ -1,0 +1,9 @@
+plant,parameter,unit,value
+ice,Q_N,MW,64.9477348
+ice,Q_in_BHKW,MW,194.79961071158328
+ice,P_max_woDH,MW,91.27151859006463
+ice,P_min_woDH,MW,50.00495267743192
+ice,eta_el_max,fraction,0.46850263744042164
+ice,eta_el_min,fraction,0.43061470444554995
+ice,H_L_FG_max,fraction,0.19317392172569375
+ice,H_L_FG_min,fraction,0.36039641440398257

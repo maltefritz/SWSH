@@ -69,7 +69,7 @@ eta_ehk = 0.99
 
 # Investition
 op_cost_ehk = 0.5
-spez_inv_ehk = 80000    # Aus Markus' MA
+spez_inv_ehk = 80000
 invest_ehk = spez_inv_ehk * Q_ehk
 
     # %% Spitzenlastkessel check
@@ -83,16 +83,16 @@ op_cost_slk = 1.1
 spez_inv_slk = 60000    # Aus Markus' MA
 invest_slk = spez_inv_slk * Q_slk
 
-    # %% BHKW
+    # %% BHKW - check
 
 # Dimensionierung
-Q_in_bhkw = 39
-P_max_bhkw = 21.1
-P_min_bhkw = 11.5
-H_L_FG_share_max_bhkw = 0.203
+Q_in_bhkw = 225
+P_max_bhkw = 103.16
+P_min_bhkw = 96.89
+H_L_FG_share_max_bhkw = 0.2032
 H_L_FG_share_min_bhkw = 0.3603
 Eta_el_max_woDH_bhkw = 0.4685
-Eta_el_min_woDH_bhkw = 0.4307
+Eta_el_min_woDH_bhkw = 0.4306
 
 # Investition
 op_cost_bhkw = 4
@@ -133,21 +133,21 @@ op_cost_hp = 0.88
 spez_inv_hp = 220350
 invest_hp = spez_inv_hp * Q_hp
 
-    # %% TES - nicht extra ausgelegt
+    # %% TES - check
 
 # Dimensionierung
-Q_tes = 32.5
+Q_tes = 150000
 
 # Investition
 op_cost_tes = 0.66
 
-    # %% Solarthermie
+    # %% Solarthermie check
 
-A = 4500*2    # A = 4329,1
+A = 96237.4
 # eta_Kol = 0,693
 # E_A = 1000
 
-invest_solar = invest_st(A, col_type="vacuum")
+invest_solar = invest_st(A, col_type="flat")
 p_solar = (0.01 * invest_solar)/(A*data['solar_data'].sum())
 
 nom_solar = (max(data['solar_data'])*A)
@@ -161,7 +161,7 @@ act_solar = (data['solar_data']*A)/(nom_solar)
 # prozentual von FL angibt.
 
 heat_demand_FL = data['heat_demand']
-rel_heat_demand = 0.05
+rel_heat_demand = 1
 heat_demand_local = heat_demand_FL * rel_heat_demand
 total_heat_demand = float(heat_demand_local.sum())
 nom_heat_demand_local = max(heat_demand_local)
@@ -178,8 +178,7 @@ energy_tax = 5.5
 
     # %% Investionskosten
 
-invest_ges = invest_bhkw + invest_ehk + invest_slk + invest_solar
-
+invest_ges = invest_bhkw + invest_ehk + invest_slk + invest_solar + invest_hp + invest_gud
 
 # %% Energiesystem
 
@@ -209,6 +208,7 @@ solar_source = solph.Source(label='Solarthermie',
                                                      fixed=True)})
 
 es_ref.add(gas_source, elec_source, solar_source)
+# es_ref.add(gas_source, elec_source)
 
     # %% Sinks
 
@@ -266,11 +266,7 @@ gud = solph.components.GenericCHP(
     label='GuD',
     fuel_input={gnw: solph.Flow(
         H_L_FG_share_max=[H_L_FG_share_max_gud for p in range(0, periods)],
-        nominal_value=Q_in_gud,
-        nonconvex=solph.NonConvex(
-            minimum_downtime=5,
-            startup_costs=4000,
-            initial_status=1))},
+        nominal_value=Q_in_gud)},
     electrical_output={enw: solph.Flow(
         variable_costs=op_cost_gud,
         P_max_woDH=[P_max_gud for p in range(0, periods)],
@@ -294,23 +290,24 @@ hp = solph.components.OffsetTransformer(
 es_ref.add(ehk, slk, bhkw, gud, hp)
 
     # %% Speicher
+
 # Saisonaler Speicher
 
 tes = solph.components.GenericStorage(
     label='Wärmespeicher',
     nominal_storage_capacity=Q_tes,
-    inputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4,
+    inputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local,
                             max=1,
                             min=0.1,
                             variable_costs=op_cost_tes,
                             nonconvex=solph.NonConvex(
                                 minimum_uptime=3, initial_status=0))},
-    outputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local/4,
+    outputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local,
                              max=1,
                              min=0.1,
                              nonconvex=solph.NonConvex(
                                  minimum_uptime=3, initial_status=0))},
-    initial_storage_level=0.7,
+    initial_storage_level=0.1,
     inflow_conversion_factor=1,
     outflow_conversion_factor=0.75)
 
@@ -323,7 +320,7 @@ es_ref.add(tes)
 # Was bedeutet tee?
 model = solph.Model(es_ref)
 model.solve(solver='gurobi', solve_kwargs={'tee': True},
-            cmdline_options={"mipgap": "0.001"})
+            cmdline_options={"mipgap": "0.01"})
 
     # %% Ergebnisse Energiesystem
 
@@ -342,7 +339,7 @@ data_wnw = outputlib.views.node(results, 'Wärmenetzwerk')['sequences']
 # Sources
 data_gas_source = outputlib.views.node(results, 'Gasquelle')['sequences']
 data_elec_source = outputlib.views.node(results, 'Stromquelle')['sequences']
-data_solar_source = outputlib.views.node(results, 'Solarthermie')['sequences']
+# data_solar_source = outputlib.views.node(results, 'Solarthermie')['sequences']
 
 # Sinks
 data_elec_sink = outputlib.views.node(results, 'Spotmarkt')['sequences']
@@ -352,6 +349,8 @@ data_heat_sink = outputlib.views.node(results, 'Wärmebedarf')['sequences']
 data_ehk = outputlib.views.node(results, 'Elektroheizkessel')['sequences']
 data_slk = outputlib.views.node(results, 'Spitzenlastkessel')['sequences']
 data_bhkw = outputlib.views.node(results, 'BHKW')['sequences']
+data_gud = outputlib.views.node(results, 'GuD')['sequences']
+data_hp = outputlib.views.node(results, 'Wärmepumpe')['sequences']
 
 # Speicher
 data_tes = outputlib.views.node(results, 'Wärmespeicher')['sequences']
@@ -364,68 +363,68 @@ objective = abs(es_ref.results['meta']['objective'])
 
     # %% Gesamtkosten
 
-# costs RS
-cost_stes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
-             * op_cost_tes)
-cost_st = (data_solar_source[(('Solarthermie', 'Wärmenetzwerk'), 'flow')].sum()
-           * p_solar)
-cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
-            * (gas_price + co2_certificate))
-cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-             * op_cost_bhkw)
-cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
-            * (op_cost_slk + energy_tax))
-cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
-            * op_cost_ehk)
+# # costs RS
+# cost_stes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
+#              * op_cost_tes)
+# cost_st = (data_solar_source[(('Solarthermie', 'Wärmenetzwerk'), 'flow')].sum()
+#            * p_solar)
+# cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
+#             * (gas_price + co2_certificate))
+# cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+#              * op_cost_bhkw)
+# cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
+#             * (op_cost_slk + energy_tax))
+# cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
+#             * op_cost_ehk)
 
-# cost electricity
-el_flow = np.array(data_enw[(('Stromquelle', 'Elektrizitätsnetzwerk'),
-                             'flow')])
-cost_el = np.array(data['el_price'])
+# # cost electricity
+# el_flow = np.array(data_enw[(('Stromquelle', 'Elektrizitätsnetzwerk'),
+#                              'flow')])
+# cost_el = np.array(data['el_price'])
 
-cost_el_array = el_flow * cost_el
-cost_el_sum = cost_el_array.sum()
+# cost_el_array = el_flow * cost_el
+# cost_el_sum = cost_el_array.sum()
 
-# Erlöse electricity
-r_el = (np.array(data_enw[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')])
-        * np.array(data['el_spot_price']))
-R_el_sum = r_el.sum()
+# # Erlöse electricity
+# r_el = (np.array(data_enw[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')])
+#         * np.array(data['el_spot_price']))
+# R_el_sum = r_el.sum()
 
-# Gesamtkosten
-ausgaben = (cost_stes + cost_st + cost_gas + cost_bhkw + cost_slk + cost_ehk
-            + cost_el_sum - R_el_sum)
+# # Gesamtkosten
+# ausgaben = (cost_stes + cost_st + cost_gas + cost_bhkw + cost_slk + cost_ehk
+#             + cost_el_sum - R_el_sum)
 
 
     # %% Output Ergebnisse
 
-label = ['BHKW', 'EHK', 'Solar', 'SLK', 'Wärmebedarf', 'TES Ein',
-         'Status TES Ein', 'TES Aus', 'Status TES Aus']
+label = ['BHKW', 'EHK', 'GuD', 'Solar', 'SLK', 'Wärmebedarf', 'TES Ein',
+          'Status TES Ein', 'Wärmepumpe', 'TES Aus', 'Status TES Aus']
 data_wnw.columns = label
-del data_wnw[label[-3]], data_wnw[label[-1]]
+del data_wnw[label[-4]], data_wnw[label[-1]]
 
 df1 = pd.DataFrame(data=data_wnw)
-df1.to_csv(path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_wnw.csv'),
-           sep=";")
+df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
+            sep=";")
 
-d2 = {'invest_ges': [invest_ges], 'Q_tes': [Q_tes], 'objective': [objective],
-      'total_heat_demand': [total_heat_demand], 'ausgaben': [ausgaben]}
-df2 = pd.DataFrame(data=d2)
-df2.to_csv(path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_Invest.csv'),
-           sep=";")
+# d2 = {'invest_ges': [invest_ges], 'Q_tes': [Q_tes], 'objective': [objective],
+#       'total_heat_demand': [total_heat_demand], 'ausgaben': [ausgaben]}
+# df2 = pd.DataFrame(data=d2)
+# df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
+#             sep=";")
 
 label = ['TES Ein', 'Status TES Ein', 'Speicherstand', 'TES Aus',
-         'Status TES Aus']
+          'Status TES Aus']
 data_tes.columns = label
 del data_tes[label[0]], data_tes[label[1]], data_tes[label[3]]
 del data_tes[label[4]]
 
 df3 = pd.DataFrame(data=data_tes)
-df3.to_csv(path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_Speicher.csv'),
-           sep=";")
+df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Speicher.csv'),
+            sep=";")
 
 # Daten für die ökologische Bewertung
-df3 = pd.concat([data_gnw.iloc[:, [0, 1]], data_enw.iloc[:, [2, 3]]], axis=1)
-label = ['Q_in,BHKW', 'Q_in,SLK', 'P_out', 'P_in']
+df3 = pd.concat([data_gnw.iloc[:, [0, 1, 2]], data_enw.iloc[:, [2, 3]]], axis=1)
+label = ['Q_in,BHKW', 'Q_in,GuD', 'Q_in,SLK', 'P_out', 'P_in']
 df3.columns = label
-df3.to_csv(path.join(dirpath, 'Ergebnisse\\Sol_Ergebnisse\\Sol_CO2.csv'),
-           sep=";")
+df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'),
+            sep=";")
