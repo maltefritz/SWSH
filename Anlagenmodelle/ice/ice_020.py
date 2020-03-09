@@ -215,7 +215,7 @@ nw.save('ice_design')
 print(power.P.val, heat.P.val,
       -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
 
-Q_in_BHKW = ti.P.val
+Q_in = ti.P.val
 
 ice_P_design = ice.P.val
 
@@ -349,10 +349,10 @@ print()
 print('Ergebnisse:')
 print()
 print('Q_N: ' + "%.2f" % abs(Q_N/1e6) + " MW")
-print('Q_in_BHKW: ' + "%.2f" % (Q_in_BHKW/1e6) + " MW")
+print('Q_in_BHKW: ' + "%.2f" % (Q_in/1e6) + " MW")
 print('P_max_woDH: ' + "%.2f" % (P_max_woDH/1e6) + " MW")
-print('eta_el_max: ' + "%.4f" % eta_el_max)
 print('P_min_woDH: ' + "%.2f" % (P_min_woDH/1e6) + " MW")
+print('eta_el_max: ' + "%.4f" % eta_el_max)
 print('eta_el_min: ' + "%.4f" % eta_el_min)
 print('H_L_FG_max: ' + "%.4f" % H_L_FG_max)
 print('H_L_FG_min: ' + "%.4f" % H_L_FG_min)
@@ -360,23 +360,23 @@ print()
 print('_____________________________')
 print('#############################')
 
-plant_name = 'ice'
+plant_name = 'BHKW'
 df = pd.DataFrame(columns=['plant', 'parameter', 'unit', 'value'])
 dfQ_N = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_N', 'unit': 'MW',
                       'value': [abs(Q_N/1e6)]})
 dfQ_in = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_in',
-                       'unit': 'MW', 'value': [Q_in_BHKW/1e6]})
+                       'unit': 'MW', 'value': [Q_in/1e6]})
 dfP_max = pd.DataFrame({'plant': plant_name, 'parameter': 'P_max_woDH',
                         'unit': 'MW', 'value': [P_max_woDH/1e6]})
 dfP_min = pd.DataFrame({'plant': plant_name, 'parameter': 'P_min_woDH',
                         'unit': 'MW', 'value': [P_min_woDH/1e6]})
-dfeta_max = pd.DataFrame({'plant': plant_name, 'parameter': 'eta_el_max',
+dfeta_max = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_max_woDH',
                           'unit': 'fraction', 'value': [eta_el_max]})
-dfeta_min = pd.DataFrame({'plant': plant_name, 'parameter': 'eta_el_min',
+dfeta_min = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_min_woDH',
                           'unit': 'fraction', 'value': [eta_el_min]})
-dfH_max = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_max',
+dfH_max = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_share_max',
                         'unit': 'fraction', 'value': [H_L_FG_max]})
-dfH_min = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_min',
+dfH_min = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_share_min',
                         'unit': 'fraction', 'value': [H_L_FG_min]})
 df = df.append([dfQ_N, dfQ_in, dfP_max, dfP_min, dfeta_max, dfeta_min, dfH_max,
            dfH_min], ignore_index=True)
