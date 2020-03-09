@@ -142,6 +142,8 @@ Q_tes = 150000
 
 # Investition
 op_cost_tes = 0.66
+spez_inv_tes = 18750
+invest_tes = spez_inv_tes * Q_tes
 
     # %% Solarthermie check
 
@@ -180,7 +182,8 @@ energy_tax = 5.5
 
     # %% Investionskosten
 
-invest_ges = invest_bhkw + invest_ehk + invest_slk + invest_solar + invest_hp + invest_gud
+invest_ges = (invest_bhkw + invest_ehk + invest_slk + invest_solar
+              + invest_hp + invest_gud + invest_tes)
 
 # %% Energiesystem
 
@@ -341,7 +344,7 @@ data_wnw = outputlib.views.node(results, 'Wärmenetzwerk')['sequences']
 # Sources
 data_gas_source = outputlib.views.node(results, 'Gasquelle')['sequences']
 data_elec_source = outputlib.views.node(results, 'Stromquelle')['sequences']
-# data_solar_source = outputlib.views.node(results, 'Solarthermie')['sequences']
+data_solar_source = outputlib.views.node(results, 'Solarthermie')['sequences']
 
 # Sinks
 data_elec_sink = outputlib.views.node(results, 'Spotmarkt')['sequences']
@@ -363,70 +366,95 @@ data_tes = outputlib.views.node(results, 'Wärmespeicher')['sequences']
 objective = abs(es_ref.results['meta']['objective'])
 
 
-    # %% Gesamtkosten
+    # %% Geldflüss
 
-# # costs RS
-# cost_stes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
-#              * op_cost_tes)
-# cost_st = (data_solar_source[(('Solarthermie', 'Wärmenetzwerk'), 'flow')].sum()
-#            * p_solar)
-# cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
-#             * (gas_price + co2_certificate))
-# cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-#              * op_cost_bhkw)
-# cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
-#             * (op_cost_slk + energy_tax))
-# cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
-#             * op_cost_ehk)
+# Ausgaben
+# # Anlagenbettriebskosten
+cost_tes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
+            * op_cost_tes
+            + (param.loc[('TES', 'op_cost_fix'), 'value']
+               * param.loc[('TES', 'Q'), 'value']))
+cost_st = (data_solar_source[(('Solarthermie', 'Wärmenetzwerk'), 'flow')].sum()
+           * p_solar)
+cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+             * op_cost_bhkw
+             + (param.loc[('BHKW', 'op_cost_fix'), 'value']
+                * param.loc[('BHKW', 'P_max_woDH'), 'value']))
+cost_gud = (data_gud[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+            * op_cost_gud
+            + (param.loc[('GuD', 'op_cost_fix'), 'value']
+               * param.loc[('GuD', 'P_max_woDH'), 'value']))
+cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
+            * (op_cost_slk + energy_tax)
+            + (param.loc[('SLK', 'op_cost_fix'), 'value']
+               * param.loc[('SLK', 'Q_N'), 'value']))
+cost_hp = (data_hp[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')].sum()
+           * op_cost_hp
+           + (param.loc[('HP', 'op_cost_fix'), 'value']
+               * hp_data.loc[:, 'P_max'].max()))
+cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
+            * op_cost_ehk
+            + (param.loc[('EHK', 'op_cost_fix'), 'value']
+               * param.loc[('EHK', 'Q_N'), 'value']))
 
-# # cost electricity
-# el_flow = np.array(data_enw[(('Stromquelle', 'Elektrizitätsnetzwerk'),
-#                              'flow')])
-# cost_el = np.array(data['el_price'])
+cost_Anlagen = (cost_tes + cost_st + cost_bhkw + cost_gud
+                + cost_slk + cost_hp + cost_ehk)
 
-# cost_el_array = el_flow * cost_el
-# cost_el_sum = cost_el_array.sum()
+# # Primärenergiebezugskoste
+cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
+            * (gas_price + co2_certificate))
 
-# # Erlöse electricity
-# r_el = (np.array(data_enw[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')])
-#         * np.array(data['el_spot_price']))
-# R_el_sum = r_el.sum()
+el_flow = np.array(data_enw[(('Stromquelle', 'Elektrizitätsnetzwerk'),
+                             'flow')])
+cost_el_timeseries = np.array(data['el_price'])
+cost_el_array = el_flow * cost_el_timeseries
+cost_el = cost_el_array.sum()
 
-# # Gesamtkosten
-# ausgaben = (cost_stes + cost_st + cost_gas + cost_bhkw + cost_slk + cost_ehk
-#             + cost_el_sum - R_el_sum)
+# Erlöse
+revenues_spotmarkt_timeseries = (np.array(data_enw[(('Elektrizitätsnetzwerk',
+                                                     'Spotmarkt'), 'flow')])
+                                 * np.array(data['el_spot_price']))
+revenues_spotmarkt = revenues_spotmarkt_timeseries.sum()
+
+# Summe der Geldströme
+Gesamtbetrag = (revenues_spotmarkt
+                - cost_Anlagen - cost_gas - cost_el)
+Betrag_ohnePrimär = (revenues_spotmarkt
+                     - cost_Anlagen)
 
 
     # %% Output Ergebnisse
 
 label = ['BHKW', 'EHK', 'GuD', 'Solar', 'SLK', 'Wärmebedarf', 'TES Ein',
-          'Status TES Ein', 'Wärmepumpe', 'TES Aus', 'Status TES Aus']
+         'Status TES Ein', 'Wärmepumpe', 'TES Aus', 'Status TES Aus']
 data_wnw.columns = label
 del data_wnw[label[-4]], data_wnw[label[-1]]
 
 df1 = pd.DataFrame(data=data_wnw)
 df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
-            sep=";")
+           sep=";")
 
-# d2 = {'invest_ges': [invest_ges], 'Q_tes': [Q_tes], 'objective': [objective],
-#       'total_heat_demand': [total_heat_demand], 'ausgaben': [ausgaben]}
-# df2 = pd.DataFrame(data=d2)
-# df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
-#             sep=";")
+d2 = {'invest_ges': [invest_ges], 'Q_tes': [Q_tes], 'objective': [objective],
+      'total_heat_demand': [total_heat_demand], 'Gesamtbetrag': [Gesamtbetrag],
+      'Betrag_ohnePrimär': [Betrag_ohnePrimär]}
+df2 = pd.DataFrame(data=d2)
+df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
+           sep=";")
 
 label = ['TES Ein', 'Status TES Ein', 'Speicherstand', 'TES Aus',
-          'Status TES Aus']
+         'Status TES Aus']
 data_tes.columns = label
 del data_tes[label[0]], data_tes[label[1]], data_tes[label[3]]
 del data_tes[label[4]]
 
 df3 = pd.DataFrame(data=data_tes)
 df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Speicher.csv'),
-            sep=";")
+           sep=";")
 
 # Daten für die ökologische Bewertung
-df3 = pd.concat([data_gnw.iloc[:, [0, 1, 2]], data_enw.iloc[:, [2, 3]]], axis=1)
+df3 = pd.concat([data_gnw.iloc[:, [0, 1, 2]], data_enw.iloc[:, [2, 3]]],
+                axis=1)
 label = ['Q_in,BHKW', 'Q_in,GuD', 'Q_in,SLK', 'P_out', 'P_in']
 df3.columns = label
 df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'),
-            sep=";")
+           sep=";")
