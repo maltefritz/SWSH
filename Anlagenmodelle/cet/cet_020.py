@@ -19,8 +19,9 @@ from tespy.tools.data_containers import dc_cc
 from tespy.tools.characteristics import load_default_char as ldc
 import numpy as np
 from matplotlib import pyplot as plt
+import pandas as pd
 
-Q_N=abs(float(input('Gib die Nennwärmeleistung in MW ein: ')))*-1e6
+Q_N=abs(float(input('Gib die Nennwaermeleistung in MW ein: ')))*-1e6
 
 # %% network
 fluid_list = ['Ar', 'N2', 'O2', 'CO2', 'CH4', 'H2O']
@@ -285,7 +286,7 @@ print(gt_power.P.val)
 
 # %% design case 2: maximum gas turbine minimum heat extraction (cet_design_minQ)
 gt_power.set_attr(P=gt_power_design)
-heat_out.set_attr(P=-1e5)
+heat_out.set_attr(P=-100e5)
 
 # local offdesign for district heating condenser
 cond_dh.set_attr(local_offdesign=True, design_path='cet_design_maxQ')
@@ -297,7 +298,7 @@ dh_i.set_attr(local_offdesign=True, design_path='cet_design_maxQ')
 dh_o.set_attr(local_offdesign=True, design_path='cet_design_maxQ')
 
 mp_ls.set_attr(m=np.nan)
-nw.solve(mode='design', init_path='cet_design_maxQ')
+nw.solve(mode='design', design_path='cet_design_maxQ')
 nw.save('cet_design_minQ')
 nw.print_results()
 m_lp_max = mp_ls.m.val_SI
@@ -305,7 +306,7 @@ print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
 print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
 
-Q_in_GuD = heat_in.P.val
+Q_in = heat_in.P.val
 
 # %% offdesign
 
@@ -337,13 +338,14 @@ for Q_val in Q_step:
 # parameter for top_left
 P_t_l = (P[0]+P[1])/2
 Q_in_t_l = (Q_ti[0]+Q_ti[1])/2
+Q_in_t_r = Q_ti[-1]
 
     # %% from minimum to maximum gas turbine power at maximum heat extraction
 
 print('minimum power to maximum power at maximum heat')
 
 heat_out.set_attr(P=np.nan)
-gt_power.set_attr(P=gt_power_design * 0.5) # Ist die Teillast tatsächlich 50%?
+gt_power.set_attr(P=gt_power_design * 0.3) # Ist die Teillast tatsächlich 50%?
 mp_ls.set_attr(m=0.1 * m_lp_max)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
 P += [abs(power.P.val)]
@@ -358,7 +360,7 @@ Q_b_r = Q[-1]
 Q_cond_b_r = Q_cond[-1]
 Q_in_b_r = Q_ti[-1]
 
-TL_step = np.linspace(0.6, 1, num=4)
+TL_step = np.linspace(0.3, 1, num=6)
 
 for TL_val in TL_step:
     gt_power.set_attr(P=gt_power_design * TL_val)
@@ -380,17 +382,17 @@ Q_in_t_r = Q_ti[-1]
 print('no heat, minimum power')
 
 mp_ls.set_attr(m=np.nan)
-gt_power.set_attr(P=gt_power_design / 2)    # Ist die Teillast tatsächlich 50%?
-heat_out.set_attr(P=-1e5)
-nw.solve(mode='offdesign',
-          init_path='cet_design_minQ',
-          design_path='cet_design_minQ')
+gt_power.set_attr(P=gt_power_design * 0.3)    # Ist die Teillast tatsächlich 50%?
+heat_out.set_attr(P=-1e6)
+nw.solve(mode='offdesign', design_path='cet_design_minQ')
+           # init_path='cet_design_minQ',
+
 P += [abs(power.P.val)]
 Q += [abs(heat_out.P.val)]
 Q_cond += [abs(heat_cond.P.val)]
 Q_ti += [heat_in.P.val]
 
-Q_step = np.linspace(-1e6, Q_TL, num=5, endpoint=False)
+Q_step = np.linspace(-10e6, Q_TL, num=9, endpoint=False)
 
 for Q_val in Q_step:
     heat_out.set_attr(P=Q_val)
@@ -402,8 +404,8 @@ for Q_val in Q_step:
     Q_ti += [heat_in.P.val]
 
 # parameter for buttom_left
-P_b_l = (P[-5]+P[-6])/2
-Q_in_b_l = (Q_ti[-5]+Q_ti[-6])/2
+P_b_l = (P[-9]+P[-10])/2
+Q_in_b_l = (Q_ti[-9]+Q_ti[-10])/2
 
 # %% postprocessing
 
@@ -431,13 +433,34 @@ print()
 print('Ergebnisse:')
 print()
 print('Q_N: ' + "%.2f" % abs(Q_N/1e6) + " MW")
-print('Q_in_GuD: ' + "%.2f" % (Q_in_GuD/1e6) + " MW")
+print('Q_in: ' + "%.2f" % (Q_in/1e6) + " MW")
 print('P_max_woDH: ' + "%.2f" % (P_max_woDH/1e6) + " MW")
-print('eta_el_max: ' + "%.4f" % eta_el_max)
 print('P_min_woDH: ' + "%.2f" % (P_min_woDH/1e6) + " MW")
+print('eta_el_max: ' + "%.4f" % eta_el_max)
 print('eta_el_min: ' + "%.4f" % eta_el_min)
 print('H_L_FG_share_max: ' + "%.4f" % H_L_FG_share_max)
 print('beta: ' + "%.4f" % beta)
 print()
 print('_____________________________')
 print('#############################')
+
+plant_name = 'GuD'
+df = pd.DataFrame(columns=['plant', 'parameter', 'unit', 'value'])
+dfQ_N = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_N', 'unit': 'MW',
+                      'value': [abs(Q_N/1e6)]})
+dfQ_in = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_in',
+                       'unit': 'MW', 'value': [Q_in/1e6]})
+dfP_max = pd.DataFrame({'plant': plant_name, 'parameter': 'P_max_woDH',
+                        'unit': 'MW', 'value': [P_max_woDH/1e6]})
+dfP_min = pd.DataFrame({'plant': plant_name, 'parameter': 'P_min_woDH',
+                        'unit': 'MW', 'value': [P_min_woDH/1e6]})
+dfeta_max = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_max_woDH',
+                          'unit': 'fraction', 'value': [eta_el_max]})
+dfeta_min = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_min_woDH',
+                          'unit': 'fraction', 'value': [eta_el_min]})
+dfH_max = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_share_max',
+                        'unit': 'fraction', 'value': [H_L_FG_share_max]})
+df = df.append([dfQ_N, dfQ_in, dfP_max, dfP_min, dfeta_max, dfeta_min,
+                dfH_max], ignore_index=True)
+
+df.to_csv('data_' + plant_name + '.csv', index=False)
