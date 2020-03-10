@@ -104,14 +104,14 @@ invest_bhkw = P_max_bhkw * spez_inv_bhkw
     # %% GuD - check
 
 # Dimensionierung - Noch nicht dimensioniert!
-Q_in_gud = 272.72
-P_max_gud = 155.55
-P_min_gud = 59.13
-H_L_FG_share_max_gud = 0.1370
-Eta_el_max_woDH_gud = 0.5704
-Eta_el_min_woDH_gud = 0.4715
-Q_CW_min = 8.98
-beta_gud = 0.1831
+Q_in_gud = param.loc[('GuD', 'Q_in'), 'value']
+P_max_gud = param.loc[('GuD', 'P_max_woDH'), 'value']
+P_min_gud = param.loc[('GuD', 'P_min_woDH'), 'value']
+H_L_FG_share_max_gud = param.loc[('GuD', 'H_L_FG_share_max'), 'value']
+Eta_el_max_woDH_gud = param.loc[('GuD', 'Eta_el_max_woDH'), 'value']
+Eta_el_min_woDH_gud = param.loc[('GuD', 'Eta_el_min_woDH'), 'value']
+Q_CW_min = param.loc[('GuD', 'Q_CW_min'), 'value']
+beta_gud = param.loc[('GuD', 'beta'), 'value']
 
 # Investition
 op_cost_gud = 4.5
