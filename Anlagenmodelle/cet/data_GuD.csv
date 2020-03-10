@@ -1,8 +1,8 @@
 plant,parameter,unit,value
 GuD,Q_N,MW,75.0
 GuD,Q_in,MW,272.7240721667627
-GuD,P_max_woDH,MW,153.71641229358252
-GuD,P_min_woDH,MW,57.37438152159573
-GuD,Eta_el_max_woDH,fraction,0.563635206006799
-GuD,Eta_el_min_woDH,fraction,0.45748999566795917
+GuD,P_max_woDH,MW,155.5514629149416
+GuD,P_min_woDH,MW,59.12848115710411
+GuD,Eta_el_max_woDH,fraction,0.5703655920965548
+GuD,Eta_el_min_woDH,fraction,0.4714780951816029
 GuD,H_L_FG_share_max,fraction,0.13696382128451362

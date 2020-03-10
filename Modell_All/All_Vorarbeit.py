@@ -82,7 +82,7 @@ eta_slk = 0.88
 
 # Investition
 op_cost_slk = 1.1
-spez_inv_slk = 60000    # Aus Markus' MA
+spez_inv_slk = 60000
 invest_slk = spez_inv_slk * Q_slk
 
     # %% BHKW - check
@@ -97,20 +97,20 @@ Eta_el_max_woDH_bhkw = 0.4685
 Eta_el_min_woDH_bhkw = 0.4306
 
 # Investition
-op_cost_bhkw = 4
-spez_inv_bhkw = 2e+6 * P_max_bhkw**(-0.147)    # Trendlinie aus Excel
+op_cost_bhkw = 10
+spez_inv_bhkw = 1e6
 invest_bhkw = P_max_bhkw * spez_inv_bhkw
 
     # %% GuD - check
 
 # Dimensionierung - Noch nicht dimensioniert!
 Q_in_gud = 272.72
-P_max_gud = 150.43
-P_min_gud = 85.17
-H_L_FG_share_max_gud = 0.1469
-Eta_el_max_woDH_gud = 0.5516
-Eta_el_min_woDH_gud = 0.4997
-beta_gud = 0.1319
+P_max_gud = 155.55
+P_min_gud = 59.13
+H_L_FG_share_max_gud = 0.1370
+Eta_el_max_woDH_gud = 0.5704
+Eta_el_min_woDH_gud = 0.4715
+beta_gud = 0.1831
 
 # Investition
 op_cost_gud = 4.5

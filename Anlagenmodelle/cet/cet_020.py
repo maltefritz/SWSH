@@ -336,9 +336,8 @@ for Q_val in Q_step:
     Q_ti += [heat_in.P.val]
 
 # parameter for top_left
-P_t_l = (P[0]+P[1])/2
-Q_in_t_l = (Q_ti[0]+Q_ti[1])/2
-Q_in_t_r = Q_ti[-1]
+P_t_l = P[1]
+Q_in_t_l = Q_ti[1]
 
     # %% from minimum to maximum gas turbine power at maximum heat extraction
 
@@ -404,8 +403,8 @@ for Q_val in Q_step:
     Q_ti += [heat_in.P.val]
 
 # parameter for buttom_left
-P_b_l = (P[-9]+P[-10])/2
-Q_in_b_l = (Q_ti[-9]+Q_ti[-10])/2
+P_b_l = P[-10]
+Q_in_b_l = Q_ti[-10]
 
 # %% postprocessing
 

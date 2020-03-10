@@ -426,32 +426,32 @@ def pp_Vorarbeit():
     print("Kapitalwert (NPV_BoP): " + '{:.3f}'.format(npv_BoP) + " Mio. €")
     print("Wärmegestehungskosten (LCOH): " + '{:.2f}'.format(lcoh) + " €/MWh")
 
-    # %% Ergebnisse der Emissionsrechnung
-    for idx in range(0, len(use)):
-        OM = ((use.iloc[idx, 0] + use.iloc[idx, 1]) * e_fuel
-              + use.iloc[idx, 3] * co2.iloc[idx, 0]
-              - use.iloc[idx, 2] * co2.iloc[idx, 0])
+    # # %% Ergebnisse der Emissionsrechnung
+    # for idx in range(0, len(use)):
+    #     OM = ((use.iloc[idx, 0] + use.iloc[idx, 1]) * e_fuel
+    #           + use.iloc[idx, 3] * co2.iloc[idx, 0]
+    #           - use.iloc[idx, 2] * co2.iloc[idx, 0])
 
-        DM = ((use.iloc[idx, 0] + use.iloc[idx, 1]) * e_fuel
-              + use.iloc[idx, 3] * co2.iloc[idx, 1]
-              - use.iloc[idx, 2] * co2.iloc[idx, 1])
+    #     DM = ((use.iloc[idx, 0] + use.iloc[idx, 1]) * e_fuel
+    #           + use.iloc[idx, 3] * co2.iloc[idx, 1]
+    #           - use.iloc[idx, 2] * co2.iloc[idx, 1])
 
-        Em_om.append(OM)
-        Em_dm.append(DM)
+    #     Em_om.append(OM)
+    #     Em_dm.append(DM)
 
-    totEm_om = sum(Em_om)
-    totEm_dm = sum(Em_dm)
+    # totEm_om = sum(Em_om)
+    # totEm_dm = sum(Em_dm)
 
-    dfEm = pd.DataFrame({'Gesamtmix': [totEm_om],
-                         'Verdrängungsmix': [totEm_dm]})
+    # dfEm = pd.DataFrame({'Gesamtmix': [totEm_om],
+    #                      'Verdrängungsmix': [totEm_dm]})
 
-    print()
-    print("Erebnisse der Emissionsrechnungen:")
-    print()
-    print("Gesamtemissionen (Gesamtmix): " + '{:.0f}'.format(totEm_om)
-          + " t CO2")
-    print("Gesamtemissionen (Verdrängungsmix): " + '{:.0f}'.format(totEm_dm)
-          + " t CO2")
+    # print()
+    # print("Erebnisse der Emissionsrechnungen:")
+    # print()
+    # print("Gesamtemissionen (Gesamtmix): " + '{:.0f}'.format(totEm_om)
+    #       + " t CO2")
+    # print("Gesamtemissionen (Verdrängungsmix): " + '{:.0f}'.format(totEm_dm)
+    #       + " t CO2")
 
     # %% Visualisierung
     ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
@@ -479,9 +479,9 @@ def pp_Vorarbeit():
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.bar(data=dfEm.transpose().loc[:, 0],
-                  ylabel='CO2-Emissionen in t')
-    ax.grid(b=False, which='major', axis='x')
+    # ax = zplt.bar(data=dfEm.transpose().loc[:, 0],
+    #               ylabel='CO2-Emissionen in t')
+    # ax.grid(b=False, which='major', axis='x')
 
     # 7-Tage Plots
     idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
