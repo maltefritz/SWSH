@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
+"""TESPy model of a combined cycle with extraction turbine for distric heating.
+
 Created on Thu Jul 12 07:45:32 2018
 
-@author: witte
+@author: Francesco Witte, Malte Fritz & Jonas Freißmann
 """
 
 from tespy.components.basics import sink, source
@@ -21,13 +21,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
 
-Q_N=abs(float(input('Gib die Nennwaermeleistung in MW ein: ')))*-1e6
+Q_N = abs(float(input('Gib die Nennwaermeleistung in MW ein: ')))*-1e6
 
 # %% network
 fluid_list = ['Ar', 'N2', 'O2', 'CO2', 'CH4', 'H2O']
 
 nw = network(fluids=fluid_list, p_unit='bar', T_unit='C', h_unit='kJ / kg',
-                 p_range=[1, 100], T_range=[10, 1500], h_range=[10, 4000])
+             p_range=[1, 100], T_range=[10, 1500], h_range=[10, 4000])
 
 # %% components
 # gas turbine part
@@ -207,26 +207,38 @@ y = np.array([0.025, 0.05, 0.1, 0.2, 0.4, 0.85, 0.89, 0.92, 0.945,
 cd_char_hot = dc_cc(func=char_line(x, y), param='m')
 
 # gas turbine
-comp.set_attr(pr=15, eta_s=0.85, eta_s_char=cp_char1, design=['pr', 'eta_s'], offdesign=['eta_s_char'])
-comp_fuel.set_attr(eta_s=0.85, eta_s_char=cp_char2, design=['eta_s'], offdesign=['eta_s_char'])
-g_turb.set_attr(eta_s=0.9, eta_s_char=eta_s_gt, design=['eta_s'], offdesign=['eta_s_char', 'cone'])
+comp.set_attr(pr=15, eta_s=0.85, eta_s_char=cp_char1, design=['pr', 'eta_s'],
+              offdesign=['eta_s_char'])
+comp_fuel.set_attr(eta_s=0.85, eta_s_char=cp_char2, design=['eta_s'],
+                   offdesign=['eta_s_char'])
+g_turb.set_attr(eta_s=0.9, eta_s_char=eta_s_gt, design=['eta_s'],
+                offdesign=['eta_s_char', 'cone'])
 c_c.set_attr(lamb=2.5)
 
 eta_s_char1 = ldc('turbine', 'eta_s_char', 'TRAUPEL', char_line)
 eta_s_char2 = ldc('turbine', 'eta_s_char', 'TRAUPEL', char_line)
 
 # steam turbine
-suph.set_attr(pr1=0.99, pr2=0.98, ttd_u=50, design=['pr1', 'pr2', 'ttd_u'], offdesign=['zeta1', 'zeta2', 'kA'])
-eco.set_attr(pr1=0.99, pr2=1, design=['pr1', 'pr2'], offdesign=['zeta1', 'zeta2', 'kA'])
-evap.set_attr(pr1=0.99, ttd_l=20, design=['pr1', 'ttd_l'], offdesign=['zeta1', 'kA'])
-turb_hp.set_attr(eta_s=0.88, eta_s_char=eta_s_char1, design=['eta_s'], offdesign=['eta_s_char', 'cone'])
-turb_lp.set_attr(eta_s=0.88, eta_s_char=eta_s_char2, design=['eta_s'], offdesign=['eta_s_char', 'cone'])
+suph.set_attr(pr1=0.99, pr2=0.98, ttd_u=50, design=['pr1', 'pr2', 'ttd_u'],
+              offdesign=['zeta1', 'zeta2', 'kA'])
+eco.set_attr(pr1=0.99, pr2=1, design=['pr1', 'pr2'],
+             offdesign=['zeta1', 'zeta2', 'kA'])
+evap.set_attr(pr1=0.99, ttd_l=20, design=['pr1', 'ttd_l'],
+              offdesign=['zeta1', 'kA'])
+turb_hp.set_attr(eta_s=0.88, eta_s_char=eta_s_char1, design=['eta_s'],
+                 offdesign=['eta_s_char', 'cone'])
+turb_lp.set_attr(eta_s=0.88, eta_s_char=eta_s_char2, design=['eta_s'],
+                 offdesign=['eta_s_char', 'cone'])
 
-cond_dh.set_attr(kA_char1=cd_char_hot, pr1=0.99, pr2=0.98, ttd_u=5, design=['ttd_u', 'pr2'], offdesign=['zeta2', 'kA'])
-cond.set_attr(pr1=0.99, pr2=0.98, ttd_u=5, design=['ttd_u', 'pr2'], offdesign=['zeta2', 'kA'])
+cond_dh.set_attr(kA_char1=cd_char_hot, pr1=0.99, pr2=0.98, ttd_u=5,
+                 design=['ttd_u', 'pr2'], offdesign=['zeta2', 'kA'])
+cond.set_attr(pr1=0.99, pr2=0.98, ttd_u=5, design=['ttd_u', 'pr2'],
+              offdesign=['zeta2', 'kA'])
 
-pump1.set_attr(eta_s=0.8, eta_s_char=eta_s_p1, design=['eta_s'], offdesign=['eta_s_char'])
-pump2.set_attr(eta_s=0.8, eta_s_char=eta_s_p2, design=['eta_s'], offdesign=['eta_s_char'])
+pump1.set_attr(eta_s=0.8, eta_s_char=eta_s_p1, design=['eta_s'],
+               offdesign=['eta_s_char'])
+pump2.set_attr(eta_s=0.8, eta_s_char=eta_s_p2, design=['eta_s'],
+               offdesign=['eta_s_char'])
 
 mp_valve.set_attr(pr=1, design=['pr'])
 
@@ -235,8 +247,8 @@ mp_valve.set_attr(pr=1, design=['pr'])
 # gas turbine
 c_in.set_attr(T=20, p=1, fluid={'Ar': 0.0129, 'N2': 0.7553, 'H2O': 0,
                                 'CH4': 0, 'CO2': 0.0004, 'O2': 0.2314})
-#gt_in.set_attr(T=1315)
-#gt_out.set_attr(p=1.05)
+# gt_in.set_attr(T=1315)
+# gt_out.set_attr(p=1.05)
 fuel_comp.set_attr(p=ref(c_in, 1, 0), T=ref(c_in, 1, 0), h0=800,
                    fluid={'CO2': 0.04, 'Ar': 0, 'N2': 0,
                           'O2': 0, 'H2O': 0, 'CH4': 0.96})
@@ -251,9 +263,9 @@ suph_ls.set_attr(p=130, fluid={'CO2': 0, 'Ar': 0, 'N2': 0,
                  design=['p'])
 ls.set_attr(p=ref(suph_ls, 1, 0), h=ref(suph_ls, 1, 0))
 
-#mp.set_attr(p=5, design=['p'])
+# mp.set_attr(p=5, design=['p'])
 mp_ls.set_attr(m=ref(mp, 0.2, 0))
-#lp_ws.set_attr(p=0.8, design=['p'])
+# lp_ws.set_attr(p=0.8, design=['p'])
 
 # district heating
 dh_i.set_attr(T=50, p=10, fluid={'CO2': 0, 'Ar': 0, 'N2': 0,
@@ -266,7 +278,8 @@ cw_i.set_attr(T=15, p=5, fluid={'CO2': 0, 'Ar': 0, 'N2': 0,
 
 cw_o.set_attr(T=30, design=['T'], offdesign=['m'])
 
-# %% design case 1: district heating condeser layout
+# %% design case 1:
+# district heating condeser layout
 
 P = []
 Q = []
@@ -284,7 +297,8 @@ print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
 print(heat_out.P.val, power.P.val, heat_in.P.val)
 print(gt_power.P.val)
 
-# %% design case 2: maximum gas turbine minimum heat extraction (cet_design_minQ)
+# %% design case 2:
+# maximum gas turbine minimum heat extraction (cet_design_minQ)
 gt_power.set_attr(P=gt_power_design)
 heat_out.set_attr(P=-100e5)
 
@@ -344,7 +358,7 @@ Q_in_t_l = Q_ti[1]
 print('minimum power to maximum power at maximum heat')
 
 heat_out.set_attr(P=np.nan)
-gt_power.set_attr(P=gt_power_design * 0.3) # Ist die Teillast tatsächlich 50%?
+gt_power.set_attr(P=gt_power_design * 0.3)
 mp_ls.set_attr(m=0.1 * m_lp_max)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
 P += [abs(power.P.val)]
@@ -381,10 +395,9 @@ Q_in_t_r = Q_ti[-1]
 print('no heat, minimum power')
 
 mp_ls.set_attr(m=np.nan)
-gt_power.set_attr(P=gt_power_design * 0.3)    # Ist die Teillast tatsächlich 50%?
+gt_power.set_attr(P=gt_power_design * 0.3)
 heat_out.set_attr(P=-1e6)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
-           # init_path='cet_design_minQ',
 
 P += [abs(power.P.val)]
 Q += [abs(heat_out.P.val)]
