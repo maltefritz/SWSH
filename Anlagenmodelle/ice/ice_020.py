@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
+"""TESPy model of an internal combustion engine for district heating.
+
 Created on Mon Jan  6 10:37:36 2020
 
-@author: Malte Fritz
+@author: Malte Fritz & Jonas Freißmann
 """
 
 from tespy.components import (sink, source, splitter, merge, pump,
@@ -10,7 +10,7 @@ from tespy.components import (sink, source, splitter, merge, pump,
                               combustion_engine)
 from tespy.connections import bus, ref, connection
 from tespy.networks.networks import network
-from tespy.tools.characteristics import char_line, load_custom_char
+from tespy.tools.characteristics import char_line
 from tespy.tools.data_containers import dc_cc
 
 import numpy as np
@@ -19,7 +19,7 @@ from matplotlib import pyplot as plt
 
 
 # Für das BHKW unseres Referenzsystem Land ist P_N=15MW
-Q_N=abs(float(input('Gib die Nennwärmeleistung in MW ein: ')))*-1e6
+Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: ')))*-1e6
 
 # %% network
 
@@ -27,7 +27,7 @@ Q_N=abs(float(input('Gib die Nennwärmeleistung in MW ein: ')))*-1e6
 fluid_list = ['Ar', 'N2', 'O2', 'CO2', 'CH4', 'H2O']
 # define unit systems and fluid property ranges
 nw = network(fluids=fluid_list, p_unit='bar', T_unit='C',
-                 p_range=[0.1, 10], T_range=[50, 1200])
+             p_range=[0.1, 10], T_range=[50, 1200])
 
 # %% components
 
@@ -133,7 +133,7 @@ pump.set_attr(eta_s=0.8, eta_s_char=eta_s_char,
 
 # ice charachteristics
 # thermal input to power
-x= np.array([0.50, 0.75, 0.90, 1.00, 1.05])
+x = np.array([0.50, 0.75, 0.90, 1.00, 1.05])
 y = np.array([2.3, 2.18, 2.14, 2.1, 2.15])
 tiP_char = dc_cc(func=char_line(x, y))
 
@@ -151,7 +151,8 @@ Qloss_char = dc_cc(func=char_line(x, y))
 
 # set combustion chamber fuel, air to stoichometric air ratio and thermal input
 ice.set_attr(pr1=0.98, lamb=1.0, design=['pr1'], offdesign=['zeta1'],
-             tiP_char=tiP_char, Q1_char=Q1_char, Q2_char=Q2_char, Qloss_char=Qloss_char)
+             tiP_char=tiP_char, Q1_char=Q1_char, Q2_char=Q2_char,
+             Qloss_char=Qloss_char)
 
 # flue gas cooler
 
@@ -187,7 +188,7 @@ sf_comb.set_attr(T=20, fluid={'CO2': 0, 'Ar': 0, 'N2': 0,
                               'O2': 0, 'H2O': 0, 'CH4': 1})
 
 # flue gas outlet
-#m_fgc.set_attr(T=75, design=['T'])
+# m_fgc.set_attr(T=75, design=['T'])
 fgc_ch.set_attr(T=150, design=['T'])
 fg_chbp.set_attr(m=0)
 
@@ -209,7 +210,7 @@ P_L = []
 Q_L = []
 
 mode = 'design'
-nw.solve(mode=mode , init_path='ice_design') #ice_stable nicht mehr vorhanden, bzw. noch nach altem dev Stand erzeugt
+nw.solve(mode=mode, init_path='ice_design')
 nw.print_results()
 nw.save('ice_design')
 print(power.P.val, heat.P.val,
@@ -229,13 +230,13 @@ P_L += [abs(power.P.val)]
 Q_L += [abs(heat.P.val)]
 
 #############################
-#1 max P über Bypass
+# 1 max P über Bypass
 
 print('Open bypass, shut down flue gas cooler at maximum power output')
 
 m_bypass = [0, 1/3, 1, 3, 10]
 fg_chbp.set_attr(m=np.nan)
-fgc_ch.set_attr(m=np.nan) #warum NaN setzen, wenn später mit Faktor multipliziert werden soll?
+fgc_ch.set_attr(m=np.nan)
 
 for m in m_bypass:
     fg_chbp.set_attr(m=ref(fgc_ch, m, 0))
@@ -258,13 +259,13 @@ Q_L += [abs(heat.P.val)]
 
 P_max_woDH = abs(power.P.val)
 eta_el_max_tl = abs(power.P.val) / ti.P.val
-H_L_FG_min1 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
+H_L_FG_min1 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
 
 ##############################
 # min P über Bypass
 print('Open bypass, shut down flue gas cooler at minimum power output')
 
-ice.set_attr(P=ice_P_design * 0.55) # Pmin als 0.55*Pmax hardcodet?
+ice.set_attr(P=ice_P_design * 0.5)  # Pmin als 0.5*Pmax hardcodet?
 m_bypass = [0, 1/3, 1, 3, 10]
 fg_chbp.set_attr(m=np.nan)
 fgc_ch.set_attr(m=np.nan)
@@ -289,7 +290,7 @@ Q_L += [abs(heat.P.val)]
 
 P_min_woDH = abs(power.P.val)
 eta_el_min_bl = abs(power.P.val) / ti.P.val
-H_L_FG_min2 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
+H_L_FG_min2 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
 
 H_L_FG_min = (H_L_FG_min1 + H_L_FG_min2)/2
 
@@ -297,7 +298,7 @@ H_L_FG_min = (H_L_FG_min1 + H_L_FG_min2)/2
 # min Q (Opened Bypass), from min P to max P
 print('Opened bypass, go from minimum to maximum power')
 
-ice_power = np.linspace(ice_P_design * 0.55, ice_P_design, 5)
+ice_power = np.linspace(ice_P_design * 0.5, ice_P_design, 5)
 fg_chbp.set_attr(m=np.nan)
 fgc_ch.set_attr(m=np.nan)
 
@@ -328,10 +329,10 @@ for P in ice_power:
     P_L += [abs(power.P.val)]
     Q_L += [abs(heat.P.val)]
     if P == ice_power[0]:
-        H_L_FG_max1 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
+        H_L_FG_max1 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
         eta_el_min_br = abs(power.P.val) / ti.P.val
     elif P == ice_power[-1]:
-        H_L_FG_max2 = 1 - abs(power.P.val + heat.P.val)/ ti.P.val
+        H_L_FG_max2 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
         eta_el_max_tr = abs(power.P.val) / ti.P.val
 
 H_L_FG_max = (H_L_FG_max1 + H_L_FG_max2)/2
@@ -371,14 +372,14 @@ dfP_max = pd.DataFrame({'plant': plant_name, 'parameter': 'P_max_woDH',
 dfP_min = pd.DataFrame({'plant': plant_name, 'parameter': 'P_min_woDH',
                         'unit': 'MW', 'value': [P_min_woDH/1e6]})
 dfeta_max = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_max_woDH',
-                          'unit': 'fraction', 'value': [eta_el_max]})
+                          'unit': '-', 'value': [eta_el_max]})
 dfeta_min = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_min_woDH',
-                          'unit': 'fraction', 'value': [eta_el_min]})
+                          'unit': '-', 'value': [eta_el_min]})
 dfH_max = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_share_max',
-                        'unit': 'fraction', 'value': [H_L_FG_max]})
+                        'unit': '-', 'value': [H_L_FG_max]})
 dfH_min = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_share_min',
-                        'unit': 'fraction', 'value': [H_L_FG_min]})
+                        'unit': '-', 'value': [H_L_FG_min]})
 df = df.append([dfQ_N, dfQ_in, dfP_max, dfP_min, dfeta_max, dfeta_min, dfH_max,
-           dfH_min], ignore_index=True)
+                dfH_min], ignore_index=True)
 
-df.to_csv('data_' + plant_name + '.csv', index=False)
+df.to_csv('data_' + plant_name + '.csv', index=False, sep=";")
