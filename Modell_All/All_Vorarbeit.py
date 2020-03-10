@@ -110,6 +110,7 @@ P_min_gud = 59.13
 H_L_FG_share_max_gud = 0.1370
 Eta_el_max_woDH_gud = 0.5704
 Eta_el_min_woDH_gud = 0.4715
+Q_CW_min = 8.98
 beta_gud = 0.1831
 
 # Investition
@@ -279,7 +280,7 @@ gud = solph.components.GenericCHP(
         Eta_el_max_woDH=[Eta_el_max_woDH_gud for p in range(0, periods)],
         Eta_el_min_woDH=[Eta_el_min_woDH_gud for p in range(0, periods)])},
     heat_output={wnw: solph.Flow(
-        Q_CW_min=[0 for p in range(0, periods)])},
+        Q_CW_min=[Q_CW_min for p in range(0, periods)])},
     Beta=[beta_gud for p in range(0, periods)],
     back_pressure=False)
 

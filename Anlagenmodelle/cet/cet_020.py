@@ -421,10 +421,12 @@ P_min_woDH = P_b_l
 eta_el_min = P_b_l/Q_in_b_l
 H_L_FG_t_r = 1-(P_t_r + Q_t_r + Q_cond_t_r) / Q_in_t_r
 H_L_FG_b_r = 1-(P_b_r + Q_b_r + Q_cond_b_r) / Q_in_b_r
-H_L_FG_share_max = (H_L_FG_t_r + H_L_FG_b_r) /2
+H_L_FG_share_max = (H_L_FG_t_r + H_L_FG_b_r) / 2
+Q_CW_min = Q_cond_t_r
 beta_unten = abs((P_b_r - P_b_l) / Q_b_r)
 beta_oben = abs((P_t_r - P_t_l) / Q_t_r)
-beta = (beta_oben + beta_unten) /2
+beta = (beta_oben + beta_unten) / 2
+
 
 print('_____________________________')
 print('#############################')
@@ -438,6 +440,7 @@ print('P_min_woDH: ' + "%.2f" % (P_min_woDH/1e6) + " MW")
 print('eta_el_max: ' + "%.4f" % eta_el_max)
 print('eta_el_min: ' + "%.4f" % eta_el_min)
 print('H_L_FG_share_max: ' + "%.4f" % H_L_FG_share_max)
+print('Q_CW_min: ' + "%.2f" % (Q_CW_min/1e6) + " MW")
 print('beta: ' + "%.4f" % beta)
 print()
 print('_____________________________')
@@ -454,12 +457,16 @@ dfP_max = pd.DataFrame({'plant': plant_name, 'parameter': 'P_max_woDH',
 dfP_min = pd.DataFrame({'plant': plant_name, 'parameter': 'P_min_woDH',
                         'unit': 'MW', 'value': [P_min_woDH/1e6]})
 dfeta_max = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_max_woDH',
-                          'unit': 'fraction', 'value': [eta_el_max]})
+                          'unit': '-', 'value': [eta_el_max]})
 dfeta_min = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_min_woDH',
-                          'unit': 'fraction', 'value': [eta_el_min]})
+                          'unit': '-', 'value': [eta_el_min]})
 dfH_max = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_share_max',
-                        'unit': 'fraction', 'value': [H_L_FG_share_max]})
+                        'unit': '-', 'value': [H_L_FG_share_max]})
+dfQ_CW_min = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_CW_min',
+                           'unit': 'MW', 'value': [Q_CW_min/1e6]})
+dfbeta = pd.DataFrame({'plant': plant_name, 'parameter': 'beta',
+                       'unit': '-', 'value': [beta]})
 df = df.append([dfQ_N, dfQ_in, dfP_max, dfP_min, dfeta_max, dfeta_min,
-                dfH_max], ignore_index=True)
+                dfH_max, dfQ_CW_min, dfbeta], ignore_index=True)
 
 df.to_csv('data_' + plant_name + '.csv', index=False)

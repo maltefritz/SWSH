@@ -280,8 +280,8 @@ for T in T_range:
     T_db += [T]
     P_max += [abs(max(P_list))/1e6]
     P_min += [abs(min(P_list))/1e6]
-    c_1 += [abs((Q_range[1] - Q_range[-1])/1e6)/(P_max[-1] - P_min[-1])]
-    c_0 += [abs(Q_range[1]/1e6) - c_1[-1] * P_max[-1]]
+    c_1 += [abs((Q_range[0] - Q_range[-1])/1e6)/(P_max[-1] - P_min[-1])]
+    c_0 += [abs(Q_range[0]/1e6) - c_1[-1] * P_max[-1]]
 
     df.loc[0, :] = guetegrad
     solph_komp = {'T_DH_VL / C': T_db, 'P_max / MW': P_max,
