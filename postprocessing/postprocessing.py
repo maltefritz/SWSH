@@ -376,12 +376,11 @@ def pp_Vorarbeit():
     """
     # %% Daten einlesen
 
-    dirpath = path.abspath(path.join(__file__, "../.."))
+    dirpath = path.abspath(
+        path.join(__file__, "../..", "Ergebnisse\\Vorarbeit"))
 
     # Invest
-    inv = pd.read_csv(path.join(dirpath,
-                                'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
-                      sep=";")
+    inv = pd.read_csv(path.join(dirpath, 'Vor_Invest.csv'), sep=";")
 
     invest_TES = invest_stes(float(inv['Q_tes']))
     invest_ges = invest_TES + float(inv['invest_ges'])
@@ -391,8 +390,7 @@ def pp_Vorarbeit():
     total_heat_demand = float(inv['total_heat_demand'])
 
     # CO2
-    use = pd.read_csv(path.join(dirpath,
-                                'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'),
+    use = pd.read_csv(path.join(dirpath, 'Vor_CO2.csv'),
                       sep=";", index_col=0, parse_dates=True)
 
     co2 = pd.read_csv('emissions2016.csv', sep=";", index_col=0,
@@ -404,12 +402,10 @@ def pp_Vorarbeit():
     e_fuel = 0.2012    # in t/MWh aus "Emissionsbewertung Daten"
 
     # Ergebnisvisualisierung
-    wnw = pd.read_csv(path.join(dirpath,
-                                'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
+    wnw = pd.read_csv(path.join(dirpath, 'Vor_wnw.csv'),
                       sep=";", index_col=0, parse_dates=True)
-    tes = pd.read_csv(path.join(
-        dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Speicher.csv'), sep=";",
-        index_col=0, parse_dates=True)
+    tes = pd.read_csv(path.join(dirpath, 'Vor_Speicher.csv'), sep=";",
+                      index_col=0, parse_dates=True)
 
     # %% Ergebnisse der Investitionsrechnungen
     npv_obj = npv(invest_ges, objective)/1e6
@@ -500,7 +496,7 @@ def pp_Vorarbeit():
     ax = zplt.line(data=wnw.loc[idx, ['Solar', 'Wärmebedarf']], xlabel='Date',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
 
-    filename = path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_plots.pdf')
+    filename = path.join(dirpath, 'Vor_plots.pdf')
     shared.create_multipage_pdf(file_name=filename)
     plt.show()
 
