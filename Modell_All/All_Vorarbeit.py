@@ -88,13 +88,13 @@ invest_slk = spez_inv_slk * Q_slk
     # %% BHKW - check
 
 # Dimensionierung
-Q_in_bhkw = 225
-P_max_bhkw = 103.16
-P_min_bhkw = 96.89
-H_L_FG_share_max_bhkw = 0.2032
-H_L_FG_share_min_bhkw = 0.3603
+Q_in_bhkw = 224.95
+P_max_bhkw = 105.40
+P_min_bhkw = 52.43
+H_L_FG_share_max_bhkw = 0.1929
+H_L_FG_share_min_bhkw = 0.3640
 Eta_el_max_woDH_bhkw = 0.4685
-Eta_el_min_woDH_bhkw = 0.4306
+Eta_el_min_woDH_bhkw = 0.4256
 
 # Investition
 op_cost_bhkw = 10

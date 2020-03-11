@@ -266,7 +266,7 @@ H_L_FG_min1 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
 print('Open bypass, shut down flue gas cooler at minimum power output')
 
 ice.set_attr(P=ice_P_design * 0.5)  # Pmin als 0.5*Pmax hardcodet?
-m_bypass = [0, 1/3, 1, 3, 10]
+m_bypass = [0, 1/3, 1, 3, 6, 10]
 fg_chbp.set_attr(m=np.nan)
 fgc_ch.set_attr(m=np.nan)
 

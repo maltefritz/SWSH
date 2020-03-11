@@ -18,6 +18,7 @@ from tespy.tools.data_containers import dc_cc
 
 from tespy.tools.characteristics import load_default_char as ldc
 import numpy as np
+from sklearn.linear_model import LinearRegression
 from matplotlib import pyplot as plt
 import pandas as pd
 
@@ -300,7 +301,10 @@ print(gt_power.P.val)
 # %% design case 2:
 # maximum gas turbine minimum heat extraction (cet_design_minQ)
 gt_power.set_attr(P=gt_power_design)
-heat_out.set_attr(P=-100e5)
+# heat_out.set_attr(P=-1e6)
+heat_out.set_attr(P=np.nan)
+mp_ws.set_attr(m=0.1)
+
 
 # local offdesign for district heating condenser
 cond_dh.set_attr(local_offdesign=True, design_path='cet_design_maxQ')
@@ -350,22 +354,24 @@ for Q_val in Q_step:
     Q_ti += [heat_in.P.val]
 
 # parameter for top_left
-P_t_l = P[1]
-Q_in_t_l = Q_ti[1]
+P_t_l = (P[1]+P[0]) / 2
+Q_in_t_l = (Q_ti[1]+Q_ti[0]) / 2
+
+# P_t_l = P[1]
+# Q_in_t_l = Q_ti[1]
 
     # %% from minimum to maximum gas turbine power at maximum heat extraction
 
 print('minimum power to maximum power at maximum heat')
 
 heat_out.set_attr(P=np.nan)
-gt_power.set_attr(P=gt_power_design * 0.3)
-mp_ls.set_attr(m=0.1 * m_lp_max)
+# gt_power.set_attr(P=gt_power_design * 0.3)
+mp_ls.set_attr(m=mp_ls.m.val)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
 P += [abs(power.P.val)]
 Q += [abs(heat_out.P.val)]
 Q_cond += [abs(heat_cond.P.val)]
 Q_ti += [heat_in.P.val]
-Q_TL = heat_out.P.val
 
 # parameter for buttom_right:
 P_b_r = P[-1]
@@ -373,16 +379,17 @@ Q_b_r = Q[-1]
 Q_cond_b_r = Q_cond[-1]
 Q_in_b_r = Q_ti[-1]
 
-TL_step = np.linspace(0.3, 1, num=6)
+TL_step = np.linspace(1, 0.3, num=6)
 
 for TL_val in TL_step:
     gt_power.set_attr(P=gt_power_design * TL_val)
-    mp_ls.set_attr(m=0.1 * m_lp_max)
+    # mp_ls.set_attr(m=0.1 * m_lp_max)
     nw.solve(mode='offdesign', design_path='cet_design_minQ')
     P += [abs(power.P.val)]
     Q += [abs(heat_out.P.val)]
     Q_cond += [abs(heat_cond.P.val)]
     Q_ti += [heat_in.P.val]
+Q_TL = heat_out.P.val
 
 # parameter for top_right:
 P_t_r = P[-1]
@@ -395,16 +402,16 @@ Q_in_t_r = Q_ti[-1]
 print('no heat, minimum power')
 
 mp_ls.set_attr(m=np.nan)
-gt_power.set_attr(P=gt_power_design * 0.3)
-heat_out.set_attr(P=-1e6)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
+# gt_power.set_attr(P=gt_power_design * 0.3)
+# heat_out.set_attr(P=Q_TL)
+# nw.solve(mode='offdesign', design_path='cet_design_minQ')
 
-P += [abs(power.P.val)]
-Q += [abs(heat_out.P.val)]
-Q_cond += [abs(heat_cond.P.val)]
-Q_ti += [heat_in.P.val]
+# P += [abs(power.P.val)]
+# Q += [abs(heat_out.P.val)]
+# Q_cond += [abs(heat_cond.P.val)]
+# Q_ti += [heat_in.P.val]
 
-Q_step = np.linspace(-10e6, Q_TL, num=9, endpoint=False)
+Q_step = np.linspace(Q_TL, -1e5, num=9, endpoint=False)
 
 for Q_val in Q_step:
     heat_out.set_attr(P=Q_val)
@@ -425,6 +432,14 @@ Q_in_b_l = Q_ti[-10]
 
 plt.plot(Q, P, 'x')
 plt.show()
+
+# lineare Regression
+
+x = np.array(Q[:7], Q[14]).reshape((-1, 1))
+y = np.array(P[:7], P[14])
+
+linreg = LinearRegression().fit(x, y)
+b = linreg.intercept_
 
 # solph Parameter
 
