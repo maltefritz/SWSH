@@ -301,10 +301,7 @@ print(gt_power.P.val)
 # %% design case 2:
 # maximum gas turbine minimum heat extraction (cet_design_minQ)
 gt_power.set_attr(P=gt_power_design)
-# heat_out.set_attr(P=-1e6)
-heat_out.set_attr(P=np.nan)
-mp_ws.set_attr(m=0.1)
-
+heat_out.set_attr(P=-10e6)
 
 # local offdesign for district heating condenser
 cond_dh.set_attr(local_offdesign=True, design_path='cet_design_maxQ')
@@ -323,8 +320,6 @@ m_lp_max = mp_ls.m.val_SI
 print(heat_out.P.val / heat_in.P.val, power.P.val / heat_in.P.val)
 print(heat_out.P.val, power.P.val)
 print(mp_ls.m.val_SI / m_lp_max)
-
-Q_in = heat_in.P.val
 
 # %% offdesign
 
@@ -353,37 +348,24 @@ for Q_val in Q_step:
     Q_cond += [abs(heat_cond.P.val)]
     Q_ti += [heat_in.P.val]
 
-# parameter for top_left
-P_t_l = (P[1]+P[0]) / 2
-Q_in_t_l = (Q_ti[1]+Q_ti[0]) / 2
-
-# P_t_l = P[1]
-# Q_in_t_l = Q_ti[1]
-
     # %% from minimum to maximum gas turbine power at maximum heat extraction
 
-print('minimum power to maximum power at maximum heat')
+print('maximum power to minimum power at maximum heat')
 
 heat_out.set_attr(P=np.nan)
-# gt_power.set_attr(P=gt_power_design * 0.3)
 mp_ls.set_attr(m=mp_ls.m.val)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
-P += [abs(power.P.val)]
-Q += [abs(heat_out.P.val)]
-Q_cond += [abs(heat_cond.P.val)]
-Q_ti += [heat_in.P.val]
 
 # parameter for buttom_right:
-P_b_r = P[-1]
-Q_b_r = Q[-1]
-Q_cond_b_r = Q_cond[-1]
-Q_in_b_r = Q_ti[-1]
+P_t_r = P[-1]
+Q_t_r = Q[-1]
+Q_cond_t_r = Q_cond[-1]
+Q_in_t_r = Q_ti[-1]
 
-TL_step = np.linspace(1, 0.3, num=6)
+TL_step = np.linspace(0.9, 0.3, num=7)
 
 for TL_val in TL_step:
     gt_power.set_attr(P=gt_power_design * TL_val)
-    # mp_ls.set_attr(m=0.1 * m_lp_max)
     nw.solve(mode='offdesign', design_path='cet_design_minQ')
     P += [abs(power.P.val)]
     Q += [abs(heat_out.P.val)]
@@ -392,24 +374,16 @@ for TL_val in TL_step:
 Q_TL = heat_out.P.val
 
 # parameter for top_right:
-P_t_r = P[-1]
-Q_t_r = Q[-1]
-Q_cond_t_r = Q_cond[-1]
-Q_in_t_r = Q_ti[-1]
+P_b_r = P[-1]
+Q_b_r = Q[-1]
+Q_cond_b_r = Q_cond[-1]
+Q_in_b_r = Q_ti[-1]
 
     # %% back to design case, but minimum gas turbine power
 
 print('no heat, minimum power')
 
 mp_ls.set_attr(m=np.nan)
-# gt_power.set_attr(P=gt_power_design * 0.3)
-# heat_out.set_attr(P=Q_TL)
-# nw.solve(mode='offdesign', design_path='cet_design_minQ')
-
-# P += [abs(power.P.val)]
-# Q += [abs(heat_out.P.val)]
-# Q_cond += [abs(heat_cond.P.val)]
-# Q_ti += [heat_in.P.val]
 
 Q_step = np.linspace(Q_TL, -1e5, num=9, endpoint=False)
 
@@ -422,10 +396,6 @@ for Q_val in Q_step:
     Q_cond += [abs(heat_cond.P.val)]
     Q_ti += [heat_in.P.val]
 
-# parameter for buttom_left
-P_b_l = P[-10]
-Q_in_b_l = Q_ti[-10]
-
 # %% postprocessing
 
 # P_Q_Diagramm
@@ -435,20 +405,31 @@ plt.show()
 
 # lineare Regression
 
-x = np.array(Q[:7], Q[14]).reshape((-1, 1))
-y = np.array(P[:7], P[14])
+x = np.array(Q[3:7]).reshape((-1, 1))
+y = np.array(P[3:7])
 
 linreg = LinearRegression().fit(x, y)
-b = linreg.intercept_
+P_t_l = linreg.intercept_
+
+x = np.array(Q[15:23]).reshape((-1, 1))
+y = np.array(P[15:23])
+
+linreg = LinearRegression().fit(x, y)
+P_b_l = linreg.intercept_
+
+# Mittelwerte der zugeführten Wärme
+
+Q_in_t = sum(Q_ti[0:8])/8
+Q_in_b = sum(Q_ti[15:24])/9
 
 # solph Parameter
 
 P_max_woDH = P_t_l
-eta_el_max = P_t_l/Q_in_t_l
+eta_el_max = P_t_l/Q_in_t
 P_min_woDH = P_b_l
-eta_el_min = P_b_l/Q_in_b_l
-H_L_FG_t_r = 1-(P_t_r + Q_t_r + Q_cond_t_r) / Q_in_t_r
-H_L_FG_b_r = 1-(P_b_r + Q_b_r + Q_cond_b_r) / Q_in_b_r
+eta_el_min = P_b_l/Q_in_b
+H_L_FG_t_r = 1-(P_t_r + Q_t_r + Q_cond_t_r) / Q_in_t
+H_L_FG_b_r = 1-(P_b_r + Q_b_r + Q_cond_b_r) / Q_in_b
 H_L_FG_share_max = (H_L_FG_t_r + H_L_FG_b_r) / 2
 Q_CW_min = Q_cond_t_r
 beta_unten = abs((P_b_r - P_b_l) / Q_b_r)
@@ -462,7 +443,7 @@ print()
 print('Ergebnisse:')
 print()
 print('Q_N: ' + "%.2f" % abs(Q_N/1e6) + " MW")
-print('Q_in: ' + "%.2f" % (Q_in/1e6) + " MW")
+print('Q_in: ' + "%.2f" % (Q_in_t/1e6) + " MW")
 print('P_max_woDH: ' + "%.2f" % (P_max_woDH/1e6) + " MW")
 print('P_min_woDH: ' + "%.2f" % (P_min_woDH/1e6) + " MW")
 print('eta_el_max: ' + "%.4f" % eta_el_max)
@@ -479,7 +460,7 @@ df = pd.DataFrame(columns=['plant', 'parameter', 'unit', 'value'])
 dfQ_N = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_N', 'unit': 'MW',
                       'value': [abs(Q_N/1e6)]})
 dfQ_in = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_in',
-                       'unit': 'MW', 'value': [Q_in/1e6]})
+                        'unit': 'MW', 'value': [Q_in_t/1e6]})
 dfP_max = pd.DataFrame({'plant': plant_name, 'parameter': 'P_max_woDH',
                         'unit': 'MW', 'value': [P_max_woDH/1e6]})
 dfP_min = pd.DataFrame({'plant': plant_name, 'parameter': 'P_min_woDH',
@@ -491,9 +472,9 @@ dfeta_min = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_min_woDH',
 dfH_max = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_share_max',
                         'unit': '-', 'value': [H_L_FG_share_max]})
 dfQ_CW_min = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_CW_min',
-                           'unit': 'MW', 'value': [Q_CW_min/1e6]})
+                            'unit': 'MW', 'value': [Q_CW_min/1e6]})
 dfbeta = pd.DataFrame({'plant': plant_name, 'parameter': 'beta',
-                       'unit': '-', 'value': [beta]})
+                        'unit': '-', 'value': [beta]})
 df = df.append([dfQ_N, dfQ_in, dfP_max, dfP_min, dfeta_max, dfeta_min,
                 dfH_max, dfQ_CW_min, dfbeta], ignore_index=True)
 
