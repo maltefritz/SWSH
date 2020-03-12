@@ -335,6 +335,8 @@ Q += [abs(heat_out.P.val)]
 Q_cond += [abs(heat_cond.P.val)]
 Q_ti += [heat_in.P.val]
 
+Q_in = Q_ti[-1]
+
     # %%move to maximum heat extraction at maximum gas turbine power
 
 Q_step = np.linspace(-1e6, Q_N, num=7)
@@ -381,7 +383,7 @@ Q_in_b_r = Q_ti[-1]
 
     # %% back to design case, but minimum gas turbine power
 
-print('no heat, minimum power')
+print('maximum heat to minimum heat, minimum power')
 
 mp_ls.set_attr(m=np.nan)
 
@@ -428,8 +430,8 @@ P_max_woDH = P_t_l
 eta_el_max = P_t_l/Q_in_t
 P_min_woDH = P_b_l
 eta_el_min = P_b_l/Q_in_b
-H_L_FG_t_r = 1-(P_t_r + Q_t_r + Q_cond_t_r) / Q_in_t
-H_L_FG_b_r = 1-(P_b_r + Q_b_r + Q_cond_b_r) / Q_in_b
+H_L_FG_t_r = 1-(P_t_r + Q_t_r + Q_cond_t_r) / Q_in_t_r
+H_L_FG_b_r = 1-(P_b_r + Q_b_r + Q_cond_b_r) / Q_in_b_r
 H_L_FG_share_max = (H_L_FG_t_r + H_L_FG_b_r) / 2
 Q_CW_min = Q_cond_t_r
 beta_unten = abs((P_b_r - P_b_l) / Q_b_r)
