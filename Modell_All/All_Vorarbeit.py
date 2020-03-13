@@ -87,10 +87,11 @@ invest_slk = spez_inv_slk * Q_slk
 
     # %% BHKW - check
 
-# Dimensionierung
-Q_in_bhkw = 224.95
-P_max_bhkw = 105.40
-P_min_bhkw = 52.43
+# Dimensionierung: Q_N=73.75
+
+Q_in_bhkw = 221.20
+P_max_bhkw = 103.64
+P_min_bhkw = 51.56
 H_L_FG_share_max_bhkw = 0.1929
 H_L_FG_share_min_bhkw = 0.3640
 Eta_el_max_woDH_bhkw = 0.4685
@@ -103,13 +104,12 @@ invest_bhkw = P_max_bhkw * spez_inv_bhkw
 
     # %% GuD - check
 
-# Dimensionierung - Noch nicht dimensioniert!
+# Dimensionierung: Q_N=71
 Q_in_gud = param.loc[('GuD', 'Q_in'), 'value']
 P_max_gud = param.loc[('GuD', 'P_max_woDH'), 'value']
 P_min_gud = param.loc[('GuD', 'P_min_woDH'), 'value']
 H_L_FG_share_max_gud = param.loc[('GuD', 'H_L_FG_share_max'), 'value']
-# Eta_el_max_woDH_gud = param.loc[('GuD', 'Eta_el_max_woDH'), 'value']
-Eta_el_max_woDH_gud = 0.57 # morgen damit simulieren
+Eta_el_max_woDH_gud = param.loc[('GuD', 'Eta_el_max_woDH'), 'value']
 Eta_el_min_woDH_gud = param.loc[('GuD', 'Eta_el_min_woDH'), 'value']
 Q_CW_min = param.loc[('GuD', 'Q_CW_min'), 'value']
 beta_gud = param.loc[('GuD', 'beta'), 'value']

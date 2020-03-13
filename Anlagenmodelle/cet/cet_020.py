@@ -339,7 +339,7 @@ Q_in = Q_ti[-1]
 
     # %%move to maximum heat extraction at maximum gas turbine power
 
-Q_step = np.linspace(-1e6, Q_N, num=7)
+Q_step = np.linspace(-10e6, Q_N, num=7)
 
 for Q_val in Q_step:
     heat_out.set_attr(P=Q_val)
@@ -358,7 +358,7 @@ heat_out.set_attr(P=np.nan)
 mp_ls.set_attr(m=mp_ls.m.val)
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
 
-# parameter for buttom_right:
+# parameter for top_right:
 P_t_r = P[-1]
 Q_t_r = Q[-1]
 Q_cond_t_r = Q_cond[-1]
@@ -375,7 +375,7 @@ for TL_val in TL_step:
     Q_ti += [heat_in.P.val]
 Q_TL = heat_out.P.val
 
-# parameter for top_right:
+# parameter for buttom_right:
 P_b_r = P[-1]
 Q_b_r = Q[-1]
 Q_cond_b_r = Q_cond[-1]
@@ -462,7 +462,7 @@ df = pd.DataFrame(columns=['plant', 'parameter', 'unit', 'value'])
 dfQ_N = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_N', 'unit': 'MW',
                       'value': [abs(Q_N/1e6)]})
 dfQ_in = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_in',
-                        'unit': 'MW', 'value': [Q_in_t/1e6]})
+                       'unit': 'MW', 'value': [Q_in_t/1e6]})
 dfP_max = pd.DataFrame({'plant': plant_name, 'parameter': 'P_max_woDH',
                         'unit': 'MW', 'value': [P_max_woDH/1e6]})
 dfP_min = pd.DataFrame({'plant': plant_name, 'parameter': 'P_min_woDH',
@@ -474,9 +474,9 @@ dfeta_min = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_min_woDH',
 dfH_max = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_share_max',
                         'unit': '-', 'value': [H_L_FG_share_max]})
 dfQ_CW_min = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_CW_min',
-                            'unit': 'MW', 'value': [Q_CW_min/1e6]})
+                           'unit': 'MW', 'value': [Q_CW_min/1e6]})
 dfbeta = pd.DataFrame({'plant': plant_name, 'parameter': 'beta',
-                        'unit': '-', 'value': [beta]})
+                       'unit': '-', 'value': [beta]})
 df = df.append([dfQ_N, dfQ_in, dfP_max, dfP_min, dfeta_max, dfeta_min,
                 dfH_max, dfQ_CW_min, dfbeta], ignore_index=True)
 
