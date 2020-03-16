@@ -411,7 +411,7 @@ def pp_Vorarbeit():
     npv_obj = npv(invest_ges, objective)/1e6
     npv_GB = npv(invest_ges, Gesamtbetrag)/1e6
     npv_BoP = npv(invest_ges, Betrag_ohnePrimär)/1e6
-    lcoh = LCOH(invest_ges, Gesamtbetrag, total_heat_demand)
+    lcoh = LCOH(invest_ges, Betrag_ohnePrimär, total_heat_demand)
 
     print("GuD, BHKW, SLK, WP, EHK, STES & Solar")
     print()
@@ -459,6 +459,31 @@ def pp_Vorarbeit():
 
     ax = zplt.line(data=wnw[['BHKW', 'EHK', 'GuD', 'SLK', 'Wärmepumpe',
                              'Wärmebedarf']],
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=wnw[['BHKW', 'Wärmebedarf']],
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=wnw[['EHK', 'Wärmebedarf']],
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=wnw[['GuD', 'Wärmebedarf']],
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=wnw[['SLK', 'Wärmebedarf']],
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=wnw[['Wärmepumpe', 'Wärmebedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
