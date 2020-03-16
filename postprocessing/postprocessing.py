@@ -457,7 +457,8 @@ def pp_Vorarbeit():
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
+    ax = zplt.line(data=wnw[['BHKW', 'EHK', 'GuD', 'SLK', 'Wärmepumpe',
+                             'Wärmebedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
@@ -482,7 +483,8 @@ def pp_Vorarbeit():
     # 7-Tage Plots
     idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
 
-    ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'SLK', 'Wärmebedarf']],
+    ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'GuD', 'SLK',
+                                      'Wärmepumpe', 'Wärmebedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
 
