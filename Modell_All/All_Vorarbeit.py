@@ -123,15 +123,6 @@ invest_gud = P_max_gud * spez_inv_gud
 
 Q_hp = 75
 
-filename = path.join(dirpath, 'Eingangsdaten\\hp_char_timeseries.csv')
-hp_data = pd.read_csv(filename, sep=";")
-
-P_in_max_hp = hp_data['P_max'].to_list()
-P_in_min_hp = hp_data['P_min'].to_list()
-
-c1_hp = hp_data['c_1'].to_list()
-c0_hp = hp_data['c_0'].to_list()
-
 # Investition
 op_cost_hp = 0.88
 spez_inv_hp = 220350
@@ -242,6 +233,7 @@ ehk = solph.Transformer(label='Elektroheizkessel',
                                                  variable_costs=op_cost_ehk)},
                         conversion_factors={wnw: eta_ehk})
 
+
 slk = solph.Transformer(label='Spitzenlastkessel',
                         inputs={gnw: solph.Flow()},
                         outputs={wnw: solph.Flow(
@@ -250,6 +242,7 @@ slk = solph.Transformer(label='Spitzenlastkessel',
                             min=0,
                             variable_costs=op_cost_slk+energy_tax)},
                         conversion_factors={wnw: eta_slk})
+
 
 bhkw = solph.components.GenericCHP(
     label='BHKW',
@@ -285,14 +278,16 @@ gud = solph.components.GenericCHP(
     Beta=[beta_gud for p in range(0, periods)],
     back_pressure=False)
 
+
 hp = solph.components.OffsetTransformer(
     label='Wärmepumpe',
     inputs={enw: solph.Flow(nominal_value=1,
-                            max=P_in_max_hp,
-                            min=P_in_min_hp,
+                            max=data['P_max'],
+                            min=data['P_min'],
                             nonconvex=solph.NonConvex())},
     outputs={wnw: solph.Flow(variable_costs=op_cost_hp)},
-    coefficients=[c0_hp, c1_hp])
+    coefficients=[data['c_0'], data['c_1']])
+
 
 es_ref.add(ehk, slk, bhkw, gud, hp)
 
@@ -393,7 +388,7 @@ cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
 cost_hp = (data_hp[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')].sum()
            * op_cost_hp
            + (param.loc[('HP', 'op_cost_fix'), 'value']
-               * hp_data.loc[:, 'P_max'].max()))
+               * data['P_max'].max()))
 cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
             * op_cost_ehk
             + (param.loc[('EHK', 'op_cost_fix'), 'value']
