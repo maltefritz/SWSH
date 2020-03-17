@@ -9,12 +9,12 @@ import numpy as np
 
 
 # %% Kapitalwert
-def npv(invest, objective, i=0.05, n=20):
+def npv(invest, cashflow, i=0.05, n=20):
     """Konstantin 2013, Markus [29].
 
     npv:        Kapitalwert (netpresentvalue)
     invest:     Investitionsausgaben zum Zeitpunkt t=0
-    objective:  Zielwertfunktion - Zahlungsströme
+    cashflow:   Differenz aller Einnahmen und Ausgaben (Zahlungsströme)
     i:          Kalkulationszinssatz
     n:          Betrachtungsdauer
     bwsf:       Barwert Summenfaktor
@@ -22,25 +22,27 @@ def npv(invest, objective, i=0.05, n=20):
     q = 1+i
     bwsf = (q**n - 1)/(q**n * (q - 1))
 
-    npv = -invest + bwsf * objective
+    npv = -invest + bwsf * cashflow
     return npv
 
 
 # %% Wärmegestehungskosten
-def LCOH(invest, ausgaben, Q, i=0.05, n=20):
+def LCOH(invest, cashflow, Q, i=0.05, n=20):
     """Konstantin 2013, Markus [29].
 
     LCOH        Wärmegestehungskosten
     invest:     Investitionsausgaben zum Zeitpunkt t=0
-    ausgaben:   Gesamtkosten
-    Q:          Wärme
+    bwsf:       Barwert Summenfaktor
+    cashflow:   Differenz aller Einnahmen und Ausgaben (Zahlungsströme)
+                innerhalb des betrachteten Jahres
+    Q:          Gesamte bereitgestellte Wärmemenge pro Jahr
     i:          Kalkulationszinssatz
     n:          Betrachtungsdauer
     """
     q = 1 + i
-    factor = (q**n * (q - 1)) / (q**n - 1)
+    bwsf = (q**n - 1)/(q**n * (q - 1))
 
-    LCOH = (invest * factor + ausgaben) / Q
+    LCOH = abs(-invest * bwsf**(-1) + cashflow) / Q
     return LCOH
 
 
