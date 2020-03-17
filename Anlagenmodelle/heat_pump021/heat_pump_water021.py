@@ -4,6 +4,7 @@ Created on Thu Jan  9 10:07:02 2020
 
 @author: Malte Fritz and Jonas Freißmann
 """
+import os.path as path
 
 from tespy.networks import network
 from tespy.components import (sink, source, splitter, compressor, condenser,
@@ -311,4 +312,6 @@ for T in T_range:
     plt.show()
     print(time() - tmp)
 
-df3.to_csv('Wärmepumpe_Wasser.csv', sep=';', na_rep='#N/A')
+dirpath = path.abspath(path.join(__file__, "../../.."))
+writepath = path.join(dirpath, 'Eingangsdaten', 'Wärmepumpe_Wasser.csv')
+df3.to_csv(writepath, sep=';', na_rep='#N/A')
