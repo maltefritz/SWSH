@@ -5,7 +5,10 @@ Created on Wed Jan 22 09:54:59 2020
 @author: Malte Fritz und Jonas Freißmann
 """
 import os.path as path
+
 import pandas as pd
+import numpy as np
+
 from ratipl import calculate_radiation
 
 
@@ -92,8 +95,26 @@ dT = T_Kol - TempData['T_U']
 
 # Berechnung des Kollektorwirkungsgrads und Kollektorwärmestroms
 eta = []
-Qdot_Kol = []
+Q_Kol_W = []
 for i in range(0, len(data_gen['Global'])):
     eta += [eta_0 - (a1*dT.iloc[i])/data_gen.loc[i, 'Global']
             - (a2*dT.iloc[i]**2)/data_gen.loc[i, 'Global']]
-    Qdot_Kol += [data_gen.loc[i, 'Global'] * eta[i]]
+    if eta[i] < 0 or np.isnan(eta[i]):
+        eta[i] = 0
+    Q_Kol_W += [data_gen.loc[i, 'Global'] * eta[i]]
+    if np.isnan(Q_Kol_W[i]):
+        Q_Kol_W[i] = 0
+
+# Umrechnung in MWh/m²
+Q_Kol_MW = [q/1e6 for q in Q_Kol_W]
+
+# % Exportieren des Kollektowärmestroms in simulation_data.csv
+# Import der simulation_data.csv
+simdata_path = path.join(dirpath, "Eingangsdaten\\simulation_data.csv")
+simdata = pd.read_csv(simdata_path, sep=";")
+
+# Berechneten Kollektorwärmestrom einfügen
+simdata['solar_data'] = Q_Kol_MW
+
+# Export der simulation_data.csv
+simdata.to_csv(simdata_path, sep=";", index=False)
