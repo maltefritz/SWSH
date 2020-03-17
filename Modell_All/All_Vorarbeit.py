@@ -427,8 +427,8 @@ Betrag_ohnePrimär = (revenues_spotmarkt
 
     # %% Output Ergebnisse
 
-label = ['BHKW', 'EHK', 'GuD', 'Solar', 'SLK', 'Wärmebedarf', 'TES Ein',
-         'Status TES Ein', 'Wärmepumpe', 'TES Aus', 'Status TES Aus']
+label = ['BHKW', 'EHK', 'GuD', 'Solar', 'SLK', 'Bedarf', 'TES Ein',
+         'Status TES Ein', 'WP', 'TES Aus', 'Status TES Aus']
 data_wnw.columns = label
 del data_wnw[label[-4]], data_wnw[label[-1]]
 

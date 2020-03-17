@@ -411,7 +411,7 @@ def pp_Vorarbeit():
     npv_obj = npv(invest_ges, objective)/1e6
     npv_GB = npv(invest_ges, Gesamtbetrag)/1e6
     npv_BoP = npv(invest_ges, Betrag_ohnePrimär)/1e6
-    lcoh = LCOH(invest_ges, Betrag_ohnePrimär, total_heat_demand)
+    lcoh = LCOH(invest_ges, Gesamtbetrag, total_heat_demand)
 
     print("GuD, BHKW, SLK, WP, EHK, STES & Solar")
     print()
@@ -457,38 +457,38 @@ def pp_Vorarbeit():
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['BHKW', 'EHK', 'GuD', 'SLK', 'Wärmepumpe',
-                             'Wärmebedarf']],
+    ax = zplt.line(data=wnw[['BHKW', 'EHK', 'GuD', 'SLK', 'WP',
+                             'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['BHKW', 'Wärmebedarf']],
+    ax = zplt.line(data=wnw[['BHKW', 'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['EHK', 'Wärmebedarf']],
+    ax = zplt.line(data=wnw[['EHK', 'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['GuD', 'Wärmebedarf']],
+    ax = zplt.line(data=wnw[['GuD', 'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['SLK', 'Wärmebedarf']],
+    ax = zplt.line(data=wnw[['SLK', 'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['Wärmepumpe', 'Wärmebedarf']],
+    ax = zplt.line(data=wnw[['WP', 'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['TES Ein', 'TES Aus', 'Wärmebedarf']],
+    ax = zplt.line(data=wnw[['TES Ein', 'TES Aus', 'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
@@ -497,7 +497,7 @@ def pp_Vorarbeit():
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['Solar', 'Wärmebedarf']], xlabel='Date',
+    ax = zplt.line(data=wnw[['Solar', 'Bedarf']], xlabel='Date',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
@@ -509,18 +509,18 @@ def pp_Vorarbeit():
     idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
 
     ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'GuD', 'SLK',
-                                      'Wärmepumpe', 'Wärmebedarf']],
+                                      'WP', 'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
 
-    ax = zplt.line(data=wnw.loc[idx, ['TES Ein', 'TES Aus', 'Wärmebedarf']],
+    ax = zplt.line(data=wnw.loc[idx, ['TES Ein', 'TES Aus', 'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
 
     ax = zplt.line(data=tes.loc[idx, :], xlabel='Date',
                    ylabel='Speicherstand in MWh', drawstyle='steps-mid')
 
-    ax = zplt.line(data=wnw.loc[idx, ['Solar', 'Wärmebedarf']], xlabel='Date',
+    ax = zplt.line(data=wnw.loc[idx, ['Solar', 'Bedarf']], xlabel='Date',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
 
     filename = path.join(dirpath, 'Vor_plots.pdf')
