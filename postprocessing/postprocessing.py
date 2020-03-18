@@ -496,6 +496,7 @@ def pp_Vorarbeit():
     ax = zplt.line(data=tes, xlabel='Date', ylabel='Speicherstand in MWh',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
+    ax.get_legend().remove()
 
     ax = zplt.line(data=wnw[['Solar', 'Bedarf']], xlabel='Date',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
@@ -504,6 +505,7 @@ def pp_Vorarbeit():
     ax = zplt.bar(data=dfEm.transpose().loc[:, 0],
                   ylabel='CO2-Emissionen in t')
     ax.grid(b=False, which='major', axis='x')
+    ax.get_legend().remove()
 
     # 7-Tage Plots
     idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
@@ -519,6 +521,7 @@ def pp_Vorarbeit():
 
     ax = zplt.line(data=tes.loc[idx, :], xlabel='Date',
                    ylabel='Speicherstand in MWh', drawstyle='steps-mid')
+    ax.get_legend().remove()
 
     ax = zplt.line(data=wnw.loc[idx, ['Solar', 'Bedarf']], xlabel='Date',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
