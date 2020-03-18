@@ -105,19 +105,19 @@ invest_bhkw = P_max_bhkw * spez_inv_bhkw
     # %% GuD - check
 
 # Dimensionierung: Q_N=71
-Q_in_gud = param.loc[('GuD', 'Q_in'), 'value']
-P_max_gud = param.loc[('GuD', 'P_max_woDH'), 'value']
-P_min_gud = param.loc[('GuD', 'P_min_woDH'), 'value']
-H_L_FG_share_max_gud = param.loc[('GuD', 'H_L_FG_share_max'), 'value']
-Eta_el_max_woDH_gud = param.loc[('GuD', 'Eta_el_max_woDH'), 'value']
-Eta_el_min_woDH_gud = param.loc[('GuD', 'Eta_el_min_woDH'), 'value']
-Q_CW_min = param.loc[('GuD', 'Q_CW_min'), 'value']
-beta_gud = param.loc[('GuD', 'beta'), 'value']
+# Q_in_gud =
+# P_max_gud =
+# P_min_gud =
+# H_L_FG_share_max_gud =
+# Eta_el_max_woDH_gud =
+# Eta_el_min_woDH_gud =
+# Q_CW_min =
+# beta_gud =
 
 # Investition
 op_cost_gud = 4.5
 spez_inv_gud = 1e+6
-invest_gud = P_max_gud * spez_inv_gud
+invest_gud = param.loc[('GuD', 'P_max_woDH'), 'value'] * spez_inv_gud
 
     # %% Wärmepumpe - check
 
@@ -265,17 +265,19 @@ bhkw = solph.components.GenericCHP(
 gud = solph.components.GenericCHP(
     label='GuD',
     fuel_input={gnw: solph.Flow(
-        H_L_FG_share_max=[H_L_FG_share_max_gud for p in range(0, periods)],
-        nominal_value=Q_in_gud)},
+        H_L_FG_share_max=[param.loc[('GuD', 'H_L_FG_share_max'), 'value']
+                          for p in range(0, periods)],
+        nominal_value=param.loc[('GuD', 'Q_in'), 'value'])},
     electrical_output={enw: solph.Flow(
         variable_costs=op_cost_gud,
-        P_max_woDH=[P_max_gud for p in range(0, periods)],
-        P_min_woDH=[P_min_gud for p in range(0, periods)],
-        Eta_el_max_woDH=[Eta_el_max_woDH_gud for p in range(0, periods)],
-        Eta_el_min_woDH=[Eta_el_min_woDH_gud for p in range(0, periods)])},
+        P_max_woDH=[param.loc[('GuD', 'P_max_woDH'), 'value'] for p in range(0, periods)],
+        P_min_woDH=[param.loc[('GuD', 'P_min_woDH'), 'value'] for p in range(0, periods)],
+        Eta_el_max_woDH=[param.loc[('GuD', 'Eta_el_max_woDH'), 'value'] for p in range(0, periods)],
+        Eta_el_min_woDH=[param.loc[('GuD', 'Eta_el_min_woDH'), 'value'] for p in range(0, periods)])},
     heat_output={wnw: solph.Flow(
-        Q_CW_min=[Q_CW_min for p in range(0, periods)])},
-    Beta=[beta_gud for p in range(0, periods)],
+        Q_CW_min=[param.loc[('GuD', 'Q_CW_min'), 'value']
+                  for p in range(0, periods)])},
+    Beta=[param.loc[('GuD', 'beta'), 'value'] for p in range(0, periods)],
     back_pressure=False)
 
 
@@ -363,9 +365,10 @@ data_tes = outputlib.views.node(results, 'Wärmespeicher')['sequences']
 objective = abs(es_ref.results['meta']['objective'])
 
 
-    # %% Geldflüss
+    # %% Geldflüsse
 
 # Ausgaben
+
 # # Anlagenbettriebskosten
 cost_tes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
             * op_cost_tes
