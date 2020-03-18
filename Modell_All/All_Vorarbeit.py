@@ -41,6 +41,8 @@ def invest_st(A, col_type=''):
         raise ValueError("Choose a valid collector type: 'flat' or 'vacuum'")
 
 
+def liste(parameter):
+    return [parameter for p in range(0, periods)]
 # %% Preprocessing
 
     # %% Daten einlesen
@@ -117,7 +119,8 @@ invest_bhkw = P_max_bhkw * spez_inv_bhkw
 # Investition
 op_cost_gud = 4.5
 spez_inv_gud = 1e+6
-invest_gud = param.loc[('GuD', 'P_max_woDH'), 'value'] * spez_inv_gud
+invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
+              * param.loc[('GuD', 'inv_spez'), 'value'])
 
     # %% Wärmepumpe - check
 
@@ -247,7 +250,7 @@ slk = solph.Transformer(label='Spitzenlastkessel',
 bhkw = solph.components.GenericCHP(
     label='BHKW',
     fuel_input={gnw: solph.Flow(
-        H_L_FG_share_max=[H_L_FG_share_max_bhkw for p in range(0, periods)],
+        H_L_FG_share_max=liste(H_L_FG_share_max_bhkw),
         H_L_FG_share_min=[H_L_FG_share_min_bhkw for p in range(0, periods)],
         nominal_value=Q_in_bhkw)},
     electrical_output={enw: solph.Flow(
