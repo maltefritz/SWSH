@@ -407,6 +407,9 @@ def pp_Vorarbeit():
     tes = pd.read_csv(path.join(dirpath, 'Vor_Speicher.csv'), sep=";",
                       index_col=0, parse_dates=True)
 
+    dauerlinie = wnw.apply(lambda x: x.sort_values(ascending=False).values)
+    dauerlinie.reset_index(drop=True, inplace=True)
+
     # %% Ergebnisse der Investitionsrechnungen
     npv_obj = npv(invest_ges, objective)/1e6
     npv_GB = npv(invest_ges, Gesamtbetrag)/1e6
@@ -452,6 +455,22 @@ def pp_Vorarbeit():
     # %% Visualisierung
     ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
     ax.grid(b=False, which='major', axis='x')
+
+    ax = zplt.line(data=dauerlinie[['BHKW', 'EHK', 'GuD', 'SLK', 'WP',
+                                    'Bedarf']],
+                   xlabel='Stunden', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=dauerlinie[['BHKW', 'EHK', 'GuD', 'SLK', 'WP']],
+                   xlabel='Stunden', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
+    ax.grid(b=False, which='minor', axis='x')
+
+    ax = zplt.line(data=dauerlinie[['TES Ein', 'TES Aus']],
+                   xlabel='Stunden', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
+    ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw, xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
