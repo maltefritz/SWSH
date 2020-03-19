@@ -43,6 +43,7 @@ def invest_st(A, col_type=''):
 
 def liste(parameter):
     return [parameter for p in range(0, periods)]
+
 # %% Preprocessing
 
     # %% Daten einlesen
@@ -63,24 +64,6 @@ date_time_index = pd.date_range('1/1/2016 00:00:00', periods=periods, freq='h')
 es_ref = solph.EnergySystem(timeindex=date_time_index)
 
 
-# %% Komponenten
-
-
-    # %% Wärmepumpe - check
-
-
-    # %% TES - check
-
-# Dimensionierung
-Q_tes = 150000
-
-# Investition
-op_cost_tes = 0.66
-spez_inv_tes = 18750
-invest_tes = spez_inv_tes * Q_tes
-
-
-
 # %% Randbedinungen
 
     # %% Wärmebedarf
@@ -91,19 +74,12 @@ heat_demand_FL = data['heat_demand']
 rel_heat_demand = 1
 heat_demand_local = heat_demand_FL * rel_heat_demand
 total_heat_demand = float(heat_demand_local.sum())
-nom_heat_demand_local = max(heat_demand_local)
-act_heat_demand_local = heat_demand_local / nom_heat_demand_local
 
-    # %% Kosten
-
-# Kosten für das Jahr 2016. Siehe ENKF
-gas_price = 14.14
-co2_certificate = 1.07
-elec_consumer_charges = 85.51
-heat_price = 68.59
-energy_tax = 5.5
 
     # %% Investionskosten
+
+A = param.loc[('ST', 'Area'), 'value']
+invest_solar = invest_st(A, col_type="flat")
 
 invest_ehk = (param.loc[('EHK', 'inv_spez'), 'value']
               * param.loc[('EHK', 'Q_N'), 'value'])
@@ -120,13 +96,11 @@ invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
 invest_hp = (param.loc[('HP', 'inv_spez'), 'value']
               * param.loc[('HP', 'Q_N'), 'value'])
 
-A = param.loc[('ST', 'Area'), 'value']
-# eta_Kol = 0,693
-# E_A = 1000
-invest_solar = invest_st(A, col_type="flat")
+invest_tes = (param.loc[('TES', 'inv_spez'), 'value']
+              * param.loc[('TES', 'Q'), 'value'])
 
-invest_ges = (invest_bhkw + invest_ehk + invest_slk + invest_solar
-              + invest_hp + invest_gud + invest_tes)
+invest_ges = (invest_solar + invest_ehk +  invest_slk + invest_bhkw +
+              + invest_gud + invest_hp + invest_tes)
 
 # %% Energiesystem
 
@@ -173,8 +147,8 @@ heat_sink = solph.Sink(
     label='Wärmebedarf',
     inputs={wnw: solph.Flow(
         variable_costs=-param.loc[('param', 'heat_price'), 'value'],
-        nominal_value=nom_heat_demand_local,
-        actual_value=act_heat_demand_local,
+        nominal_value=max(heat_demand_local),
+        actual_value=heat_demand_local/max(heat_demand_local),
         fixed=True)})
 
 es_ref.add(elec_sink, heat_sink)
@@ -254,21 +228,25 @@ es_ref.add(ehk, slk, bhkw, gud, hp)
 
 tes = solph.components.GenericStorage(
     label='Wärmespeicher',
-    nominal_storage_capacity=Q_tes,
-    inputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local,
-                            max=1,
-                            min=0.1,
-                            variable_costs=op_cost_tes,
-                            nonconvex=solph.NonConvex(
-                                minimum_uptime=3, initial_status=0))},
-    outputs={wnw: solph.Flow(nominal_value=nom_heat_demand_local,
-                             max=1,
-                             min=0.1,
-                             nonconvex=solph.NonConvex(
-                                 minimum_uptime=3, initial_status=0))},
-    initial_storage_level=0.1,
-    inflow_conversion_factor=1,
-    outflow_conversion_factor=0.75)
+    nominal_storage_capacity=param.loc[('TES', 'Q'), 'value'],
+    inputs={wnw: solph.Flow(
+        nominal_value=max(heat_demand_local),
+        max=1,
+        min=0.1,
+        variable_costs=param.loc[('TES', 'op_cost_var'), 'value'],
+        nonconvex=solph.NonConvex(
+            minimum_uptime=int(param.loc[('TES', 'min_uptime'), 'value']),
+            initial_status=int(param.loc[('TES', 'init_status'), 'value'])))},
+    outputs={wnw: solph.Flow(
+        nominal_value=max(heat_demand_local),
+        max=1,
+        min=0.1,
+        nonconvex=solph.NonConvex(
+            minimum_uptime=int(param.loc[('TES', 'min_uptime'), 'value']),
+            initial_status=int(param.loc[('TES', 'init_status'), 'value'])))},
+    initial_storage_level=param.loc[('TES', 'init_storage'), 'value'],
+    inflow_conversion_factor=param.loc[('TES', 'inflow_conv'), 'value'],
+    outflow_conversion_factor=param.loc[('TES', 'outflow_conv'), 'value'])
 
 es_ref.add(tes)
 
@@ -279,7 +257,7 @@ es_ref.add(tes)
 # Was bedeutet tee?
 model = solph.Model(es_ref)
 model.solve(solver='gurobi', solve_kwargs={'tee': True},
-            cmdline_options={"mipgap": "0.1"})
+            cmdline_options={"mipgap": "0.01"})
 
     # %% Ergebnisse Energiesystem
 
@@ -326,7 +304,7 @@ objective = abs(es_ref.results['meta']['objective'])
 
 # # Anlagenbettriebskosten
 cost_tes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
-            * op_cost_tes
+            * param.loc[('TES', 'op_cost_var'), 'value']
             + (param.loc[('TES', 'op_cost_fix'), 'value']
                * param.loc[('TES', 'Q'), 'value']))
 
@@ -364,7 +342,8 @@ cost_Anlagen = (cost_tes + cost_st + cost_bhkw + cost_gud
 
 # # Primärenergiebezugskoste
 cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
-            * (gas_price + co2_certificate))
+            * (param.loc[('param', 'gas_price'), 'value']
+               + param.loc[('param', 'co2_certificate'), 'value']))
 
 el_flow = np.array(data_enw[(('Stromquelle', 'Elektrizitätsnetzwerk'),
                              'flow')])
@@ -387,6 +366,7 @@ Betrag_ohnePrimär = (revenues_spotmarkt
 
     # %% Output Ergebnisse
 
+# Daten zum Plotten der Wärmeversorgung
 label = ['BHKW', 'EHK', 'GuD', 'Solar', 'SLK', 'Bedarf', 'TES Ein',
          'Status TES Ein', 'WP', 'TES Aus', 'Status TES Aus']
 data_wnw.columns = label
@@ -396,13 +376,15 @@ df1 = pd.DataFrame(data=data_wnw)
 df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
            sep=";")
 
-d2 = {'invest_ges': [invest_ges], 'Q_tes': [Q_tes], 'objective': [objective],
-      'total_heat_demand': [total_heat_demand], 'Gesamtbetrag': [Gesamtbetrag],
-      'Betrag_ohnePrimär': [Betrag_ohnePrimär]}
+# Daten zum Plotten der Investitionsrechnung
+d2 = {'invest_ges': [invest_ges], 'Q_tes': [param.loc[('TES', 'Q'), 'value']],
+      'objective': [objective], 'total_heat_demand': [total_heat_demand],
+      'Gesamtbetrag': [Gesamtbetrag], 'Betrag_ohnePrimär': [Betrag_ohnePrimär]}
 df2 = pd.DataFrame(data=d2)
 df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
            sep=";")
 
+# Daten zum Plotten der Speicherkomponente
 label = ['TES Ein', 'Status TES Ein', 'Speicherstand', 'TES Aus',
          'Status TES Aus']
 data_tes.columns = label
