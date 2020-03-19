@@ -87,40 +87,6 @@ op_cost_slk = 1.1
 spez_inv_slk = 60000
 invest_slk = spez_inv_slk * Q_slk
 
-    # %% BHKW - check
-
-# Dimensionierung: Q_N=73.75
-
-Q_in_bhkw = 221.20
-P_max_bhkw = 103.64
-P_min_bhkw = 51.56
-H_L_FG_share_max_bhkw = 0.1929
-H_L_FG_share_min_bhkw = 0.3640
-Eta_el_max_woDH_bhkw = 0.4685
-Eta_el_min_woDH_bhkw = 0.4256
-
-# Investition
-op_cost_bhkw = 10
-spez_inv_bhkw = 1e6
-invest_bhkw = P_max_bhkw * spez_inv_bhkw
-
-    # %% GuD - check
-
-# Dimensionierung: Q_N=71
-# Q_in_gud =
-# P_max_gud =
-# P_min_gud =
-# H_L_FG_share_max_gud =
-# Eta_el_max_woDH_gud =
-# Eta_el_min_woDH_gud =
-# Q_CW_min =
-# beta_gud =
-
-# Investition
-op_cost_gud = 4.5
-spez_inv_gud = 1e+6
-invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
-              * param.loc[('GuD', 'inv_spez'), 'value'])
 
     # %% Wärmepumpe - check
 
@@ -177,6 +143,11 @@ heat_price = 68.59
 energy_tax = 5.5
 
     # %% Investionskosten
+
+invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
+              * param.loc[('GuD', 'inv_spez'), 'value'])
+invest_bhkw = (param.loc[('BHKW', 'P_max_woDH'), 'value'] *
+               param.loc[('BHKW', 'inv_spez'), 'value'])
 
 invest_ges = (invest_bhkw + invest_ehk + invest_slk + invest_solar
               + invest_hp + invest_gud + invest_tes)
@@ -250,15 +221,15 @@ slk = solph.Transformer(label='Spitzenlastkessel',
 bhkw = solph.components.GenericCHP(
     label='BHKW',
     fuel_input={gnw: solph.Flow(
-        H_L_FG_share_max=liste(H_L_FG_share_max_bhkw),
-        H_L_FG_share_min=[H_L_FG_share_min_bhkw for p in range(0, periods)],
-        nominal_value=Q_in_bhkw)},
+        H_L_FG_share_max=liste(param.loc[('BHKW', 'H_L_FG_share_max'), 'value']),
+        H_L_FG_share_min=liste(param.loc[('BHKW', 'H_L_FG_share_min'), 'value']),
+        nominal_value=param.loc[('BHKW', 'Q_in'), 'value'])},
     electrical_output={enw: solph.Flow(
-        variable_costs=op_cost_bhkw,
-        P_max_woDH=[P_max_bhkw for p in range(0, periods)],
-        P_min_woDH=[P_min_bhkw for p in range(0, periods)],
-        Eta_el_max_woDH=[Eta_el_max_woDH_bhkw for p in range(0, periods)],
-        Eta_el_min_woDH=[Eta_el_min_woDH_bhkw for p in range(0, periods)])},
+        variable_costs=param.loc[('BHKW', 'op_cost_var'), 'value'],
+        P_max_woDH=liste(param.loc[('BHKW', 'P_max_woDH'), 'value']),
+        P_min_woDH=liste(param.loc[('BHKW', 'P_min_woDH'), 'value']),
+        Eta_el_max_woDH=liste(param.loc[('BHKW', 'Eta_el_max_woDH'), 'value']),
+        Eta_el_min_woDH=liste(param.loc[('BHKW', 'Eta_el_min_woDH'), 'value']))},
     heat_output={wnw: solph.Flow(
         Q_CW_min=[0 for p in range(0, periods)])},
     Beta=[0 for p in range(0, periods)],
@@ -378,11 +349,11 @@ cost_tes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
 cost_st = (data_solar_source[(('Solarthermie', 'Wärmenetzwerk'), 'flow')].sum()
            * p_solar)
 cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-             * op_cost_bhkw
+             * param.loc[('BHKW', 'op_cost_var'), 'value']
              + (param.loc[('BHKW', 'op_cost_fix'), 'value']
                 * param.loc[('BHKW', 'P_max_woDH'), 'value']))
 cost_gud = (data_gud[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-            * op_cost_gud
+            * param.loc[('GuD', 'op_cost_var'), 'value']
             + (param.loc[('GuD', 'op_cost_fix'), 'value']
                * param.loc[('GuD', 'P_max_woDH'), 'value']))
 cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
