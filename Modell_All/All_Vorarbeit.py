@@ -79,17 +79,6 @@ op_cost_tes = 0.66
 spez_inv_tes = 18750
 invest_tes = spez_inv_tes * Q_tes
 
-    # %% Solarthermie check
-
-A = 96237.4
-# eta_Kol = 0,693
-# E_A = 1000
-
-invest_solar = invest_st(A, col_type="flat")
-p_solar = (0.01 * invest_solar)/(A*data['solar_data'].sum())
-
-nom_solar = (max(data['solar_data'])*A)
-act_solar = (data['solar_data']*A)/(nom_solar)
 
 
 # %% Randbedinungen
@@ -131,6 +120,11 @@ invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
 invest_hp = (param.loc[('HP', 'inv_spez'), 'value']
               * param.loc[('HP', 'Q_N'), 'value'])
 
+A = param.loc[('ST', 'Area'), 'value']
+# eta_Kol = 0,693
+# E_A = 1000
+invest_solar = invest_st(A, col_type="flat")
+
 invest_ges = (invest_bhkw + invest_ehk + invest_slk + invest_solar
               + invest_hp + invest_gud + invest_tes)
 
@@ -146,36 +140,42 @@ es_ref.add(gnw, enw, wnw)
 
     # %% Soruces
 
-gas_source = solph.Source(label='Gasquelle',
-                          outputs={gnw: solph.Flow(
-                                   variable_costs=gas_price+co2_certificate)})
+gas_source = solph.Source(
+    label='Gasquelle',
+    outputs={gnw: solph.Flow(
+        variable_costs=(param.loc[('param', 'gas_price'), 'value']
+                        + param.loc[('param', 'co2_certificate'), 'value']))})
 
-elec_source = solph.Source(label='Stromquelle',
-                           outputs={enw: solph.Flow(
-                                    variable_costs=(elec_consumer_charges
-                                                    + data['el_spot_price']))})
+elec_source = solph.Source(
+    label='Stromquelle',
+    outputs={enw: solph.Flow(
+        variable_costs=(param.loc[('param', 'elec_consumer_charges'), 'value']
+                        + data['el_spot_price']))})
 
-solar_source = solph.Source(label='Solarthermie',
-                            outputs={wnw: solph.Flow(variable_costs=p_solar,
-                                                     nominal_value=nom_solar,
-                                                     actual_value=act_solar,
-                                                     fixed=True)})
+solar_source = solph.Source(
+    label='Solarthermie',
+    outputs={wnw: solph.Flow(
+        variable_costs=(0.01 * invest_solar)/(A*data['solar_data'].sum()),
+        nominal_value=(max(data['solar_data'])*A),
+        actual_value=(data['solar_data']*A)/(max(data['solar_data'])*A),
+        fixed=True)})
 
 es_ref.add(gas_source, elec_source, solar_source)
-# es_ref.add(gas_source, elec_source)
 
     # %% Sinks
 
-elec_sink = solph.Sink(label='Spotmarkt',
-                       inputs={enw: solph.Flow(
-                               variable_costs=-data['el_spot_price'])})
+elec_sink = solph.Sink(
+    label='Spotmarkt',
+    inputs={enw: solph.Flow(
+        variable_costs=-data['el_spot_price'])})
 
-heat_sink = solph.Sink(label='Wärmebedarf',
-                       inputs={wnw: solph.Flow(
-                               variable_costs=-heat_price,
-                               nominal_value=nom_heat_demand_local,
-                               actual_value=act_heat_demand_local,
-                               fixed=True)})
+heat_sink = solph.Sink(
+    label='Wärmebedarf',
+    inputs={wnw: solph.Flow(
+        variable_costs=-param.loc[('param', 'heat_price'), 'value'],
+        nominal_value=nom_heat_demand_local,
+        actual_value=act_heat_demand_local,
+        fixed=True)})
 
 es_ref.add(elec_sink, heat_sink)
 
@@ -191,7 +191,6 @@ ehk = solph.Transformer(
         variable_costs=param.loc[('EHK', 'op_cost_var'), 'value'])},
     conversion_factors={wnw: param.loc[('EHK', 'eta'), 'value']})
 
-
 slk = solph.Transformer(
     label='Spitzenlastkessel',
     inputs={gnw: solph.Flow()},
@@ -202,7 +201,6 @@ slk = solph.Transformer(
         variable_costs=(param.loc[('SLK', 'op_cost_var'), 'value']
                         + param.loc[('param', 'energy_tax'), 'value']))},
     conversion_factors={wnw: param.loc[('SLK', 'eta'), 'value']})
-
 
 bhkw = solph.components.GenericCHP(
     label='BHKW',
@@ -221,7 +219,6 @@ bhkw = solph.components.GenericCHP(
     Beta=[0 for p in range(0, periods)],
     back_pressure=False)
 
-
 gud = solph.components.GenericCHP(
     label='GuD',
     fuel_input={gnw: solph.Flow(
@@ -238,7 +235,6 @@ gud = solph.components.GenericCHP(
     Beta=liste(param.loc[('GuD', 'beta'), 'value']),
     back_pressure=False)
 
-
 hp = solph.components.OffsetTransformer(
     label='Wärmepumpe',
     inputs={enw: solph.Flow(
@@ -249,7 +245,6 @@ hp = solph.components.OffsetTransformer(
     outputs={wnw: solph.Flow(
         variable_costs=param.loc[('HP', 'op_cost_var'), 'value'])},
     coefficients=[data['c_0'], data['c_1']])
-
 
 es_ref.add(ehk, slk, bhkw, gud, hp)
 
@@ -336,7 +331,7 @@ cost_tes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
                * param.loc[('TES', 'Q'), 'value']))
 
 cost_st = (data_solar_source[(('Solarthermie', 'Wärmenetzwerk'), 'flow')].sum()
-           * p_solar)
+           * (0.01 * invest_solar)/(A*data['solar_data'].sum()))
 
 cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
              * param.loc[('BHKW', 'op_cost_var'), 'value']
