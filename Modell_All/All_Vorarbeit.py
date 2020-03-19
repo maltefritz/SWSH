@@ -377,9 +377,13 @@ df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
            sep=";")
 
 # Daten zum Plotten der Investitionsrechnung
-d2 = {'invest_ges': [invest_ges], 'Q_tes': [param.loc[('TES', 'Q'), 'value']],
-      'objective': [objective], 'total_heat_demand': [total_heat_demand],
-      'Gesamtbetrag': [Gesamtbetrag], 'Betrag_ohnePrimär': [Betrag_ohnePrimär]}
+d2 = {'invest_ges': [invest_ges], 'invest_solar': [invest_solar],
+      'invest_ehk': [invest_ehk], 'invest_slk': [invest_slk],
+      'invest_bhkw': [invest_bhkw], 'invest_gud': [invest_gud],
+      'invest_hp': [invest_hp], 'invest_tes': [invest_tes],
+      'Q_tes': [param.loc[('TES', 'Q'), 'value']], 'objective': [objective],
+      'total_heat_demand': [total_heat_demand], 'Gesamtbetrag': [Gesamtbetrag],
+      'Betrag_ohnePrimär': [Betrag_ohnePrimär]}
 df2 = pd.DataFrame(data=d2)
 df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
            sep=";")
@@ -400,5 +404,4 @@ df3 = pd.concat([data_gnw.iloc[:, [0, 1, 2]], data_enw.iloc[:, [2, -1]]],
                 axis=1)
 label = ['Q_in,BHKW', 'Q_in,GuD', 'Q_in,SLK', 'P_out', 'P_in']
 df3.columns = label
-df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'),
-           sep=";")
+df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")
