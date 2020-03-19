@@ -362,24 +362,14 @@ print('_____________________________')
 print('#############################')
 
 plant_name = 'BHKW'
-df = pd.DataFrame(columns=['plant', 'parameter', 'unit', 'value'])
-dfQ_N = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_N', 'unit': 'MW',
-                      'value': [abs(Q_N/1e6)]})
-dfQ_in = pd.DataFrame({'plant': plant_name, 'parameter': 'Q_in',
-                       'unit': 'MW', 'value': [Q_in/1e6]})
-dfP_max = pd.DataFrame({'plant': plant_name, 'parameter': 'P_max_woDH',
-                        'unit': 'MW', 'value': [P_max_woDH/1e6]})
-dfP_min = pd.DataFrame({'plant': plant_name, 'parameter': 'P_min_woDH',
-                        'unit': 'MW', 'value': [P_min_woDH/1e6]})
-dfeta_max = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_max_woDH',
-                          'unit': '-', 'value': [eta_el_max]})
-dfeta_min = pd.DataFrame({'plant': plant_name, 'parameter': 'Eta_el_min_woDH',
-                          'unit': '-', 'value': [eta_el_min]})
-dfH_max = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_share_max',
-                        'unit': '-', 'value': [H_L_FG_max]})
-dfH_min = pd.DataFrame({'plant': plant_name, 'parameter': 'H_L_FG_share_min',
-                        'unit': '-', 'value': [H_L_FG_min]})
-df = df.append([dfQ_N, dfQ_in, dfP_max, dfP_min, dfeta_max, dfeta_min, dfH_max,
-                dfH_min], ignore_index=True)
+
+df = pd.DataFrame({'plant': [plant_name]*8,
+                   'parameter': ['Q_N', 'Q_in', 'P_max_woDH', 'P_min_woDH',
+                                 'Eta_el_max_woDH', 'Eta_el_min_woDH',
+                                 'H_L_FG_share_max', 'H_L_FG_share_min'],
+                   'unit': ['MW', 'MW', 'MW', 'MW', '-', '-', '-', '-'],
+                   'value': [abs(Q_N/1e6), Q_in/1e6, P_max_woDH/1e6,
+                             P_min_woDH/1e6, eta_el_max, eta_el_min,
+                             H_L_FG_max, H_L_FG_min]})
 
 df.to_csv('data_' + plant_name + '.csv', index=False, sep=";")
