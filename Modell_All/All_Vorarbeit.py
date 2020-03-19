@@ -68,12 +68,6 @@ es_ref = solph.EnergySystem(timeindex=date_time_index)
 
     # %% Wärmepumpe - check
 
-Q_hp = 75
-
-# Investition
-op_cost_hp = 0.88
-spez_inv_hp = 220350
-invest_hp = spez_inv_hp * Q_hp
 
     # %% TES - check
 
@@ -128,11 +122,14 @@ invest_ehk = (param.loc[('EHK', 'inv_spez'), 'value']
 invest_slk = (param.loc[('SLK', 'inv_spez'), 'value']
               * param.loc[('SLK', 'Q_N'), 'value'])
 
-invest_bhkw = (param.loc[('BHKW', 'P_max_woDH'), 'value'] *
-               param.loc[('BHKW', 'inv_spez'), 'value'])
+invest_bhkw = (param.loc[('BHKW', 'P_max_woDH'), 'value']
+               * param.loc[('BHKW', 'inv_spez'), 'value'])
 
 invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
               * param.loc[('GuD', 'inv_spez'), 'value'])
+
+invest_hp = (param.loc[('HP', 'inv_spez'), 'value']
+              * param.loc[('HP', 'Q_N'), 'value'])
 
 invest_ges = (invest_bhkw + invest_ehk + invest_slk + invest_solar
               + invest_hp + invest_gud + invest_tes)
@@ -244,11 +241,13 @@ gud = solph.components.GenericCHP(
 
 hp = solph.components.OffsetTransformer(
     label='Wärmepumpe',
-    inputs={enw: solph.Flow(nominal_value=1,
-                            max=data['P_max'],
-                            min=data['P_min'],
-                            nonconvex=solph.NonConvex())},
-    outputs={wnw: solph.Flow(variable_costs=op_cost_hp)},
+    inputs={enw: solph.Flow(
+        nominal_value=1,
+        max=data['P_max'],
+        min=data['P_min'],
+        nonconvex=solph.NonConvex())},
+    outputs={wnw: solph.Flow(
+        variable_costs=param.loc[('HP', 'op_cost_var'), 'value'])},
     coefficients=[data['c_0'], data['c_1']])
 
 
@@ -356,7 +355,7 @@ cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
                * param.loc[('SLK', 'Q_N'), 'value']))
 
 cost_hp = (data_hp[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')].sum()
-           * op_cost_hp
+           * param.loc[('HP', 'op_cost_var'), 'value']
            + (param.loc[('HP', 'op_cost_fix'), 'value']
                * data['P_max'].max()))
 
