@@ -65,28 +65,6 @@ es_ref = solph.EnergySystem(timeindex=date_time_index)
 
 # %% Komponenten
 
-    # %% Elektroheizkessel check
-
-# Dimensionierung
-Q_ehk = 75
-eta_ehk = 0.99
-
-# Investition
-op_cost_ehk = 0.5
-spez_inv_ehk = 80000
-invest_ehk = spez_inv_ehk * Q_ehk
-
-    # %% Spitzenlastkessel check
-
-# Dimensionierung
-Q_slk = 75
-eta_slk = 0.88
-
-# Investition
-op_cost_slk = 1.1
-spez_inv_slk = 60000
-invest_slk = spez_inv_slk * Q_slk
-
 
     # %% Wärmepumpe - check
 
@@ -144,10 +122,17 @@ energy_tax = 5.5
 
     # %% Investionskosten
 
-invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
-              * param.loc[('GuD', 'inv_spez'), 'value'])
+invest_ehk = (param.loc[('EHK', 'inv_spez'), 'value']
+              * param.loc[('EHK', 'Q_N'), 'value'])
+
+invest_slk = (param.loc[('SLK', 'inv_spez'), 'value']
+              * param.loc[('SLK', 'Q_N'), 'value'])
+
 invest_bhkw = (param.loc[('BHKW', 'P_max_woDH'), 'value'] *
                param.loc[('BHKW', 'inv_spez'), 'value'])
+
+invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
+              * param.loc[('GuD', 'inv_spez'), 'value'])
 
 invest_ges = (invest_bhkw + invest_ehk + invest_slk + invest_solar
               + invest_hp + invest_gud + invest_tes)
@@ -199,13 +184,15 @@ es_ref.add(elec_sink, heat_sink)
 
     # %% Transformer
 
-ehk = solph.Transformer(label='Elektroheizkessel',
-                        inputs={enw: solph.Flow()},
-                        outputs={wnw: solph.Flow(nominal_value=Q_ehk,
-                                                 max=1,
-                                                 min=0,
-                                                 variable_costs=op_cost_ehk)},
-                        conversion_factors={wnw: eta_ehk})
+ehk = solph.Transformer(
+    label='Elektroheizkessel',
+    inputs={enw: solph.Flow()},
+    outputs={wnw: solph.Flow(
+        nominal_value=param.loc[('EHK', 'Q_N'), 'value'],
+        max=1,
+        min=0,
+        variable_costs=param.loc[('EHK', 'op_cost_var'), 'value'])},
+    conversion_factors={wnw: param.loc[('EHK', 'eta'), 'value']})
 
 
 slk = solph.Transformer(
@@ -216,7 +203,7 @@ slk = solph.Transformer(
         max=1,
         min=0,
         variable_costs=(param.loc[('SLK', 'op_cost_var'), 'value']
-                        * param.loc[('param', 'energy_tax'), 'value']))},
+                        + param.loc[('param', 'energy_tax'), 'value']))},
     conversion_factors={wnw: param.loc[('SLK', 'eta'), 'value']})
 
 
@@ -348,26 +335,33 @@ cost_tes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
             * op_cost_tes
             + (param.loc[('TES', 'op_cost_fix'), 'value']
                * param.loc[('TES', 'Q'), 'value']))
+
 cost_st = (data_solar_source[(('Solarthermie', 'Wärmenetzwerk'), 'flow')].sum()
            * p_solar)
+
 cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
              * param.loc[('BHKW', 'op_cost_var'), 'value']
              + (param.loc[('BHKW', 'op_cost_fix'), 'value']
                 * param.loc[('BHKW', 'P_max_woDH'), 'value']))
+
 cost_gud = (data_gud[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')].sum()
             * param.loc[('GuD', 'op_cost_var'), 'value']
             + (param.loc[('GuD', 'op_cost_fix'), 'value']
                * param.loc[('GuD', 'P_max_woDH'), 'value']))
+
 cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
-            * (op_cost_slk + energy_tax)
+            * (param.loc[('SLK', 'op_cost_var'), 'value']
+               + param.loc[('param', 'energy_tax'), 'value'])
             + (param.loc[('SLK', 'op_cost_fix'), 'value']
                * param.loc[('SLK', 'Q_N'), 'value']))
+
 cost_hp = (data_hp[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')].sum()
            * op_cost_hp
            + (param.loc[('HP', 'op_cost_fix'), 'value']
                * data['P_max'].max()))
+
 cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
-            * op_cost_ehk
+            * param.loc[('EHK', 'op_cost_var'), 'value']
             + (param.loc[('EHK', 'op_cost_fix'), 'value']
                * param.loc[('EHK', 'Q_N'), 'value']))
 
