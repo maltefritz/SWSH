@@ -208,14 +208,16 @@ ehk = solph.Transformer(label='Elektroheizkessel',
                         conversion_factors={wnw: eta_ehk})
 
 
-slk = solph.Transformer(label='Spitzenlastkessel',
-                        inputs={gnw: solph.Flow()},
-                        outputs={wnw: solph.Flow(
-                            nominal_value=Q_slk,
-                            max=1,
-                            min=0,
-                            variable_costs=op_cost_slk+energy_tax)},
-                        conversion_factors={wnw: eta_slk})
+slk = solph.Transformer(
+    label='Spitzenlastkessel',
+    inputs={gnw: solph.Flow()},
+    outputs={wnw: solph.Flow(
+        nominal_value=param.loc[('SLK', 'Q_N'), 'value'],
+        max=1,
+        min=0,
+        variable_costs=(param.loc[('SLK', 'op_cost_var'), 'value']
+                        * param.loc[('param', 'energy_tax'), 'value']))},
+    conversion_factors={wnw: param.loc[('SLK', 'eta'), 'value']})
 
 
 bhkw = solph.components.GenericCHP(
