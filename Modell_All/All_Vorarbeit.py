@@ -268,19 +268,17 @@ bhkw = solph.components.GenericCHP(
 gud = solph.components.GenericCHP(
     label='GuD',
     fuel_input={gnw: solph.Flow(
-        H_L_FG_share_max=[param.loc[('GuD', 'H_L_FG_share_max'), 'value']
-                          for p in range(0, periods)],
+        H_L_FG_share_max=liste(param.loc[('GuD', 'H_L_FG_share_max'), 'value']),
         nominal_value=param.loc[('GuD', 'Q_in'), 'value'])},
     electrical_output={enw: solph.Flow(
-        variable_costs=op_cost_gud,
-        P_max_woDH=[param.loc[('GuD', 'P_max_woDH'), 'value'] for p in range(0, periods)],
-        P_min_woDH=[param.loc[('GuD', 'P_min_woDH'), 'value'] for p in range(0, periods)],
-        Eta_el_max_woDH=[param.loc[('GuD', 'Eta_el_max_woDH'), 'value'] for p in range(0, periods)],
-        Eta_el_min_woDH=[param.loc[('GuD', 'Eta_el_min_woDH'), 'value'] for p in range(0, periods)])},
+        variable_costs=param.loc[('GuD', 'op_cost_var'), 'value'],
+        P_max_woDH=liste(param.loc[('GuD', 'P_max_woDH'), 'value']),
+        P_min_woDH=liste(param.loc[('GuD', 'P_min_woDH'), 'value']),
+        Eta_el_max_woDH=liste(param.loc[('GuD', 'Eta_el_max_woDH'), 'value']),
+        Eta_el_min_woDH=liste(param.loc[('GuD', 'Eta_el_min_woDH'), 'value']))},
     heat_output={wnw: solph.Flow(
-        Q_CW_min=[param.loc[('GuD', 'Q_CW_min'), 'value']
-                  for p in range(0, periods)])},
-    Beta=[param.loc[('GuD', 'beta'), 'value'] for p in range(0, periods)],
+        Q_CW_min=liste(param.loc[('GuD', 'Q_CW_min'), 'value']))},
+    Beta=liste(param.loc[('GuD', 'beta'), 'value']),
     back_pressure=False)
 
 
@@ -327,7 +325,7 @@ es_ref.add(tes)
 # Was bedeutet tee?
 model = solph.Model(es_ref)
 model.solve(solver='gurobi', solve_kwargs={'tee': True},
-            cmdline_options={"mipgap": "0.01"})
+            cmdline_options={"mipgap": "0.1"})
 
     # %% Ergebnisse Energiesystem
 
