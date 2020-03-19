@@ -480,4 +480,4 @@ dfbeta = pd.DataFrame({'plant': plant_name, 'parameter': 'beta',
 df = df.append([dfQ_N, dfQ_in, dfP_max, dfP_min, dfeta_max, dfeta_min,
                 dfH_max, dfQ_CW_min, dfbeta], ignore_index=True)
 
-df.to_csv('data_' + plant_name + '.csv', index=False)
+df.to_csv('data_' + plant_name + '.csv', index=False, sep=";")

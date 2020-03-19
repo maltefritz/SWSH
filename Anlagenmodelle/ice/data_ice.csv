@@ -1,9 +1,0 @@
-plant,parameter,unit,value
-ice,Q_N,MW,75.0
-ice,Q_in,MW,224.94965911219467
-ice,P_max_woDH,MW,105.39803928965846
-ice,P_min_woDH,MW,57.74445352192177
-ice,Eta_el_max_woDH,fraction,0.4685026377815737
-ice,Eta_el_min_woDH,fraction,0.4306147046009183
-ice,H_L_FG_share_max,fraction,0.19317392172548392
-ice,H_L_FG_share_min,fraction,0.36040112520073686
