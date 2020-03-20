@@ -447,19 +447,33 @@ def pp_Vorarbeit():
           + " t CO2")
 
     # %% Visualisierung
+    # Balkendiagramm Gesamtwärmemengen aller Technologien + Bedarf
+    ax = zplt.bar(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar',
+                            'Bedarf', 'TES Ein', 'TES Aus']].sum(),
+                  ylabel='Gesamtwärmemenge in MWh')
+    ax.grid(b=False, which='major', axis='x')
+
     # Balkendiagramm Gesamtwärmemengen aller Technologien
-    ax = zplt.bar(data=wnw.sum(), ylabel='Gesamtwärmemenge in MWh')
+    ax = zplt.bar(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']].sum(),
+                  ylabel='Gesamtwärmemenge in MWh')
+    ax.grid(b=False, which='major', axis='x')
+
+    # Balkendiagramm Gesamtwärmemengen aller Technologien normalisert
+    ax = zplt.bar(data=(wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']].sum()
+                        / wnw['Bedarf'].sum()),
+                  ylabel='Anteil am gesamten Wärmebedarf')
     ax.grid(b=False, which='major', axis='x')
 
     # Jahresdauerlinien aller Technologien + Bedarf
-    ax = zplt.line(data=dauerlinie[['BHKW', 'EHK', 'GuD', 'SLK', 'WP',
+    ax = zplt.line(data=dauerlinie[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar',
                                     'Bedarf']],
                    xlabel='Stunden', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     # Jahresdauerlinien aller Technologien
-    ax = zplt.line(data=dauerlinie[['BHKW', 'EHK', 'GuD', 'SLK', 'WP']],
+    ax = zplt.line(data=dauerlinie[['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
+                                    'Solar']],
                    xlabel='Stunden', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
@@ -476,14 +490,8 @@ def pp_Vorarbeit():
     ax.grid(b=False, which='minor', axis='x')
 
     # Jahresverlauf aller Technologien + Bedarf
-    ax = zplt.line(data=wnw[['BHKW', 'EHK', 'GuD', 'SLK', 'WP',
+    ax = zplt.line(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar',
                              'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
-                   drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
-
-    # Jahresverlauf aller Technologien
-    ax = zplt.line(data=wnw[['BHKW', 'EHK', 'GuD', 'SLK', 'WP']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
@@ -514,6 +522,11 @@ def pp_Vorarbeit():
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
+    ax = zplt.line(data=wnw[['Solar', 'Bedarf']],
+                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   drawstyle='steps-mid')
+    ax.grid(b=False, which='minor', axis='x')
+
     ax = zplt.line(data=wnw[['TES Ein', 'TES Aus', 'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
@@ -539,8 +552,8 @@ def pp_Vorarbeit():
     # 7-Tage Plots
     idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
 
-    ax = zplt.line(data=wnw.loc[idx, ['BHKW', 'EHK', 'GuD', 'SLK',
-                                      'WP', 'Bedarf']],
+    ax = zplt.line(data=wnw.loc[idx, ['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
+                                      'Bedarf']],
                    xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
 
@@ -573,3 +586,8 @@ def run_all():
     print('Sol_Land:')
     pp_Sol()
     print('####################')
+
+dirpath = path.abspath(
+        path.join(__file__, "../..", "Ergebnisse\\Vorarbeit"))
+wnw = pd.read_csv(path.join(dirpath, 'Vor_wnw.csv'),
+                      sep=";", index_col=0, parse_dates=True)
