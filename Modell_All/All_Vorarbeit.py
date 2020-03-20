@@ -357,11 +357,12 @@ revenues_spotmarkt_timeseries = (np.array(data_enw[(('Elektrizitätsnetzwerk',
                                  * np.array(data['el_spot_price']))
 revenues_spotmarkt = revenues_spotmarkt_timeseries.sum()
 
+revenues_heatdemand = (data_wnw[(('Wärmenetzwerk', 'Wärmebedarf'),
+                                 'flow')].sum()
+                       * param.loc[('param', 'heat_price'), 'value'])
 # Summe der Geldströme
-Gesamtbetrag = (revenues_spotmarkt
+Gesamtbetrag = (revenues_spotmarkt + revenues_heatdemand
                 - cost_Anlagen - cost_gas - cost_el)
-Betrag_ohnePrimär = (revenues_spotmarkt
-                     - cost_Anlagen)
 
 
     # %% Output Ergebnisse
@@ -381,9 +382,8 @@ d2 = {'invest_ges': [invest_ges], 'invest_solar': [invest_solar],
       'invest_ehk': [invest_ehk], 'invest_slk': [invest_slk],
       'invest_bhkw': [invest_bhkw], 'invest_gud': [invest_gud],
       'invest_hp': [invest_hp], 'invest_tes': [invest_tes],
-      'Q_tes': [param.loc[('TES', 'Q'), 'value']], 'objective': [objective],
-      'total_heat_demand': [total_heat_demand], 'Gesamtbetrag': [Gesamtbetrag],
-      'Betrag_ohnePrimär': [Betrag_ohnePrimär]}
+      'Q_tes': [param.loc[('TES', 'Q'), 'value']],
+      'total_heat_demand': [total_heat_demand], 'Gesamtbetrag': [Gesamtbetrag]}
 df2 = pd.DataFrame(data=d2)
 df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
            sep=";")

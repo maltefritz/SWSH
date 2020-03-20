@@ -384,9 +384,7 @@ def pp_Vorarbeit():
 
     invest_TES = invest_stes(float(inv['Q_tes']))
     invest_ges = invest_TES + float(inv['invest_ges'])
-    objective = float(inv['objective'])
     Gesamtbetrag = float(inv['Gesamtbetrag'])
-    Betrag_ohnePrimär = float(inv['Betrag_ohnePrimär'])
     total_heat_demand = float(inv['total_heat_demand'])
 
     # CO2
@@ -411,18 +409,14 @@ def pp_Vorarbeit():
     dauerlinie.reset_index(drop=True, inplace=True)
 
     # %% Ergebnisse der Investitionsrechnungen
-    npv_obj = npv(invest_ges, objective)/1e6
-    npv_GB = npv(invest_ges, Gesamtbetrag)/1e6
-    npv_BoP = npv(invest_ges, Betrag_ohnePrimär)/1e6
+    npv_result = npv(invest_ges, Gesamtbetrag)/1e6
     lcoh = LCOH(invest_ges, Gesamtbetrag, total_heat_demand)
 
     print("GuD, BHKW, SLK, WP, EHK, STES & Solar")
     print()
     print("Erebnisse der Investitionsrechnungen:")
     print()
-    print("Kapitalwert (NPV_Obj): " + '{:.3f}'.format(npv_obj) + " Mio. €")
-    print("Kapitalwert (NPV_GB): " + '{:.3f}'.format(npv_GB) + " Mio. €")
-    print("Kapitalwert (NPV_BoP): " + '{:.3f}'.format(npv_BoP) + " Mio. €")
+    print("Kapitalwert (NPV): " + '{:.3f}'.format(npv_result) + " Mio. €")
     print("Wärmegestehungskosten (LCOH): " + '{:.2f}'.format(lcoh) + " €/MWh")
 
     # %% Ergebnisse der Emissionsrechnung
