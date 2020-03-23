@@ -7,6 +7,7 @@ Created on Thu Jan 16 14:23:17 2020
 import os.path as path
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 from invest import npv, LCOH, invest_stes
 from znes_plotting import plot as zplt
 from znes_plotting import shared
@@ -447,29 +448,20 @@ def pp_Vorarbeit():
           + " t CO2")
 
     # %% Visualisierung
-    # Balkendiagramm Gesamtwärmemengen aller Technologien + Bedarf
-    ax = zplt.bar(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar',
-                            'Bedarf', 'TES Ein', 'TES Aus']].sum(),
-                  ylabel='Gesamtwärmemenge in MWh')
-    ax.grid(b=False, which='major', axis='x')
 
     # Balkendiagramm Gesamtwärmemengen aller Technologien
+    plt.figure()
     ax = zplt.bar(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']].sum(),
                   ylabel='Gesamtwärmemenge in MWh')
     ax.grid(b=False, which='major', axis='x')
 
-    # Balkendiagramm Gesamtwärmemengen aller Technologien normalisert
-    ax = zplt.bar(data=(wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']].sum()
-                        / wnw['Bedarf'].sum()),
-                  ylabel='Anteil am gesamten Wärmebedarf')
-    ax.grid(b=False, which='major', axis='x')
-
-    # Jahresdauerlinien aller Technologien + Bedarf
-    ax = zplt.line(data=dauerlinie[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar',
-                                    'Bedarf']],
-                   xlabel='Stunden', ylabel='Wärmeleistung in MW',
-                   drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
+    plt.figure()
+    label = ['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']
+    ax = plt.pie(wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']].sum()
+                 / wnw['Bedarf'].sum(),
+                 labels=label,
+                 colors=shared.znes_colors(n=6),
+                 autopct='%.1f%%')
 
     # Jahresdauerlinien aller Technologien
     ax = zplt.line(data=dauerlinie[['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
@@ -486,13 +478,6 @@ def pp_Vorarbeit():
 
     # Jahresverlauf aller Technologien + TES + Bedarf
     ax = zplt.line(data=wnw, xlabel='Date', ylabel='Wärmeleistung in MW',
-                   drawstyle='steps-mid')
-    ax.grid(b=False, which='minor', axis='x')
-
-    # Jahresverlauf aller Technologien + Bedarf
-    ax = zplt.line(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar',
-                             'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
