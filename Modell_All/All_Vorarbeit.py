@@ -15,6 +15,7 @@ Wärmebedarf von 1/20 von dem Wärmebedarf Flensburgs aus dem Jahr 2016
 """
 import os.path as path
 import oemof.solph as solph
+import oemof.tabular.facades as fc
 import oemof.outputlib as outputlib
 import pandas as pd
 import numpy as np
@@ -109,6 +110,7 @@ invest_ges = (invest_solar + invest_ehk +  invest_slk + invest_bhkw +
 gnw = solph.Bus(label='Gasnetzwerk')
 enw = solph.Bus(label='Elektrizitätsnetzwerk')
 wnw = solph.Bus(label='Wärmenetzwerk')
+lt_wnw = solph.Bus(label='LT-Wärmenetzwerk')
 
 es_ref.add(gnw, enw, wnw)
 
@@ -215,9 +217,10 @@ hp = solph.components.OffsetTransformer(
         nominal_value=1,
         max=data['P_max'],
         min=data['P_min'],
+        variable_costs=param.loc[('HP', 'op_cost_var'), 'value'],
         nonconvex=solph.NonConvex())},
     outputs={wnw: solph.Flow(
-        variable_costs=param.loc[('HP', 'op_cost_var'), 'value'])},
+        )},
     coefficients=[data['c_0'], data['c_1']])
 
 es_ref.add(ehk, slk, bhkw, gud, hp)
@@ -248,7 +251,18 @@ tes = solph.components.GenericStorage(
     inflow_conversion_factor=param.loc[('TES', 'inflow_conv'), 'value'],
     outflow_conversion_factor=param.loc[('TES', 'outflow_conv'), 'value'])
 
-es_ref.add(tes)
+# lthp = fc.HeatPump(
+#            label="LT-WP",
+#            carrier="electricity",
+#            carrier_cost=param.loc[('HP', 'op_cost_var'), 'value'],
+#            capacity=float(data.loc[("storage", "qmax_out"), "value"]),
+#            tech="hp",
+#            cop=float(data.loc[("storage", "cop"), "value"]),
+#            electricity_bus=enw,
+#            high_temperature_bus=wnw,
+#            low_temperature_bus=lt_wnw)
+
+es_ref.add(tes)  # , lthp)
 
 # %% Processing
 
