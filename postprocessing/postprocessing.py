@@ -461,7 +461,7 @@ def pp_Vorarbeit():
                  / wnw['Bedarf'].sum(),
                  labels=label,
                  colors=shared.znes_colors(n=6),
-                 autopct='%.1f%%')
+                 autopct='%.2f%%')
 
     # Jahresdauerlinien aller Technologien
     ax = zplt.line(data=dauerlinie[['GuD', 'BHKW', 'SLK', 'EHK', 'WP',

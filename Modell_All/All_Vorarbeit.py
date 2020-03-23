@@ -215,9 +215,9 @@ hp = solph.components.OffsetTransformer(
         nominal_value=1,
         max=data['P_max'],
         min=data['P_min'],
-        nonconvex=solph.NonConvex())},
-    outputs={wnw: solph.Flow(
+        nonconvex=solph.NonConvex(),
         variable_costs=param.loc[('HP', 'op_cost_var'), 'value'])},
+    outputs={wnw: solph.Flow()},
     coefficients=[data['c_0'], data['c_1']])
 
 es_ref.add(ehk, slk, bhkw, gud, hp)
