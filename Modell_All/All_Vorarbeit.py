@@ -112,7 +112,7 @@ enw = solph.Bus(label='Elektrizitätsnetzwerk')
 wnw = solph.Bus(label='Wärmenetzwerk')
 lt_wnw = solph.Bus(label='LT-Wärmenetzwerk')
 
-es_ref.add(gnw, enw, wnw)
+es_ref.add(gnw, enw, wnw, lt_wnw)
 
     # %% Soruces
 
@@ -130,7 +130,7 @@ elec_source = solph.Source(
 
 solar_source = solph.Source(
     label='Solarthermie',
-    outputs={wnw: solph.Flow(
+    outputs={lt_wnw: solph.Flow(
         variable_costs=(0.01 * invest_solar)/(A*data['solar_data'].sum()),
         nominal_value=(max(data['solar_data'])*A),
         actual_value=(data['solar_data']*A)/(max(data['solar_data'])*A),
@@ -233,15 +233,15 @@ tes = solph.components.GenericStorage(
     label='Wärmespeicher',
     nominal_storage_capacity=param.loc[('TES', 'Q'), 'value'],
     inputs={wnw: solph.Flow(
-        nominal_value=max(heat_demand_local),
+        nominal_value=85,
         max=1,
         min=0.1,
         variable_costs=param.loc[('TES', 'op_cost_var'), 'value'],
         nonconvex=solph.NonConvex(
             minimum_uptime=int(param.loc[('TES', 'min_uptime'), 'value']),
             initial_status=int(param.loc[('TES', 'init_status'), 'value'])))},
-    outputs={wnw: solph.Flow(
-        nominal_value=max(heat_demand_local),
+    outputs={lt_wnw: solph.Flow(
+        nominal_value=85,
         max=1,
         min=0.1,
         nonconvex=solph.NonConvex(
@@ -251,18 +251,20 @@ tes = solph.components.GenericStorage(
     inflow_conversion_factor=param.loc[('TES', 'inflow_conv'), 'value'],
     outflow_conversion_factor=param.loc[('TES', 'outflow_conv'), 'value'])
 
-# lthp = fc.HeatPump(
-#            label="LT-WP",
-#            carrier="electricity",
-#            carrier_cost=param.loc[('HP', 'op_cost_var'), 'value'],
-#            capacity=float(data.loc[("storage", "qmax_out"), "value"]),
-#            tech="hp",
-#            cop=float(data.loc[("storage", "cop"), "value"]),
-#            electricity_bus=enw,
-#            high_temperature_bus=wnw,
-#            low_temperature_bus=lt_wnw)
+# Low temperature heat pump
 
-es_ref.add(tes)  # , lthp)
+lthp = fc.HeatPump(
+            label="LT-WP",
+            carrier="electricity",
+            carrier_cost=param.loc[('HP', 'op_cost_var'), 'value'],
+            capacity=200,
+            tech="hp",
+            cop=4.9501,
+            electricity_bus=enw,
+            high_temperature_bus=wnw,
+            low_temperature_bus=lt_wnw)
+
+es_ref.add(tes, lthp)
 
 # %% Processing
 
@@ -322,7 +324,7 @@ cost_tes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
             + (param.loc[('TES', 'op_cost_fix'), 'value']
                * param.loc[('TES', 'Q'), 'value']))
 
-cost_st = (data_solar_source[(('Solarthermie', 'Wärmenetzwerk'), 'flow')].sum()
+cost_st = (data_solar_source[(('Solarthermie', 'LT-Wärmenetzwerk'), 'flow')].sum()
            * (0.01 * invest_solar)/(A*data['solar_data'].sum()))
 
 cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
@@ -382,10 +384,10 @@ Gesamtbetrag = (revenues_spotmarkt + revenues_heatdemand
     # %% Output Ergebnisse
 
 # Daten zum Plotten der Wärmeversorgung
-label = ['BHKW', 'EHK', 'GuD', 'Solar', 'SLK', 'Bedarf', 'TES Ein',
-         'Status TES Ein', 'WP', 'TES Aus', 'Status TES Aus']
+label = ['BHKW', 'EHK', 'GuD', 'LT-WP', 'SLK', 'Bedarf', 'TES Ein',
+         'Status TES Ein', 'WP']
 data_wnw.columns = label
-del data_wnw[label[-4]], data_wnw[label[-1]]
+del data_wnw['Status TES Ein']
 
 df1 = pd.DataFrame(data=data_wnw)
 df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
