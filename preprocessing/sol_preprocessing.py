@@ -90,7 +90,8 @@ read_path = path.join(dirpath, "Eingangsdaten\\TempTimeseries2016.csv")
 TempData = pd.read_csv(read_path, sep=";", parse_dates=True, index_col='Date')
 
 # Berechnung der Temperaturdifferenz zur Umgebung
-T_Kol = (TempData['T_VL'] + TempData['T_RL'])/2
+# T_Kol = (TempData['T_VL'] + TempData['T_RL'])/2
+T_Kol = (70 + 50)/2
 dT = T_Kol - TempData['T_U']
 
 # Berechnung des Kollektorwirkungsgrads und Kollektorwärmestroms
