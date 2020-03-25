@@ -252,17 +252,26 @@ tes = solph.components.GenericStorage(
     outflow_conversion_factor=param.loc[('TES', 'outflow_conv'), 'value'])
 
 # Low temperature heat pump
+cop_lt = 4.9501
+# lthp = fc.HeatPump(
+#             label="LT-WP",
+#             carrier="electricity",
+#             carrier_cost=param.loc[('HP', 'op_cost_var'), 'value'],
+#             capacity=200,
+#             tech="hp",
+#             cop=cop_lt,
+#             electricity_bus=enw,
+#             high_temperature_bus=wnw,
+#             low_temperature_bus=lt_wnw)
 
-lthp = fc.HeatPump(
-            label="LT-WP",
-            carrier="electricity",
-            carrier_cost=param.loc[('HP', 'op_cost_var'), 'value'],
-            capacity=200,
-            tech="hp",
-            cop=4.9501,
-            electricity_bus=enw,
-            high_temperature_bus=wnw,
-            low_temperature_bus=lt_wnw)
+lthp = solph.Transformer(
+    label="LT-WP",
+    inputs={lt_wnw: solph.Flow(),
+            enw: solph.Flow(
+                variable_costs=param.loc[('HP', 'op_cost_var'), 'value'])},
+    outputs={wnw: solph.Flow()},
+    conversion_factors={enw: 1/cop_lt,
+                        lt_wnw: (cop_lt-1)/cop_lt})
 
 es_ref.add(tes, lthp)
 
