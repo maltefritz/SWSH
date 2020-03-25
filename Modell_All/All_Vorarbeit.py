@@ -273,7 +273,7 @@ es_ref.add(tes, lthp)
 # Was bedeutet tee?
 model = solph.Model(es_ref)
 model.solve(solver='gurobi', solve_kwargs={'tee': True},
-            cmdline_options={"mipgap": "0.01"})
+            cmdline_options={"mipgap": "0.10"})
 
     # %% Ergebnisse Energiesystem
 
@@ -288,6 +288,7 @@ es_ref.results['meta'] = outputlib.processing.meta_results(model)
 data_gnw = outputlib.views.node(results, 'Gasnetzwerk')['sequences']
 data_enw = outputlib.views.node(results, 'Elektrizitätsnetzwerk')['sequences']
 data_wnw = outputlib.views.node(results, 'Wärmenetzwerk')['sequences']
+data_lt_wnw = outputlib.views.node(results, 'LT-Wärmenetzwerk')['sequences']
 
 # Sources
 data_gas_source = outputlib.views.node(results, 'Gasquelle')['sequences']
@@ -384,12 +385,14 @@ Gesamtbetrag = (revenues_spotmarkt + revenues_heatdemand
     # %% Output Ergebnisse
 
 # Daten zum Plotten der Wärmeversorgung
-label = ['BHKW', 'EHK', 'GuD', 'LT-WP', 'SLK', 'Bedarf', 'TES Ein',
-         'Status TES Ein', 'WP']
-data_wnw.columns = label
-del data_wnw['Status TES Ein']
+data_wnw.columns = ['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
+                    'TES Ein', 'Status TES Ein', 'WP']
+data_lt_wnw.columns = ['LT-WP zu', 'Solar', 'TES Aus', 'Status TES Aus']
 
-df1 = pd.DataFrame(data=data_wnw)
+df1 = pd.concat([data_wnw[['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
+                          'TES Ein', 'WP']],
+                data_lt_wnw[['LT-WP zu', 'Solar', 'TES Aus']]],
+                axis=1)
 df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
            sep=";")
 
@@ -405,19 +408,16 @@ df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
            sep=";")
 
 # Daten zum Plotten der Speicherkomponente
-label = ['TES Ein', 'Status TES Ein', 'Speicherstand', 'TES Aus',
-         'Status TES Aus']
-data_tes.columns = label
-del data_tes[label[0]], data_tes[label[1]], data_tes[label[3]]
-del data_tes[label[4]]
+data_tes.columns = ['TES Ein', 'Status TES Ein', 'TES Aus', 'Status TES Aus',
+                    'Speicherstand']
 
-df3 = pd.DataFrame(data=data_tes)
+df3 = pd.DataFrame(data=data_tes['Speicherstand'])
 df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Speicher.csv'),
            sep=";")
 
 # Daten für die ökologische Bewertung
-df3 = pd.concat([data_gnw.iloc[:, [0, 1, 2]], data_enw.iloc[:, [2, -1]]],
+df4 = pd.concat([data_gnw.iloc[:, [0, 1, 2]], data_enw.iloc[:, [2, -1]]],
                 axis=1)
 label = ['Q_in,BHKW', 'Q_in,GuD', 'Q_in,SLK', 'P_out', 'P_in']
-df3.columns = label
-df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")
+df4.columns = label
+df4.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")
