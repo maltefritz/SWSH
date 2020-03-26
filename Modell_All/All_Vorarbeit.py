@@ -79,7 +79,7 @@ total_heat_demand = float(heat_demand_local.sum())
 
     # %% Investionskosten
 
-A = param.loc[('ST', 'Area'), 'value']
+A = param.loc[('Sol', 'A'), 'value']
 invest_solar = invest_st(A, col_type="flat")
 
 invest_ehk = (param.loc[('EHK', 'inv_spez'), 'value']
@@ -95,12 +95,12 @@ invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
               * param.loc[('GuD', 'inv_spez'), 'value'])
 
 invest_hp = (param.loc[('HP', 'inv_spez'), 'value']
-              * param.loc[('HP', 'Q_N'), 'value'])
+             * param.loc[('HP', 'Q_N'), 'value'])
 
 invest_tes = (param.loc[('TES', 'inv_spez'), 'value']
               * param.loc[('TES', 'Q'), 'value'])
 
-invest_ges = (invest_solar + invest_ehk +  invest_slk + invest_bhkw +
+invest_ges = (invest_solar + invest_ehk + invest_slk + invest_bhkw +
               + invest_gud + invest_hp + invest_tes)
 
 # %% Energiesystem
@@ -133,7 +133,7 @@ solar_source = solph.Source(
     outputs={lt_wnw: solph.Flow(
         variable_costs=(0.01 * invest_solar)/(A*data['solar_data'].sum()),
         nominal_value=(max(data['solar_data'])*A),
-        actual_value=(data['solar_data']*A)/(max(data['solar_data'])*A),
+        actual_value=(data['solar_data'])/(max(data['solar_data'])),
         fixed=True)})
 
 es_ref.add(gas_source, elec_source, solar_source)

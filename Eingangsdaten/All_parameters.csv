@@ -36,7 +36,7 @@ HP;Q_N;MW;75
 HP;op_cost_var;€/MWh;0.88
 HP;op_cost_fix;€/MW;881
 HP;inv_spez;€/MW;220350
-Sol;A;m2;96237.4
+Sol;A;m2;107434
 TES;Q;MWh;150000
 TES;op_cost_var;€/MW;0.66
 TES;op_cost_fix;€/MW;88
@@ -51,4 +51,3 @@ param;co2_certificate;€/MWh;1.07
 param;elec_consumer_charges;€/MWh;85.51
 param;heat_price;€/MWh;68.59
 param;energy_tax;€/MWh;5.5
-ST;Area;m2;96237.4
