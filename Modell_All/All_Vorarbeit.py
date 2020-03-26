@@ -420,8 +420,10 @@ df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
            sep=";")
 
 # Daten für die ökologische Bewertung
-df4 = pd.concat([data_gnw.iloc[:, [0, 1, 2]], data_enw.iloc[:, [2, -1]]],
+df3 = pd.concat([data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')],
+                 data_enw[[
+                     (('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow'),
+                     (('Stromquelle', 'Elektrizitätsnetzwerk'), 'flow')]]],
                 axis=1)
-label = ['Q_in,BHKW', 'Q_in,GuD', 'Q_in,SLK', 'P_out', 'P_in']
-df4.columns = label
-df4.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")
+df3.columns = ['Gas_in', 'P_out', 'P_in']
+df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")

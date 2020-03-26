@@ -420,13 +420,13 @@ def pp_Vorarbeit():
 
     # %% Ergebnisse der Emissionsrechnung
     for idx in range(0, len(use)):
-        OM = ((use.iloc[idx, 0] + use.iloc[idx, 1] + use.iloc[idx, 2]) * e_fuel
-              + use.iloc[idx, 4] * co2.iloc[idx, 0]
-              - use.iloc[idx, 3] * co2.iloc[idx, 0])
+        OM = (use.iloc[idx, 0] * e_fuel
+              + use.iloc[idx, 2] * co2.iloc[idx, 0]
+              - use.iloc[idx, 1] * co2.iloc[idx, 0])
 
-        DM = ((use.iloc[idx, 0] + use.iloc[idx, 1] + use.iloc[idx, 2]) * e_fuel
-              + use.iloc[idx, 4] * co2.iloc[idx, 1]
-              - use.iloc[idx, 3] * co2.iloc[idx, 1])
+        DM = (use.iloc[idx, 0] * e_fuel
+              + use.iloc[idx, 2] * co2.iloc[idx, 1]
+              - use.iloc[idx, 1] * co2.iloc[idx, 1])
 
         Em_om.append(OM)
         Em_dm.append(DM)
