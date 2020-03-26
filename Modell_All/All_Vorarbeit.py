@@ -397,10 +397,13 @@ Gesamtbetrag = (revenues_spotmarkt + revenues_heatdemand
 data_wnw.columns = ['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
                     'TES Ein', 'Status TES Ein', 'WP']
 data_lt_wnw.columns = ['LT-WP zu', 'Solar', 'TES Aus', 'Status TES Aus']
+data_tes.columns = ['TES Ein', 'Status TES Ein', 'TES Aus', 'Status TES Aus',
+                    'Speicherstand']
 
 df1 = pd.concat([data_wnw[['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
-                          'TES Ein', 'WP']],
-                data_lt_wnw[['LT-WP zu', 'Solar', 'TES Aus']]],
+                           'TES Ein', 'WP']],
+                 data_lt_wnw[['LT-WP zu', 'Solar', 'TES Aus']],
+                 data_tes[['Speicherstand']]],
                 axis=1)
 df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
            sep=";")
@@ -414,14 +417,6 @@ d2 = {'invest_ges': [invest_ges], 'invest_solar': [invest_solar],
       'total_heat_demand': [total_heat_demand], 'Gesamtbetrag': [Gesamtbetrag]}
 df2 = pd.DataFrame(data=d2)
 df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
-           sep=";")
-
-# Daten zum Plotten der Speicherkomponente
-data_tes.columns = ['TES Ein', 'Status TES Ein', 'TES Aus', 'Status TES Aus',
-                    'Speicherstand']
-
-df3 = pd.DataFrame(data=data_tes['Speicherstand'])
-df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Speicher.csv'),
            sep=";")
 
 # Daten für die ökologische Bewertung
