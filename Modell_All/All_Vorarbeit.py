@@ -43,7 +43,9 @@ def invest_st(A, col_type=''):
 
 
 def liste(parameter):
+    """Get timeseries list of parameter for solph components."""
     return [parameter for p in range(0, periods)]
+
 
 # %% Preprocessing
 
@@ -54,6 +56,12 @@ filename = path.join(dirpath, 'Eingangsdaten\\simulation_data.csv')
 data = pd.read_csv(filename, sep=";")
 filename = path.join(dirpath, 'Eingangsdaten\\All_parameters.csv')
 param = pd.read_csv(filename, sep=";", index_col=['plant', 'parameter'])
+
+# TODO
+cop_lt = 4.9501
+A = param.loc[('Sol', 'A'), 'value']
+
+invest_solar = invest_st(A, col_type="flat")
 
     # %% Zeitreihe
 
@@ -75,33 +83,6 @@ heat_demand_FL = data['heat_demand']
 rel_heat_demand = 1
 heat_demand_local = heat_demand_FL * rel_heat_demand
 total_heat_demand = float(heat_demand_local.sum())
-
-
-    # %% Investionskosten
-
-A = param.loc[('ST', 'Area'), 'value']
-invest_solar = invest_st(A, col_type="flat")
-
-invest_ehk = (param.loc[('EHK', 'inv_spez'), 'value']
-              * param.loc[('EHK', 'Q_N'), 'value'])
-
-invest_slk = (param.loc[('SLK', 'inv_spez'), 'value']
-              * param.loc[('SLK', 'Q_N'), 'value'])
-
-invest_bhkw = (param.loc[('BHKW', 'P_max_woDH'), 'value']
-               * param.loc[('BHKW', 'inv_spez'), 'value'])
-
-invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
-              * param.loc[('GuD', 'inv_spez'), 'value'])
-
-invest_hp = (param.loc[('HP', 'inv_spez'), 'value']
-              * param.loc[('HP', 'Q_N'), 'value'])
-
-invest_tes = (param.loc[('TES', 'inv_spez'), 'value']
-              * param.loc[('TES', 'Q'), 'value'])
-
-invest_ges = (invest_solar + invest_ehk +  invest_slk + invest_bhkw +
-              + invest_gud + invest_hp + invest_tes)
 
 # %% Energiesystem
 
@@ -133,7 +114,7 @@ solar_source = solph.Source(
     outputs={lt_wnw: solph.Flow(
         variable_costs=(0.01 * invest_solar)/(A*data['solar_data'].sum()),
         nominal_value=(max(data['solar_data'])*A),
-        actual_value=(data['solar_data']*A)/(max(data['solar_data'])*A),
+        actual_value=(data['solar_data'])/(max(data['solar_data'])),
         fixed=True)})
 
 es_ref.add(gas_source, elec_source, solar_source)
@@ -252,7 +233,7 @@ tes = solph.components.GenericStorage(
     outflow_conversion_factor=param.loc[('TES', 'outflow_conv'), 'value'])
 
 # Low temperature heat pump
-cop_lt = 4.9501
+
 # lthp = fc.HeatPump(
 #             label="LT-WP",
 #             carrier="electricity",
@@ -282,7 +263,7 @@ es_ref.add(tes, lthp)
 # Was bedeutet tee?
 model = solph.Model(es_ref)
 model.solve(solver='gurobi', solve_kwargs={'tee': True},
-            cmdline_options={"mipgap": "0.10"})
+            cmdline_options={"mipgap": "0.01"})
 
     # %% Ergebnisse Energiesystem
 
@@ -314,10 +295,37 @@ data_slk = outputlib.views.node(results, 'Spitzenlastkessel')['sequences']
 data_bhkw = outputlib.views.node(results, 'BHKW')['sequences']
 data_gud = outputlib.views.node(results, 'GuD')['sequences']
 data_hp = outputlib.views.node(results, 'Wärmepumpe')['sequences']
+data_lt_hp = outputlib.views.node(results, 'LT-WP')['sequences']
 
 # Speicher
 data_tes = outputlib.views.node(results, 'Wärmespeicher')['sequences']
 
+
+    # %% Investionskosten
+
+invest_ehk = (param.loc[('EHK', 'inv_spez'), 'value']
+              * param.loc[('EHK', 'Q_N'), 'value'])
+
+invest_slk = (param.loc[('SLK', 'inv_spez'), 'value']
+              * param.loc[('SLK', 'Q_N'), 'value'])
+
+invest_bhkw = (param.loc[('BHKW', 'P_max_woDH'), 'value']
+               * param.loc[('BHKW', 'inv_spez'), 'value'])
+
+invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
+              * param.loc[('GuD', 'inv_spez'), 'value'])
+
+invest_hp = (param.loc[('HP', 'inv_spez'), 'value']
+             * data['P_max'].max())
+
+invest_lt_hp = (param.loc[('HP', 'inv_spez'), 'value']
+                * data_wnw[(('LT-WP', 'Wärmenetzwerk'), 'flow')].max()/cop_lt)
+
+invest_tes = (param.loc[('TES', 'inv_spez'), 'value']
+              * param.loc[('TES', 'Q'), 'value'])
+
+invest_ges = (invest_solar + invest_ehk + invest_slk + invest_bhkw
+              + invest_gud + invest_hp + invest_lt_hp + invest_tes)
 
     # %% Zahlungsströme Ergebnis
 
@@ -356,7 +364,13 @@ cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
 cost_hp = (data_hp[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')].sum()
            * param.loc[('HP', 'op_cost_var'), 'value']
            + (param.loc[('HP', 'op_cost_fix'), 'value']
-               * data['P_max'].max()))
+              * data['P_max'].max()))
+
+cost_lt_hp = (data_lt_hp[(('Elektrizitätsnetzwerk', 'LT-WP'), 'flow')].sum()
+              * param.loc[('HP', 'op_cost_var'), 'value']
+              + (param.loc[('HP', 'op_cost_fix'), 'value']
+                 * data_wnw[(('LT-WP', 'Wärmenetzwerk'), 'flow')].max()
+                 / cop_lt))
 
 cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
             * param.loc[('EHK', 'op_cost_var'), 'value']
@@ -364,7 +378,7 @@ cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
                * param.loc[('EHK', 'Q_N'), 'value']))
 
 cost_Anlagen = (cost_tes + cost_st + cost_bhkw + cost_gud
-                + cost_slk + cost_hp + cost_ehk)
+                + cost_slk + cost_hp + cost_lt_hp + cost_ehk)
 
 # # Primärenergiebezugskoste
 cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
@@ -420,8 +434,10 @@ df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
            sep=";")
 
 # Daten für die ökologische Bewertung
-df4 = pd.concat([data_gnw.iloc[:, [0, 1, 2]], data_enw.iloc[:, [2, -1]]],
+df3 = pd.concat([data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')],
+                 data_enw[[
+                     (('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow'),
+                     (('Stromquelle', 'Elektrizitätsnetzwerk'), 'flow')]]],
                 axis=1)
-label = ['Q_in,BHKW', 'Q_in,GuD', 'Q_in,SLK', 'P_out', 'P_in']
-df4.columns = label
-df4.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")
+df3.columns = ['Gas_in', 'P_out', 'P_in']
+df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")
