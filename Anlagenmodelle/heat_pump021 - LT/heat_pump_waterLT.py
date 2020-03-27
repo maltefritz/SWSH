@@ -186,7 +186,7 @@ erp.set_attr(eta_s=0.8, design=['eta_s'], offdesign=['eta_s_char'])
 # compressor system
 
 cp1.set_attr(eta_s=0.9, design=['eta_s'], offdesign=['eta_s_char'])
-cp2.set_attr(eta_s=0.9, pr=3, design=['eta_s'], offdesign=['eta_s_char'])
+cp2.set_attr(eta_s=0.9, pr=1.79, design=['eta_s'], offdesign=['eta_s_char'])
 ic.set_attr(pr1=0.99, pr2=0.98, design=['pr1', 'pr2'],
             offdesign=['zeta1', 'zeta2', 'kA'])
 
@@ -207,14 +207,17 @@ su_cp1.set_attr(p0=5, h0=1700)
 # evaporator system hot side
 
 # pumping at constant rate in partload
-amb_fa.set_attr(T=T_amb, p=1, fluid={'air': 1, 'NH3': 0, 'water': 0},
+amb_fa.set_attr(T=T_amb, p=1, m=0, fluid={'air': 1, 'NH3': 0, 'water': 0},
                 offdesign=['v'])
+# amb_fa.set_attr(T=T_amb, p=1, fluid={'air': 1, 'NH3': 0, 'water': 0},
+#                 offdesign=['v'])
 ev_amb_out.set_attr(p=10, T=T_source_rl, design=['T'])
 
 # compressor-system
 
 he_cp2.set_attr(Td_bp=5, p0=20, design=['Td_bp'])
-ic_out.set_attr(T=20, design=['T'])
+ic_out.set_attr(design=['T'])
+# ic_out.set_attr(T=20, design=['T'])
 
 # new feature
 
