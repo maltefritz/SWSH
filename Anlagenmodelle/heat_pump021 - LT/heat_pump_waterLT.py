@@ -48,7 +48,6 @@ amb_out2 = sink('sink ambient 2')
 lt_so = source('low temp source')
 
 # ambient air system
-# sp = splitter('splitter')
 fa = compressor('fan')
 pu = pump('pump')
 
@@ -235,6 +234,8 @@ nw.save('hp_water')
 
 cop = abs(heat.P.val) / power.P.val
 print(cop)
+print(power.P.val/1e6)
+print(heat.P.val/1e6)
 
 # cp1.eta_s_char.func.extrapolate = True
 # cp2.eta_s_char.func.extrapolate = True
