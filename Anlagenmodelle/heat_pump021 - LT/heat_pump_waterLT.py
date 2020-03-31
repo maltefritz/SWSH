@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from time import time
+from fluprodia.statesdiagram import StatesDiagram
 
 Q_N=200 * -1e6
 # Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: '))) * -1e6
@@ -207,17 +207,17 @@ su_cp1.set_attr(p0=5, h0=1700)
 # evaporator system hot side
 
 # pumping at constant rate in partload
-amb_fa.set_attr(T=T_amb, p=1, m=0, fluid={'air': 1, 'NH3': 0, 'water': 0},
-                offdesign=['v'])
-# amb_fa.set_attr(T=T_amb, p=1, fluid={'air': 1, 'NH3': 0, 'water': 0},
+# amb_fa.set_attr(T=T_amb, p=1, m=0, fluid={'air': 1, 'NH3': 0, 'water': 0},
 #                 offdesign=['v'])
+amb_fa.set_attr(T=T_amb, p=1, fluid={'air': 1, 'NH3': 0, 'water': 0},
+                offdesign=['v'])
 ev_amb_out.set_attr(p=10, T=T_source_rl, design=['T'])
 
 # compressor-system
 
 he_cp2.set_attr(Td_bp=5, p0=20, design=['Td_bp'])
-ic_out.set_attr(design=['T'])
-# ic_out.set_attr(T=20, design=['T'])
+# ic_out.set_attr(design=['T'])
+ic_out.set_attr(T=20, design=['T'])
 
 # new feature
 
@@ -244,99 +244,92 @@ print(heat.P.val/1e6)
 # cp2.eta_s_char.func.extrapolate = True
 
 # nw.solve('offdesign', design_path='hp_water')
-# nw.set_attr(iterinfo=False)
 
 # cop = abs(heat.P.val) / power.P.val
 # print(cop)
+# print(power.P.val/1e6)
+# print(heat.P.val/1e6)
 
-# T_db = []
-# P_max = []
-# P_min = []
-# c_1 = []
-# c_0 = []
+h = np.arange(0, 3000 + 1, 200)
+T_max = 300
+T = np.arange(-75, T_max + 1, 25).round(8)
 
-# T_range = range(70, 126)
-# Q_range = np.linspace(0.3, 1.0, 8)[::-1] * Q_N
-# df = pd.DataFrame(columns=Q_range/Q_N)
+# Diagramm
+
+diagram = StatesDiagram(fluid='NH3')
+diagram.set_unit_system(p_unit='bar', T_unit='°C', h_unit='kJ/kg', s_unit='kJ/kgK')
+# diagram.set_isolines(p=p, v=v, h=h, T=T)
+diagram.isobar()
+diagram.isochor()
+diagram.isoquality()
+diagram.isoenthalpy()
+diagram.isotherm()
+diagram.isoentropy()
+p_values = np.array([
+    10, 20, 50, 100, 200, 500, 1000,
+    2000, 5000, 10000, 20000, 50000, 100000]) * 1e-2
+Q_values = np.linspace(0, 100, 11)
+
+# isolines = {
+#     'p': {
+#         'values': p_values
+#     },
+#     'Q': {'values': Q_values},
+#     'h': {},
+#     'v': {}
+# }
+# diagram.set_limits(x_min=0, x_max=8, y_min=-75, y_max=300)
+# diagram.draw_isolines(diagram_type='Ts')
+# diagram.save('Ts_Diagramm.pdf')
+
+# isolines = {
+#     'p': {
+#         'values': p_values
+#     },
+#     'Q': {'values': Q_values},
+#     'T': {},
+#     'v': {}
+# }
+# diagram.set_limits(x_min=0, x_max=8, y_min=0, y_max=2000)
+# diagram.draw_isolines(diagram_type='hs')
+# diagram.save('hs_Diagramm.pdf')
+
+isolines = {
+    'p': {
+        'values': p_values
+    },
+    'Q': {'values': Q_values},
+    'T': {},
+    'v': {}
+}
+diagram.set_limits(x_min=0, x_max=2000, y_min=1e-1, y_max=1e3)
+diagram.draw_isolines(diagram_type='logph')
+diagram.ax.scatter(su_cp1.get_plotting_props()['h'], su_cp1.get_plotting_props()['p'])
+diagram.ax.scatter(cp1_he.get_plotting_props()['h'], cp1_he.get_plotting_props()['p'])
+diagram.ax.scatter(he_cp2.get_plotting_props()['h'], he_cp2.get_plotting_props()['p'])
+diagram.ax.scatter(cp2_c_out.get_plotting_props()['h'], cp2_c_out.get_plotting_props()['p'])
+diagram.ax.scatter(cd_ves.get_plotting_props()['h'], cd_ves.get_plotting_props()['p'])
+diagram.ax.scatter(ves_dr.get_plotting_props()['h'], ves_dr.get_plotting_props()['p'])
+diagram.ax.scatter(dr_su.get_plotting_props()['h'], dr_su.get_plotting_props()['p'])
+diagram.save('logph_Diagramm.pdf')
+
+
+
+# %% Auslegung Temperaturbereich District Heating
+
+# T_range = range(88, 92)
+# cop_range = []
 
 # for T in T_range:
 #     cd_cons.set_attr(T=T)
-#     cb_dhp.set_attr(T=((1/360) * (T**2) + (1/12) * T + 30))
-#     cop_carnot = []
-#     guetegrad = []
-#     P_list = []
+#     if T == T_range[0]:
+#         nw.solve('offdesign', design_path='hp_water', init_path='hp_water')
+#     else:
+#         nw.solve('offdesign', design_path='hp_water')
 
-#     heat.set_attr(P=np.nan)
-#     tmp = time()
+#     if nw.lin_dep:
+#         cop_range += [np.nan]
+#     else:
+#         cop_range += [abs(heat.P.val) / power.P.val]
 
-#     for Q in Q_range:
-#         heat.set_attr(P=Q)
-#         if Q == Q_range[0]:
-#             nw.solve('offdesign', design_path='hp_water', init_path='hp_water')
-#         else:
-#             nw.solve('offdesign', design_path='hp_water')
-
-#         if nw.lin_dep:
-#             guetegrad += [np.nan]
-#             print('Warning: Network is linear dependent')
-
-#         else:
-#             cop = abs(heat.P.val) / power.P.val
-#             P_list += [power.P.val]
-
-#             Q_source = abs(ev.Q.val + su.Q.val)
-#             SQ_source = abs(ev.SQ2.val + su.SQ2.val)
-
-#             Q_sink = abs(cd.Q.val)
-#             SQ_sink = abs(cd.SQ1.val)
-
-#             T_m_sink = Q_sink / SQ_sink
-#             T_m_source = Q_source / SQ_source
-
-#             T_ln_sink = (T_DH_vl - T_DH_rl) / np.log((273.15 + T_DH_vl)
-#                                                      / (273.15 + T_DH_rl))
-#             T_ln_source = (T_amb - T_amb_out) / np.log((273.15 + T_amb)
-#                                                        / (273.15 + T_amb_out))
-
-#             cop_car = T_m_sink / (T_m_sink - T_m_source)
-#             cop_carnot += [cop_car]
-
-#             guetegrad += [cop / cop_car]
-
-#     T_db += [T]
-#     P_max += [abs(max(P_list))/1e6]
-#     P_min += [abs(min(P_list))/1e6]
-#     c_1 += [abs((Q_range[0] - Q_range[-1])/1e6)/(P_max[-1] - P_min[-1])]
-#     c_0 += [abs(Q_range[0]/1e6) - c_1[-1] * P_max[-1]]
-
-#     df.loc[0, :] = guetegrad
-#     solph_komp = {'T_DH_VL / C': T_db, 'P_max / MW': P_max,
-#                   'P_min / MW': P_min, 'c_1': c_1, 'c_0': c_0}
-#     df3 = pd.DataFrame(solph_komp)
-#     print(time() - tmp)
-#     tmp = time()
-
-#     # %% Plotting
-#     colors = ['#00395b', '#74adc1', '#b54036', '#ec6707', '#bfbfbf', '#999999',
-#               '#010101', '#00395b', '#74adc1', '#b54036', '#ec6707']
-
-#     fig, ax = plt.subplots()
-
-#     df2 = pd.DataFrame({'Power P': np.array(P_list)/1e6,
-#                         'Heat Q': abs(Q_range)/1e6})
-#     df2.index = df2['Power P']
-#     del df2['Power P']
-
-#     plt.plot(df2, '-x', Color=colors[0],
-#              markersize=7, linewidth=2)
-#     ax.set_ylabel('Wärmestrom Q in MW')
-#     ax.set_xlabel('Leistung P in MW')
-#     ax.grid(linestyle='--')
-#     plt.title('PQ-Diagramm für T= ' + str(T))
-
-#     plt.show()
-#     print(time() - tmp)
-
-# dirpath = path.abspath(path.join(__file__, "../../.."))
-# writepath = path.join(dirpath, 'Eingangsdaten', 'Wärmepumpe_Wasser.csv')
-# df3.to_csv(writepath, sep=';', na_rep='#N/A')
+# #     df.loc[T] = eps
