@@ -25,7 +25,6 @@ Q_N=200 * -1e6
 # T_amb and T_amb_out kommen von der Drammen District Heating Wärmepumpe aus
 # Norwegen. T_amb ist die Außentemperatur in einem Fluß und T_amb_out die
 # Differenz vom Austritt zum Eintritt
-T_amb = 9.19
 T_DH_vl = 90
 T_DH_rl = 50
 T_source_rl = 50
@@ -42,13 +41,10 @@ nw = network(fluids=['water', 'NH3', 'air'], T_unit='C', p_unit='bar',
 cc = cycle_closer('coolant cycle closer')
 cb = source('consumer back flow')
 cf = sink('consumer feed flow')
-amb = source('ambient air')
-amb_out1 = sink('sink ambient 1')
-amb_out2 = sink('sink ambient 2')
+lt_si = sink('low temp sink')
 lt_so = source('low temp source')
 
-# ambient air system
-fa = compressor('fan')
+# low temp water system
 pu = pump('pump')
 
 # consumer system
@@ -59,17 +55,15 @@ cons = heat_exchanger_simple('consumer')
 
 # evaporator system
 
-ves = valve('valve')
+va = valve('valve')
 dr = drum('drum')
 ev = heat_exchanger('evaporator')
-su = heat_exchanger('superheater')
 erp = pump('evaporator reciculation pump')
 
 # compressor-system
 
-cp1 = compressor('compressor 1')
-cp2 = compressor('compressor 2')
-ic = heat_exchanger('intercooler')
+cp = compressor('compressor')
+
 
 # %% connections
 
@@ -86,45 +80,33 @@ nw.add_conns(c_in_cd, cb_dhp, dhp_cd, cd_cons, cons_cf)
 
 # connection condenser - evaporator system
 
-cd_ves = connection(cd, 'out1', ves, 'in1')
+cd_va = connection(cd, 'out1', va, 'in1')
 
-nw.add_conns(cd_ves)
+nw.add_conns(cd_va)
 
 # evaporator system
 
-ves_dr = connection(ves, 'out1', dr, 'in1')
+va_dr = connection(va, 'out1', dr, 'in1')
 dr_erp = connection(dr, 'out1', erp, 'in1')
 erp_ev = connection(erp, 'out1', ev, 'in2')
 ev_dr = connection(ev, 'out2', dr, 'in2')
-dr_su = connection(dr, 'out2', su, 'in2')
+dr_cp = connection(dr, 'out2', cp, 'in1')
 
-nw.add_conns(ves_dr, dr_erp, erp_ev, ev_dr, dr_su)
+nw.add_conns(va_dr, dr_erp, erp_ev, ev_dr, dr_cp)
 
-# new feature
-
-amb_fa = connection(amb, 'out1', fa, 'in1')
-fa_ic = connection(fa, 'out1', ic, 'in2')
-ic_out = connection(ic, 'out2', amb_out2, 'in1')
-
-nw.add_conns(amb_fa, fa_ic, ic_out)
-
-# connection evaporator system - compressor system
+# low temp water system
 
 lt_so_pu = connection(lt_so, 'out1', pu, 'in1')
-pu_su = connection(pu, 'out1', su, 'in1')
-su_ev = connection(su, 'out1', ev, 'in1')
-ev_amb_out = connection(ev, 'out1', amb_out1, 'in1')
-su_cp1 = connection(su, 'out2', cp1, 'in1')
+pu_ev = connection(pu, 'out1', ev, 'in1')
+ev_lt_si = connection(ev, 'out1', lt_si, 'in1')
 
-nw.add_conns(lt_so_pu, pu_su, su_ev, ev_amb_out, su_cp1)
+nw.add_conns(lt_so_pu, pu_ev, ev_lt_si)
 
 # compressor-system
 
-cp1_he = connection(cp1, 'out1', ic, 'in1')
-he_cp2 = connection(ic, 'out1', cp2, 'in1')
-cp2_c_out = connection(cp2, 'out1', cc, 'in1')
+cp_c_out = connection(cp, 'out1', cc, 'in1')
 
-nw.add_conns(cp1_he, he_cp2, cp2_c_out)
+nw.add_conns(cp_c_out)
 
 # %% busses
 
@@ -142,13 +124,11 @@ mot1 = char_line(x=x, y=y)
 mot2 = char_line(x=x, y=y)
 mot3 = char_line(x=x, y=y)
 mot4 = char_line(x=x, y=y)
-mot5 = char_line(x=x, y=y)
-mot6 = char_line(x=x, y=y)
 
 power = bus('total compressor power')
-power.add_comps({'c': cp1, 'char': mot1}, {'c': cp2, 'char': mot2},
-                {'c': pu, 'char': mot3}, {'c': dhp, 'char': mot4},
-                {'c': erp, 'char': mot5}, {'c': fa, 'char': mot6})
+power.add_comps({'c': cp, 'char': mot1}, {'c': pu, 'char': mot2},
+                {'c': dhp, 'char': mot3}, {'c': erp, 'char': mot4})
+
 heat = bus('total delivered heat')
 heat.add_comps({'c': cd})
 
@@ -163,11 +143,7 @@ cd.set_attr(pr1=0.99, pr2=0.99, ttd_u=5, design=['pr2', 'ttd_u'],
 dhp.set_attr(eta_s=0.8, design=['eta_s'], offdesign=['eta_s_char'])
 cons.set_attr(pr=0.99, design=['pr'], offdesign=['zeta'])
 
-# fan
-
-fa.set_attr(eta_s=0.80, pr=1.005, design=['eta_s'], offdesign=['eta_s_char'])
-
-# water pump
+# low temp water system
 
 pu.set_attr(eta_s=0.75, design=['eta_s'], offdesign=['eta_s_char'])
 
@@ -179,16 +155,12 @@ kA_char2 = ldc('heat exchanger', 'kA_char2', 'EVAPORATING FLUID', char_line)
 ev.set_attr(pr1=0.98, pr2=0.99, ttd_l=5,
             kA_char1=kA_char1, kA_char2=kA_char2,
             design=['pr1', 'ttd_l'], offdesign=['zeta1', 'kA'])
-su.set_attr(pr1=0.98, pr2=0.99, ttd_u=2, design=['pr1', 'pr2', 'ttd_u'],
-            offdesign=['zeta1', 'zeta2', 'kA'])
 erp.set_attr(eta_s=0.8, design=['eta_s'], offdesign=['eta_s_char'])
 
 # compressor system
 
-cp1.set_attr(eta_s=0.9, design=['eta_s'], offdesign=['eta_s_char'])
-cp2.set_attr(eta_s=0.9, pr=1.79, design=['eta_s'], offdesign=['eta_s_char'])
-ic.set_attr(pr1=0.99, pr2=0.98, design=['pr1', 'pr2'],
-            offdesign=['zeta1', 'zeta2', 'kA'])
+cp.set_attr(eta_s=0.85, design=['eta_s'], offdesign=['eta_s_char'])
+
 
 # %% connection parametrization
 
@@ -201,29 +173,16 @@ cons_cf.set_attr(h=ref(cb_dhp, 1, 0), p=ref(cb_dhp, 1, 0))
 
 # evaporator system cold side
 
-erp_ev.set_attr(m=ref(ves_dr, 1.25, 0), p0=5)
-su_cp1.set_attr(p0=5, h0=1700)
+erp_ev.set_attr(m=ref(va_dr, 1.25, 0), p0=5)
+dr_cp.set_attr(p0=17, h0=1650)
 
-# evaporator system hot side
+# low temp water system
 
-# pumping at constant rate in partload
-# amb_fa.set_attr(T=T_amb, p=1, m=0, fluid={'air': 1, 'NH3': 0, 'water': 0},
-#                 offdesign=['v'])
-amb_fa.set_attr(T=T_amb, p=1, fluid={'air': 1, 'NH3': 0, 'water': 0},
-                offdesign=['v'])
-ev_amb_out.set_attr(p=10, T=T_source_rl, design=['T'])
-
-# compressor-system
-
-he_cp2.set_attr(Td_bp=5, p0=20, design=['Td_bp'])
-# ic_out.set_attr(design=['T'])
-ic_out.set_attr(T=20, design=['T'])
-
-# new feature
-
-lt_so_pu.set_attr(p=10, T=T_source_vl, design=['T'],
+lt_so_pu.set_attr(p=10, T=T_source_vl,
                   fluid={'air': 0, 'NH3': 0, 'water': 1})
-pu_su.set_attr(offdesign=['v'])
+# pu_ev.set_attr(offdesign=['v'])
+ev_lt_si.set_attr(p=10, T=T_source_rl)
+
 
 # %% key paramter
 
@@ -236,14 +195,15 @@ nw.print_results()
 nw.save('hp_water')
 
 cop = abs(heat.P.val) / power.P.val
-print(cop)
-print(power.P.val/1e6)
-print(heat.P.val/1e6)
+print('COP:', cop)
+print('P_out:', power.P.val/1e6)
+print('Q_out:', heat.P.val/1e6)
 
-# cp1.eta_s_char.func.extrapolate = True
-# cp2.eta_s_char.func.extrapolate = True
+cp.eta_s_char.func.extrapolate = True
 
-# nw.solve('offdesign', design_path='hp_water')
+# cd_cons.set_attr(T=110)
+# nw.solve('offdesign', design_path='hp_water', init_path='hp_water')
+# nw.print_results()
 
 # cop = abs(heat.P.val) / power.P.val
 # print(cop)
@@ -304,32 +264,41 @@ isolines = {
 }
 diagram.set_limits(x_min=0, x_max=2000, y_min=1e-1, y_max=1e3)
 diagram.draw_isolines(diagram_type='logph')
-diagram.ax.scatter(su_cp1.get_plotting_props()['h'], su_cp1.get_plotting_props()['p'])
-diagram.ax.scatter(cp1_he.get_plotting_props()['h'], cp1_he.get_plotting_props()['p'])
-diagram.ax.scatter(he_cp2.get_plotting_props()['h'], he_cp2.get_plotting_props()['p'])
-diagram.ax.scatter(cp2_c_out.get_plotting_props()['h'], cp2_c_out.get_plotting_props()['p'])
-diagram.ax.scatter(cd_ves.get_plotting_props()['h'], cd_ves.get_plotting_props()['p'])
-diagram.ax.scatter(ves_dr.get_plotting_props()['h'], ves_dr.get_plotting_props()['p'])
-diagram.ax.scatter(dr_su.get_plotting_props()['h'], dr_su.get_plotting_props()['p'])
+diagram.ax.scatter(dr_cp.get_plotting_props()['h'], dr_cp.get_plotting_props()['p'])
+diagram.ax.scatter(cp_c_out.get_plotting_props()['h'], cp_c_out.get_plotting_props()['p'])
+diagram.ax.scatter(cd_va.get_plotting_props()['h'], cd_va.get_plotting_props()['p'])
+diagram.ax.scatter(va_dr.get_plotting_props()['h'], va_dr.get_plotting_props()['p'])
 diagram.save('logph_Diagramm.pdf')
 
 
 
 # %% Auslegung Temperaturbereich District Heating
 
-# T_range = range(88, 92)
-# cop_range = []
+T_range = range(66, 125)
+cop_range = []
 
-# for T in T_range:
-#     cd_cons.set_attr(T=T)
-#     if T == T_range[0]:
-#         nw.solve('offdesign', design_path='hp_water', init_path='hp_water')
-#     else:
-#         nw.solve('offdesign', design_path='hp_water')
+for T in T_range:
+    cd_cons.set_attr(T=T)
+    if T == T_range[0]:
+        nw.solve('offdesign', design_path='hp_water', init_path='hp_water')
+    else:
+        nw.solve('offdesign', design_path='hp_water')
+    print('T_VL:   ', cd_cons.T.val)
+    print('Vor CD: ', cp_c_out.T.val)
+    print('Nach CD:', cd_va.T.val)
+    if nw.lin_dep:
+        cop_range += [np.nan]
+    else:
+        cop_range += [abs(heat.P.val) / power.P.val]
+    diagram.ax.scatter(dr_cp.get_plotting_props()['h'],
+                       dr_cp.get_plotting_props()['p'], c=(((T-66)/125, 0, 0)))
+    diagram.ax.scatter(cp_c_out.get_plotting_props()['h'],
+                       cp_c_out.get_plotting_props()['p'],
+                       c=(((T-66)/125, 0, 0)))
+    diagram.ax.scatter(cd_va.get_plotting_props()['h'],
+                       cd_va.get_plotting_props()['p'], c=(((T-66)/125, 0, 0)))
+    diagram.ax.scatter(va_dr.get_plotting_props()['h'],
+                       va_dr.get_plotting_props()['p'], c=(((T-66)/125, 0, 0)))
+#     df.loc[T] = eps
 
-#     if nw.lin_dep:
-#         cop_range += [np.nan]
-#     else:
-#         cop_range += [abs(heat.P.val) / power.P.val]
-
-# #     df.loc[T] = eps
+diagram.save('logph_Diagramm.pdf')
