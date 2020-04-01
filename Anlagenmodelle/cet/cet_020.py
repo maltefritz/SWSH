@@ -268,7 +268,7 @@ ls.set_attr(p=ref(suph_ls, 1, 0), h=ref(suph_ls, 1, 0))
 mp_ls.set_attr(m=ref(mp, 0.2, 0))
 # lp_ws.set_attr(p=0.8, design=['p'])
 
-# district heating
+# district heating - dh_i.set_attr(T=60) läuft es
 dh_i.set_attr(T=50, p=10, fluid={'CO2': 0, 'Ar': 0, 'N2': 0,
                                  'O2': 0, 'H2O': 1, 'CH4': 0})
 dh_o.set_attr(T=90)
