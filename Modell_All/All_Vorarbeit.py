@@ -196,13 +196,13 @@ hp = solph.components.OffsetTransformer(
     label='Wärmepumpe',
     inputs={enw: solph.Flow(
         nominal_value=1,
-        max=data['P_max'],
-        min=data['P_min'],
+        max=data['P_max_hp'],
+        min=data['P_min_hp'],
         variable_costs=param.loc[('HP', 'op_cost_var'), 'value'],
         nonconvex=solph.NonConvex())},
     outputs={wnw: solph.Flow(
         )},
-    coefficients=[data['c_0'], data['c_1']])
+    coefficients=[data['c_0_hp'], data['c_1_hp']])
 
 es_ref.add(ehk, slk, bhkw, gud, hp)
 
@@ -316,7 +316,7 @@ invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
               * param.loc[('GuD', 'inv_spez'), 'value'])
 
 invest_hp = (param.loc[('HP', 'inv_spez'), 'value']
-             * data['P_max'].max())
+             * data['P_max_hp'].max())
 
 invest_lt_hp = (param.loc[('HP', 'inv_spez'), 'value']
                 * data_wnw[(('LT-WP', 'Wärmenetzwerk'), 'flow')].max()/cop_lt)
@@ -364,7 +364,7 @@ cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
 cost_hp = (data_hp[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')].sum()
            * param.loc[('HP', 'op_cost_var'), 'value']
            + (param.loc[('HP', 'op_cost_fix'), 'value']
-              * data['P_max'].max()))
+              * data['P_max_hp'].max()))
 
 cost_lt_hp = (data_lt_hp[(('Elektrizitätsnetzwerk', 'LT-WP'), 'flow')].sum()
               * param.loc[('HP', 'op_cost_var'), 'value']

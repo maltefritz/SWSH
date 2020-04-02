@@ -94,10 +94,10 @@ simdata_path = join(dirpath, "Eingangsdaten\\simulation_data.csv")
 simdata = pd.read_csv(simdata_path, sep=";")
 
 # Berechneten Wärmepumpenparameter einfügen
-simdata['P_max'] = P_max
-simdata['P_min'] = P_min
-simdata['c_1'] = c_1
-simdata['c_0'] = c_0
+simdata['P_max_hp'] = P_max
+simdata['P_min_hp'] = P_min
+simdata['c_1_hp'] = c_1
+simdata['c_0_hp'] = c_0
 
 simdata['cop_lthp'] = cop_lthp
 
