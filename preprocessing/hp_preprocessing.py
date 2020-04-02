@@ -4,16 +4,16 @@ Created on Fri Feb 28 12:09:28 2020
 
 @author: Jonas Freißmann
 """
-import os.path as path
+from os.path import abspath, join
 
 import pandas as pd
 import matplotlib.pyplot as plt
 
 
 # %% Daten einlesen und für Weiterverwendung anpassen
-dirpath = path.abspath(path.join(__file__, "../.."))
-read_path = path.join(dirpath, "Eingangsdaten",
-                      "district-heating-network-data-flensburg-2016.csv")
+dirpath = abspath(join(__file__, "../.."))
+read_path = join(dirpath, "Eingangsdaten",
+                 "district-heating-network-data-flensburg-2016.csv")
 data = pd.read_csv(read_path)
 
 data['Datetime'] = pd.to_datetime(data['Datetime'], format='%d/%m/%y %H:%M')
@@ -24,6 +24,7 @@ data.columns = col_names
 data.set_index('Datum', inplace=True)
 
 tvl_list = data['T_VL'].apply(lambda x: int(x)).to_list()
+
 
 # %% Visualisierung
 # Zeitlicher Vorlauftemperaturverlauf
@@ -45,12 +46,23 @@ ax.grid(linestyle='--')
 
 plt.show()
 
+
 # %% TESPy Daten einlesen
 
-read_path = path.join(dirpath, "Eingangsdaten", "Wärmepumpe_Wasser.csv")
-hpdata = pd.read_csv(read_path, sep=";", index_col=0)
-hpdata.set_index('T_DH_VL / C', inplace=True)
+read_path = join(dirpath, "Eingangsdaten")
 
+# DH-Wärmepumpe
+hpdata = pd.read_csv(join(read_path, "Wärmepumpe_Wasser.csv"), sep=";")
+hpdata.set_index('T_DH_VL / C', inplace=True, drop=True)
+
+# LT-Wärmepumpe
+lthpdata = pd.read_csv(join(read_path, "LT-Wärmepumpe_Wasser.csv"), sep=";")
+lthpdata.set_index('T_DH_VL / C', inplace=True, drop=True)
+
+
+# % Wertezuweisung nach T_VL-Zeitreihe
+
+# DH-Wärmepumpe
 P_max = []
 P_min = []
 c_1 = []
@@ -68,8 +80,17 @@ for T in tvl_list:
         c_1 += [0]
         c_0 += [0]
 
+# LT-Wärmepumpe
+cop_lthp = []
+
+for T in tvl_list:
+    cop_lthp += [lthpdata.loc[T, 'COP']]
+
+
+# % Export in simulation_data.csv
+
 # Import der simulation_data.csv
-simdata_path = path.join(dirpath, "Eingangsdaten\\simulation_data.csv")
+simdata_path = join(dirpath, "Eingangsdaten\\simulation_data.csv")
 simdata = pd.read_csv(simdata_path, sep=";")
 
 # Berechneten Wärmepumpenparameter einfügen
@@ -77,6 +98,8 @@ simdata['P_max'] = P_max
 simdata['P_min'] = P_min
 simdata['c_1'] = c_1
 simdata['c_0'] = c_0
+
+simdata['cop_lthp'] = cop_lthp
 
 # Export der simulation_data.csv
 simdata.to_csv(simdata_path, sep=";", index=False)

@@ -314,4 +314,4 @@ for T in T_range:
 
 dirpath = path.abspath(path.join(__file__, "../../.."))
 writepath = path.join(dirpath, 'Eingangsdaten', 'Wärmepumpe_Wasser.csv')
-df3.to_csv(writepath, sep=';', na_rep='#N/A')
+df3.to_csv(writepath, sep=';', na_rep='#N/A', index=False)
