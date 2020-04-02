@@ -251,8 +251,11 @@ lthp = solph.Transformer(
             enw: solph.Flow(
                 variable_costs=param.loc[('HP', 'op_cost_var'), 'value'])},
     outputs={wnw: solph.Flow()},
-    conversion_factors={enw: 1/cop_lt,
-                        lt_wnw: (cop_lt-1)/cop_lt})
+    conversion_factors={enw: 1/data['cop_lthp'],
+                        lt_wnw: (data['cop_lthp']-1)/data['cop_lthp']}
+    # conversion_factors={enw: 1/cop_lt,
+    #                     lt_wnw: (cop_lt-1)/cop_lt}
+    )
 
 es_ref.add(tes, lthp)
 
