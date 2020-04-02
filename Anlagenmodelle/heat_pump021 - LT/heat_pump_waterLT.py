@@ -302,7 +302,15 @@ for T in T_range:
     else:
         cop_range += [abs(heat.P.val) / power.P.val]
 
-    diagram.ax.scatter(*get_fluid_property_data(connections, 'h', 'p'), c=(((T-66)/125, 0, 0)))
-#     df.loc[T] = eps
+    diagram.ax.scatter(*get_fluid_property_data(connections, 'h', 'p'),
+                       c=(((T-66)/125, 0, 0)))
 
 diagram.save('logph_Diagramm.pdf')
+
+# % Ergebnisse erxportieren
+
+df = pd.DataFrame({'T_DH_VL / C': T_range, 'COP': cop_range})
+
+dirpath = path.abspath(path.join(__file__, "../../.."))
+writepath = path.join(dirpath, 'Eingangsdaten', 'LT-Wärmepumpe_Wasser.csv')
+df.to_csv(writepath, sep=';', na_rep='#N/A')
