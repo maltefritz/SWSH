@@ -20,6 +20,16 @@ import matplotlib.pyplot as plt
 
 from fluprodia.statesdiagram import StatesDiagram
 
+
+def get_fluid_property_data(connections, x_property, y_property):
+    x = []
+    y = []
+    for c in connections:
+        x += [c.get_plotting_props()[x_property]]
+        y += [c.get_plotting_props()[y_property]]
+
+    return x, y
+
 Q_N=200 * -1e6
 # Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: '))) * -1e6
 # T_amb and T_amb_out kommen von der Drammen District Heating Wärmepumpe aus
@@ -262,12 +272,13 @@ isolines = {
     'T': {},
     'v': {}
 }
+
+
+connections = [dr_cp, cp_c_out, cd_va, va_dr]
+
 diagram.set_limits(x_min=0, x_max=2000, y_min=1e-1, y_max=1e3)
 diagram.draw_isolines(diagram_type='logph')
-diagram.ax.scatter(dr_cp.get_plotting_props()['h'], dr_cp.get_plotting_props()['p'])
-diagram.ax.scatter(cp_c_out.get_plotting_props()['h'], cp_c_out.get_plotting_props()['p'])
-diagram.ax.scatter(cd_va.get_plotting_props()['h'], cd_va.get_plotting_props()['p'])
-diagram.ax.scatter(va_dr.get_plotting_props()['h'], va_dr.get_plotting_props()['p'])
+diagram.ax.scatter(*get_fluid_property_data(connections, 'h', 'p'))
 diagram.save('logph_Diagramm.pdf')
 
 
@@ -290,15 +301,8 @@ for T in T_range:
         cop_range += [np.nan]
     else:
         cop_range += [abs(heat.P.val) / power.P.val]
-    diagram.ax.scatter(dr_cp.get_plotting_props()['h'],
-                       dr_cp.get_plotting_props()['p'], c=(((T-66)/125, 0, 0)))
-    diagram.ax.scatter(cp_c_out.get_plotting_props()['h'],
-                       cp_c_out.get_plotting_props()['p'],
-                       c=(((T-66)/125, 0, 0)))
-    diagram.ax.scatter(cd_va.get_plotting_props()['h'],
-                       cd_va.get_plotting_props()['p'], c=(((T-66)/125, 0, 0)))
-    diagram.ax.scatter(va_dr.get_plotting_props()['h'],
-                       va_dr.get_plotting_props()['p'], c=(((T-66)/125, 0, 0)))
+
+    diagram.ax.scatter(*get_fluid_property_data(connections, 'h', 'p'), c=(((T-66)/125, 0, 0)))
 #     df.loc[T] = eps
 
 diagram.save('logph_Diagramm.pdf')
