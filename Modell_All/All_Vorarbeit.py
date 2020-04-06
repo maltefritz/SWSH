@@ -266,7 +266,7 @@ es_ref.add(tes, lthp)
 # Was bedeutet tee?
 model = solph.Model(es_ref)
 model.solve(solver='gurobi', solve_kwargs={'tee': True},
-            cmdline_options={"mipgap": "0.01"})
+            cmdline_options={"mipgap": "0.1"})
 
     # %% Ergebnisse Energiesystem
 
@@ -416,11 +416,14 @@ data_wnw.columns = ['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
 data_lt_wnw.columns = ['LT-WP zu', 'Solar', 'TES Aus', 'Status TES Aus']
 data_tes.columns = ['TES Ein', 'Status TES Ein', 'TES Aus', 'Status TES Aus',
                     'Speicherstand']
+data_enw.columns = ['P_BHKW', 'P_zu_EHK', 'P_zu_LTWP', 'P_ab_ges', 'P_zu_WP',
+                    'P_GuD', 'P_zu_ges']
 
 df1 = pd.concat([data_wnw[['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
                            'TES Ein', 'WP']],
                  data_lt_wnw[['LT-WP zu', 'Solar', 'TES Aus']],
-                 data_tes[['Speicherstand']]],
+                 data_tes[['Speicherstand']],
+                 data_enw[['P_BHKW', 'P_GuD']]],
                 axis=1)
 df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
            sep=";")
@@ -438,9 +441,7 @@ df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
 
 # Daten für die ökologische Bewertung
 df3 = pd.concat([data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')],
-                 data_enw[[
-                     (('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow'),
-                     (('Stromquelle', 'Elektrizitätsnetzwerk'), 'flow')]]],
+                 data_enw[['P_ab_ges', 'P_zu_ges']]],
                 axis=1)
 df3.columns = ['Gas_in', 'P_out', 'P_in']
 df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")

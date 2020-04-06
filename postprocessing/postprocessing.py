@@ -447,6 +447,13 @@ def pp_Vorarbeit():
 
     # %% Visualisierung
 
+    # Betriebspunkte BHKW & GuD
+    ax = plt.scatter(x=wnw['BHKW'], y=wnw['P_BHKW'])
+    # ax.grid(b=False, which='major', axis='x')
+
+    ax = plt.scatter(x=wnw['GuD'], y=wnw['P_GuD'])
+    # ax.grid(b=False, which='major', axis='x')
+
     # Balkendiagramm Gesamtwärmemengen aller Technologien
     plt.figure()
     ax = zplt.bar(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'LT-WP ab',

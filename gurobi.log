@@ -1,0 +1,73 @@
+
+Gurobi 8.1.1 (win64, Python) logging started 04/06/20 11:55:14
+
+Academic license - for non-commercial use only
+Read LP format model from file C:\Users\JONASF~1\AppData\Local\Temp\tmpqbo5tzk8.pyomo.lp
+Reading time = 1.97 seconds
+x351362: 333794 rows, 324989 columns, 939773 nonzeros
+Changed value of parameter mipgap to 0.01
+   Prev: 0.0001  Min: 0.0  Max: 1e+100  Default: 0.0001
+Optimize a model with 333794 rows, 324989 columns and 939773 nonzeros
+Variable types: 281089 continuous, 43900 integer (43900 binary)
+Coefficient statistics:
+  Matrix range     [1e-01, 3e+02]
+  Objective range  [1e-02, 8e+07]
+  Bounds range     [1e+00, 2e+05]
+  RHS range        [8e-03, 2e+04]
+Presolve removed 168580 rows and 176865 columns
+Presolve time: 2.72s
+Presolved: 165214 rows, 148124 columns, 512960 nonzeros
+Variable types: 104661 continuous, 43463 integer (43463 binary)
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.1653474e+08   2.794451e+06   0.000000e+00      7s
+   22270   -8.1666014e+07   3.655416e+05   0.000000e+00     10s
+   48436   -7.5155474e+07   1.215421e+05   0.000000e+00     15s
+   65580   -7.3119133e+07   3.060975e+04   0.000000e+00     20s
+   85506   -7.2362985e+07   0.000000e+00   0.000000e+00     24s
+
+Root relaxation: objective -7.236298e+07, 85506 iterations, 18.51 seconds
+Total elapsed time = 26.22s
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 -7.236e+07    0 7624          - -7.236e+07      -     -   32s
+H    0     0                    -6.42282e+07 -7.236e+07  12.7%     -   36s
+H    0     0                    -6.83268e+07 -7.236e+07  5.91%     -   39s
+     0     0 -7.196e+07    0 7883 -6.833e+07 -7.196e+07  5.32%     -   55s
+H    0     0                    -6.90698e+07 -7.196e+07  4.18%     -   59s
+     0     0 -7.168e+07    0 7514 -6.907e+07 -7.168e+07  3.79%     -   80s
+     0     0 -7.163e+07    0 7812 -6.907e+07 -7.163e+07  3.70%     -  105s
+     0     0 -7.161e+07    0 8198 -6.907e+07 -7.161e+07  3.67%     -  131s
+     0     0 -7.160e+07    0 8131 -6.907e+07 -7.160e+07  3.67%     -  147s
+     0     0 -7.160e+07    0 8135 -6.907e+07 -7.160e+07  3.67%     -  149s
+     0     0 -7.160e+07    0 8120 -6.907e+07 -7.160e+07  3.67%     -  150s
+     0     0 -7.151e+07    0 7496 -6.907e+07 -7.151e+07  3.54%     -  171s
+H    0     0                    -7.06336e+07 -7.151e+07  1.25%     -  189s
+     0     0 -7.146e+07    0 6966 -7.063e+07 -7.146e+07  1.17%     -  206s
+     0     0 -7.145e+07    0 6802 -7.063e+07 -7.145e+07  1.15%     -  218s
+     0     0 -7.144e+07    0 6697 -7.063e+07 -7.144e+07  1.15%     -  221s
+     0     0 -7.144e+07    0 6695 -7.063e+07 -7.144e+07  1.15%     -  223s
+     0     0 -7.134e+07    0 4860 -7.063e+07 -7.134e+07  1.00%     -  234s
+H    0     0                    -7.10195e+07 -7.134e+07  0.45%     -  246s
+
+Cutting planes:
+  Learned: 2
+  Gomory: 335
+  Cover: 618
+  Implied bound: 15
+  MIR: 8237
+  StrongCG: 4
+  Flow cover: 7244
+  Zero half: 15
+
+Explored 1 nodes (155138 simplex iterations) in 246.85 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 5: -7.10195e+07 -7.06336e+07 -6.90698e+07 ... -6.42282e+07
+
+Optimal solution found (tolerance 1.00e-02)
+Best objective -7.101947480149e+07, best bound -7.134197083466e+07, gap 0.4541%
