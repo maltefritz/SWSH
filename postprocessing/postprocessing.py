@@ -458,13 +458,8 @@ def pp_Vorarbeit():
           + " t CO2")
 
     # %% Visualisierung
-
-    # Betriebspunkte BHKW & GuD
-    # ax = plt.scatter(x=wnw['BHKW'], y=wnw['P_BHKW'])
-    # # ax.grid(b=False, which='major', axis='x')
-
-    # ax = plt.scatter(x=wnw['GuD'], y=wnw['P_GuD'])
-    # # ax.grid(b=False, which='major', axis='x')
+    ax = zplt.area(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']],
+                   xlabel='Datum', ylabel='Wärmeleistung in MW')
 
     fig, ax = plt.subplots()
 
@@ -522,48 +517,48 @@ def pp_Vorarbeit():
 
     # Jahresverlauf aller Technologien einzeln
     ax = zplt.line(data=wnw[['BHKW', 'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['EHK', 'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['GuD', 'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['SLK', 'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['WP', 'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['LT-WP ab', 'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['Solar', 'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     ax = zplt.line(data=wnw[['TES Ein', 'TES Aus', 'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     # Jahresverlauf des Speicherstands
     ax = zplt.line(data=wnw[['Speicherstand']],
-                   xlabel='Date', ylabel='Speicherstand in MWh',
+                   xlabel='Datum', ylabel='Speicherstand in MWh',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
     ax.get_legend().remove()
@@ -578,20 +573,25 @@ def pp_Vorarbeit():
     # 7-Tage Plots
     idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
 
+    ax = zplt.area(data=wnw.loc[idx, ['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
+                                      'Solar']],
+                   xlabel='Datum', ylabel='Wärmeleistung in MW')
+    ax.legend(loc='upper right')
+
     ax = zplt.line(data=wnw.loc[idx, ['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
                                       'LT-WP ab', 'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
 
     ax = zplt.line(data=wnw.loc[idx, ['TES Ein', 'TES Aus', 'Bedarf']],
-                   xlabel='Date', ylabel='Wärmeleistung in MW',
+                   xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
 
-    ax = zplt.line(data=wnw.loc[idx, ['Speicherstand']], xlabel='Date',
+    ax = zplt.line(data=wnw.loc[idx, ['Speicherstand']], xlabel='Datum',
                    ylabel='Speicherstand in MWh', drawstyle='steps-mid')
     ax.get_legend().remove()
 
-    ax = zplt.line(data=wnw.loc[idx, ['Solar', 'Bedarf']], xlabel='Date',
+    ax = zplt.line(data=wnw.loc[idx, ['Solar', 'Bedarf']], xlabel='Datum',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
 
     filename = path.join(dirpath, 'Vor_plots.pdf')
