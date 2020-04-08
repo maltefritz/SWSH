@@ -172,8 +172,8 @@ bhkw = solph.components.GenericCHP(
         Eta_el_max_woDH=liste(param.loc[('BHKW', 'Eta_el_max_woDH'), 'value']),
         Eta_el_min_woDH=liste(param.loc[('BHKW', 'Eta_el_min_woDH'), 'value']))},
     heat_output={wnw: solph.Flow(
-        Q_CW_min=[0 for p in range(0, periods)])},
-    Beta=[0 for p in range(0, periods)],
+        Q_CW_min=liste(0))},
+    Beta=liste(0),
     back_pressure=False)
 
 gud = solph.components.GenericCHP(
@@ -266,7 +266,7 @@ es_ref.add(tes, lthp)
 # Was bedeutet tee?
 model = solph.Model(es_ref)
 model.solve(solver='gurobi', solve_kwargs={'tee': True},
-            cmdline_options={"mipgap": "0.1"})
+            cmdline_options={"mipgap": "0.01"})
 
     # %% Ergebnisse Energiesystem
 
@@ -423,7 +423,7 @@ df1 = pd.concat([data_wnw[['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
                            'TES Ein', 'WP']],
                  data_lt_wnw[['LT-WP zu', 'Solar', 'TES Aus']],
                  data_tes[['Speicherstand']],
-                 data_enw[['P_BHKW', 'P_GuD']]],
+                 data_enw[['P_BHKW', 'P_GuD', 'P_zu_WP', 'P_zu_LTWP']]],
                 axis=1)
 df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
            sep=";")
