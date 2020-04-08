@@ -458,9 +458,11 @@ def pp_Vorarbeit():
           + " t CO2")
 
     # %% Visualisierung
+    # Stacked area plot aller Technologien ohne LT-WP
     ax = zplt.area(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW')
 
+    # Scatter plot des BHKWs und der GuD-Anlage
     fig, ax = plt.subplots()
 
     zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='BHKW',
@@ -470,10 +472,22 @@ def pp_Vorarbeit():
     zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='GuD',
                  ylabel='Elektrische Leistung P in MW', y='P_GuD',
                  color=znescolors['red'], ax=ax)
-    ax.legend(['BHKW', 'GuD'])
+    ax.legend(labels=['BHKW', 'GuD'], loc='lower right')
 
-    # ax = zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='GuD',
-    #                   ylabel='El. Leistung P in MW', y='P_GuD')
+    # Scatter plot des BHKWs und der GuD-Anlage
+    fig, ax = plt.subplots()
+
+    zplt.scatter(data=wnw, xlabel='Zugführte el. Leistung P in MW',
+                 x='P_zu_WP',
+                 ylabel='Abgegebener Wärmestrom Q in MW', y='WP',
+                 color=znescolors['darkblue'], ax=ax)
+
+    zplt.scatter(data=wnw, xlabel='Zugführte el. Leistung P in MW',
+                 x='P_zu_LTWP',
+                 ylabel='Abgegebener Wärmestrom Q in MW', y='LT-WP ab',
+                 color=znescolors['red'], ax=ax)
+    ax.legend(labels=['District Heating WP', 'Low Temperature WP'],
+              loc='lower right')
 
     # Balkendiagramm Gesamtwärmemengen aller Technologien
     plt.figure()
