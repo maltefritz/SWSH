@@ -395,6 +395,18 @@ def pp_Vorarbeit():
     co2 = pd.read_csv('emissions2016.csv', sep=";", index_col=0,
                       parse_dates=True)
 
+    znescolors = {
+        'darkblue': '#00395B',
+        'red': '#B54036',
+        'lightblue': '#74ADC0',
+        'orange': '#EC6707',
+        'grey': '#BFBFBF',
+        'dimgrey': 'dimgrey',
+        'lightgrey': 'lightgrey',
+        'slategrey': 'slategrey',
+        'darkgrey': '#A9A9A9'
+    }
+
     Em_om = []
     Em_dm = []
 
@@ -448,11 +460,24 @@ def pp_Vorarbeit():
     # %% Visualisierung
 
     # Betriebspunkte BHKW & GuD
-    ax = plt.scatter(x=wnw['BHKW'], y=wnw['P_BHKW'])
-    # ax.grid(b=False, which='major', axis='x')
+    # ax = plt.scatter(x=wnw['BHKW'], y=wnw['P_BHKW'])
+    # # ax.grid(b=False, which='major', axis='x')
 
-    ax = plt.scatter(x=wnw['GuD'], y=wnw['P_GuD'])
-    # ax.grid(b=False, which='major', axis='x')
+    # ax = plt.scatter(x=wnw['GuD'], y=wnw['P_GuD'])
+    # # ax.grid(b=False, which='major', axis='x')
+
+    fig, ax = plt.subplots()
+
+    zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='BHKW',
+                 ylabel='El. Leistung P in MW', y='P_BHKW',
+                 color=znescolors['darkblue'], ax=ax)
+
+    zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='GuD',
+                 ylabel='El. Leistung P in MW', y='P_GuD',
+                 color=znescolors['red'], ax=ax)
+
+    # ax = zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='GuD',
+    #                   ylabel='El. Leistung P in MW', y='P_GuD')
 
     # Balkendiagramm Gesamtwärmemengen aller Technologien
     plt.figure()
