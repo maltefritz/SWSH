@@ -252,6 +252,27 @@ def surface_fit(x=None, y=None, z=None, scatter_data=None,
     return ax
 
 
+@shared.znes_style
+def area(data=None, xlabel='', ylabel='', linewidth=0, **kwargs):
+    """Create stacked area plot."""
+    # znes colors for data
+    colors = list(shared.znes_colors().values())[0:data.shape[0]]
+
+    # treat the case that colors are passed explicitly
+    if 'color' in kwargs:
+        colors = kwargs['color']
+        kwargs.pop('color', None)
+
+    # creat axes
+    ax = data.plot.area(color=colors, linewidth=linewidth, **kwargs)
+
+    # add axis labels
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    return ax
+
+
 if __name__ == '__main__':
 
     # Create sample data
