@@ -469,12 +469,13 @@ def pp_Vorarbeit():
     fig, ax = plt.subplots()
 
     zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='BHKW',
-                 ylabel='El. Leistung P in MW', y='P_BHKW',
+                 ylabel='Elektrische Leistung P in MW', y='P_BHKW',
                  color=znescolors['darkblue'], ax=ax)
 
     zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='GuD',
-                 ylabel='El. Leistung P in MW', y='P_GuD',
+                 ylabel='Elektrische Leistung P in MW', y='P_GuD',
                  color=znescolors['red'], ax=ax)
+    ax.legend(['BHKW', 'GuD'])
 
     # ax = zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='GuD',
     #                   ylabel='El. Leistung P in MW', y='P_GuD')
