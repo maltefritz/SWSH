@@ -25,7 +25,7 @@ import numpy as np
 # from invest import invest_st
 
 
-def invest_st(A, col_type=''):
+def invest_sol(A, col_type=''):
     """Pehnt et al. 2017, Markus [38].
 
     A:                Kollektorfläche der Solarthermie
@@ -64,7 +64,7 @@ param = pd.read_csv(filename, sep=";", index_col=['plant', 'parameter'])
 cop_lt = 4.9501
 A = param.loc[('Sol', 'A'), 'value']
 
-invest_solar = invest_st(A, col_type="flat")
+invest_solar = invest_sol(A, col_type="flat")
 
     # %% Zeitreihe
 

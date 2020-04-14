@@ -498,11 +498,10 @@ def pp_Vorarbeit():
 
     plt.figure()
     label = ['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']
-    ax = plt.pie(wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']].sum()
-                 / wnw['Bedarf'].sum(),
-                 labels=label,
-                 colors=shared.znes_colors(n=6),
-                 autopct='%.2f%%')
+    ax = zplt.pie(wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']].sum()
+                  / wnw['Bedarf'].sum(),
+                  labels=label,
+                  autopct='%.2f%%')
 
     # Jahresdauerlinien aller Technologien
     ax = zplt.line(data=dauerlinie[['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
