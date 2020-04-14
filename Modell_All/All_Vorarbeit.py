@@ -5,12 +5,16 @@ Created on Tue Jan  7 10:04:39 2020
 @author: Malte Fritz
 
 Komponenten:
-    - BHKW
     - Elektroheizkessel
     - Spitzenlastkessel
-    - TES
+    - BHKW
+    - GuD
+    - Wärmepumpe
     - Solarthermie
-Wärmebedarf von 1/20 von dem Wärmebedarf Flensburgs aus dem Jahr 2016
+    - TES
+    - LT-Wärmepumpe
+
+Wärmebedarf Flensburgs aus dem Jahr 2016
 
 """
 import os.path as path
@@ -71,9 +75,6 @@ date_time_index = pd.date_range('1/1/2016 00:00:00', periods=periods, freq='h')
     # %% Energiesystem erstellen
 
 es_ref = solph.EnergySystem(timeindex=date_time_index)
-
-
-# %% Randbedinungen
 
     # %% Wärmebedarf
 # rel_demand ist die Variable, die den Wärmebedarf der Region
