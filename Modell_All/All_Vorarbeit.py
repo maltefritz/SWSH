@@ -19,7 +19,6 @@ Wärmebedarf Flensburgs aus dem Jahr 2016
 """
 import os.path as path
 import oemof.solph as solph
-import oemof.tabular.facades as fc
 import oemof.outputlib as outputlib
 import pandas as pd
 import numpy as np
@@ -110,15 +109,18 @@ elec_source = solph.Source(
         variable_costs=(param.loc[('param', 'elec_consumer_charges'), 'value']
                         + data['el_spot_price']))})
 
-solar_source = solph.Source(
-    label='Solarthermie',
-    outputs={lt_wnw: solph.Flow(
-        variable_costs=(0.01 * invest_solar)/(A*data['solar_data'].sum()),
-        nominal_value=(max(data['solar_data'])*A),
-        actual_value=(data['solar_data'])/(max(data['solar_data'])),
-        fixed=True)})
+es_ref.add(gas_source, elec_source)
 
-es_ref.add(gas_source, elec_source, solar_source)
+if param.loc[('Sol', 'active'), 'value'] == 1:
+    solar_source = solph.Source(
+        label='Solarthermie',
+        outputs={lt_wnw: solph.Flow(
+            variable_costs=(0.01 * invest_solar)/(A*data['solar_data'].sum()),
+            nominal_value=(max(data['solar_data'])*A),
+            actual_value=(data['solar_data'])/(max(data['solar_data'])),
+            fixed=True)})
+
+    es_ref.add(solar_source)
 
     # %% Sinks
 
@@ -139,126 +141,132 @@ es_ref.add(elec_sink, heat_sink)
 
     # %% Transformer
 
-ehk = solph.Transformer(
-    label='Elektroheizkessel',
-    inputs={enw: solph.Flow()},
-    outputs={wnw: solph.Flow(
-        nominal_value=param.loc[('EHK', 'Q_N'), 'value'],
-        max=1,
-        min=0,
-        variable_costs=param.loc[('EHK', 'op_cost_var'), 'value'])},
-    conversion_factors={wnw: param.loc[('EHK', 'eta'), 'value']})
+if param.loc[('EHK', 'active'), 'value'] == 1:
+    ehk = solph.Transformer(
+        label='Elektroheizkessel',
+        inputs={enw: solph.Flow()},
+        outputs={wnw: solph.Flow(
+            nominal_value=param.loc[('EHK', 'Q_N'), 'value'],
+            max=1,
+            min=0,
+            variable_costs=param.loc[('EHK', 'op_cost_var'), 'value'])},
+        conversion_factors={wnw: param.loc[('EHK', 'eta'), 'value']})
 
-slk = solph.Transformer(
-    label='Spitzenlastkessel',
-    inputs={gnw: solph.Flow()},
-    outputs={wnw: solph.Flow(
-        nominal_value=param.loc[('SLK', 'Q_N'), 'value'],
-        max=1,
-        min=0,
-        variable_costs=(param.loc[('SLK', 'op_cost_var'), 'value']
-                        + param.loc[('param', 'energy_tax'), 'value']))},
-    conversion_factors={wnw: param.loc[('SLK', 'eta'), 'value']})
+    es_ref.add(ehk)
 
-bhkw = solph.components.GenericCHP(
-    label='BHKW',
-    fuel_input={gnw: solph.Flow(
-        H_L_FG_share_max=liste(param.loc[('BHKW', 'H_L_FG_share_max'), 'value']),
-        H_L_FG_share_min=liste(param.loc[('BHKW', 'H_L_FG_share_min'), 'value']),
-        nominal_value=param.loc[('BHKW', 'Q_in'), 'value'])},
-    electrical_output={enw: solph.Flow(
-        variable_costs=param.loc[('BHKW', 'op_cost_var'), 'value'],
-        P_max_woDH=liste(param.loc[('BHKW', 'P_max_woDH'), 'value']),
-        P_min_woDH=liste(param.loc[('BHKW', 'P_min_woDH'), 'value']),
-        Eta_el_max_woDH=liste(param.loc[('BHKW', 'Eta_el_max_woDH'), 'value']),
-        Eta_el_min_woDH=liste(param.loc[('BHKW', 'Eta_el_min_woDH'), 'value']))},
-    heat_output={wnw: solph.Flow(
-        Q_CW_min=liste(0))},
-    Beta=liste(0),
-    back_pressure=False)
+if param.loc[('SLK', 'active'), 'value'] == 1:
+    slk = solph.Transformer(
+        label='Spitzenlastkessel',
+        inputs={gnw: solph.Flow()},
+        outputs={wnw: solph.Flow(
+            nominal_value=param.loc[('SLK', 'Q_N'), 'value'],
+            max=1,
+            min=0,
+            variable_costs=(param.loc[('SLK', 'op_cost_var'), 'value']
+                            + param.loc[('param', 'energy_tax'), 'value']))},
+        conversion_factors={wnw: param.loc[('SLK', 'eta'), 'value']})
 
-gud = solph.components.GenericCHP(
-    label='GuD',
-    fuel_input={gnw: solph.Flow(
-        H_L_FG_share_max=liste(param.loc[('GuD', 'H_L_FG_share_max'), 'value']),
-        nominal_value=param.loc[('GuD', 'Q_in'), 'value'])},
-    electrical_output={enw: solph.Flow(
-        variable_costs=param.loc[('GuD', 'op_cost_var'), 'value'],
-        P_max_woDH=liste(param.loc[('GuD', 'P_max_woDH'), 'value']),
-        P_min_woDH=liste(param.loc[('GuD', 'P_min_woDH'), 'value']),
-        Eta_el_max_woDH=liste(param.loc[('GuD', 'Eta_el_max_woDH'), 'value']),
-        Eta_el_min_woDH=liste(param.loc[('GuD', 'Eta_el_min_woDH'), 'value']))},
-    heat_output={wnw: solph.Flow(
-        Q_CW_min=liste(param.loc[('GuD', 'Q_CW_min'), 'value']))},
-    Beta=liste(param.loc[('GuD', 'beta'), 'value']),
-    back_pressure=False)
+    es_ref.add(slk)
 
-hp = solph.components.OffsetTransformer(
-    label='Wärmepumpe',
-    inputs={enw: solph.Flow(
-        nominal_value=1,
-        max=data['P_max_hp'],
-        min=data['P_min_hp'],
-        variable_costs=param.loc[('HP', 'op_cost_var'), 'value'],
-        nonconvex=solph.NonConvex())},
-    outputs={wnw: solph.Flow(
-        )},
-    coefficients=[data['c_0_hp'], data['c_1_hp']])
+if param.loc[('BHKW', 'active'), 'value'] == 1:
+    bhkw = solph.components.GenericCHP(
+        label='BHKW',
+        fuel_input={gnw: solph.Flow(
+            H_L_FG_share_max=liste(param.loc[('BHKW', 'H_L_FG_share_max'), 'value']),
+            H_L_FG_share_min=liste(param.loc[('BHKW', 'H_L_FG_share_min'), 'value']),
+            nominal_value=param.loc[('BHKW', 'Q_in'), 'value'])},
+        electrical_output={enw: solph.Flow(
+            variable_costs=param.loc[('BHKW', 'op_cost_var'), 'value'],
+            P_max_woDH=liste(param.loc[('BHKW', 'P_max_woDH'), 'value']),
+            P_min_woDH=liste(param.loc[('BHKW', 'P_min_woDH'), 'value']),
+            Eta_el_max_woDH=liste(param.loc[('BHKW', 'Eta_el_max_woDH'), 'value']),
+            Eta_el_min_woDH=liste(param.loc[('BHKW', 'Eta_el_min_woDH'), 'value']))},
+        heat_output={wnw: solph.Flow(
+            Q_CW_min=liste(0))},
+        Beta=liste(0),
+        back_pressure=False)
 
-es_ref.add(ehk, slk, bhkw, gud, hp)
+    es_ref.add(bhkw)
+
+if param.loc[('GuD', 'active'), 'value'] == 1:
+    gud = solph.components.GenericCHP(
+        label='GuD',
+        fuel_input={gnw: solph.Flow(
+            H_L_FG_share_max=liste(param.loc[('GuD', 'H_L_FG_share_max'), 'value']),
+            nominal_value=param.loc[('GuD', 'Q_in'), 'value'])},
+        electrical_output={enw: solph.Flow(
+            variable_costs=param.loc[('GuD', 'op_cost_var'), 'value'],
+            P_max_woDH=liste(param.loc[('GuD', 'P_max_woDH'), 'value']),
+            P_min_woDH=liste(param.loc[('GuD', 'P_min_woDH'), 'value']),
+            Eta_el_max_woDH=liste(param.loc[('GuD', 'Eta_el_max_woDH'), 'value']),
+            Eta_el_min_woDH=liste(param.loc[('GuD', 'Eta_el_min_woDH'), 'value']))},
+        heat_output={wnw: solph.Flow(
+            Q_CW_min=liste(param.loc[('GuD', 'Q_CW_min'), 'value']))},
+        Beta=liste(param.loc[('GuD', 'beta'), 'value']),
+        back_pressure=False)
+
+    es_ref.add(gud)
+
+if param.loc[('HP', 'active'), 'value'] == 1:
+    hp = solph.components.OffsetTransformer(
+        label='Wärmepumpe',
+        inputs={enw: solph.Flow(
+            nominal_value=1,
+            max=data['P_max_hp'],
+            min=data['P_min_hp'],
+            variable_costs=param.loc[('HP', 'op_cost_var'), 'value'],
+            nonconvex=solph.NonConvex())},
+        outputs={wnw: solph.Flow(
+            )},
+        coefficients=[data['c_0_hp'], data['c_1_hp']])
+
+    es_ref.add(hp)
+
 
     # %% Speicher
 
 # Saisonaler Speicher
+if param.loc[('TES', 'active'), 'value'] == 1:
+    tes = solph.components.GenericStorage(
+        label='Wärmespeicher',
+        nominal_storage_capacity=param.loc[('TES', 'Q'), 'value'],
+        inputs={wnw: solph.Flow(
+            nominal_value=85,
+            max=1,
+            min=0.1,
+            variable_costs=param.loc[('TES', 'op_cost_var'), 'value'],
+            nonconvex=solph.NonConvex(
+                minimum_uptime=int(param.loc[('TES', 'min_uptime'), 'value']),
+                initial_status=int(param.loc[('TES', 'init_status'), 'value'])))},
+        outputs={lt_wnw: solph.Flow(
+            nominal_value=85,
+            max=1,
+            min=0.1,
+            nonconvex=solph.NonConvex(
+                minimum_uptime=int(param.loc[('TES', 'min_uptime'), 'value']),
+                initial_status=int(param.loc[('TES', 'init_status'), 'value'])))},
+        initial_storage_level=param.loc[('TES', 'init_storage'), 'value'],
+        inflow_conversion_factor=param.loc[('TES', 'inflow_conv'), 'value'],
+        outflow_conversion_factor=param.loc[('TES', 'outflow_conv'), 'value'])
 
-tes = solph.components.GenericStorage(
-    label='Wärmespeicher',
-    nominal_storage_capacity=param.loc[('TES', 'Q'), 'value'],
-    inputs={wnw: solph.Flow(
-        nominal_value=85,
-        max=1,
-        min=0.1,
-        variable_costs=param.loc[('TES', 'op_cost_var'), 'value'],
-        nonconvex=solph.NonConvex(
-            minimum_uptime=int(param.loc[('TES', 'min_uptime'), 'value']),
-            initial_status=int(param.loc[('TES', 'init_status'), 'value'])))},
-    outputs={lt_wnw: solph.Flow(
-        nominal_value=85,
-        max=1,
-        min=0.1,
-        nonconvex=solph.NonConvex(
-            minimum_uptime=int(param.loc[('TES', 'min_uptime'), 'value']),
-            initial_status=int(param.loc[('TES', 'init_status'), 'value'])))},
-    initial_storage_level=param.loc[('TES', 'init_storage'), 'value'],
-    inflow_conversion_factor=param.loc[('TES', 'inflow_conv'), 'value'],
-    outflow_conversion_factor=param.loc[('TES', 'outflow_conv'), 'value'])
+    es_ref.add(tes)
 
 # Low temperature heat pump
 
-# lthp = fc.HeatPump(
-#             label="LT-WP",
-#             carrier="electricity",
-#             carrier_cost=param.loc[('HP', 'op_cost_var'), 'value'],
-#             capacity=200,
-#             tech="hp",
-#             cop=cop_lt,
-#             electricity_bus=enw,
-#             high_temperature_bus=wnw,
-#             low_temperature_bus=lt_wnw)
+if param.loc[('LT-WP', 'active'), 'value'] == 1:
+    lthp = solph.Transformer(
+        label="LT-WP",
+        inputs={lt_wnw: solph.Flow(),
+                enw: solph.Flow(
+                    variable_costs=param.loc[('HP', 'op_cost_var'), 'value'])},
+        outputs={wnw: solph.Flow()},
+        conversion_factors={enw: 1/data['cop_lthp'],
+                            lt_wnw: (data['cop_lthp']-1)/data['cop_lthp']}
+        # conversion_factors={enw: 1/cop_lt,
+        #                     lt_wnw: (cop_lt-1)/cop_lt}
+        )
 
-lthp = solph.Transformer(
-    label="LT-WP",
-    inputs={lt_wnw: solph.Flow(),
-            enw: solph.Flow(
-                variable_costs=param.loc[('HP', 'op_cost_var'), 'value'])},
-    outputs={wnw: solph.Flow()},
-    conversion_factors={enw: 1/data['cop_lthp'],
-                        lt_wnw: (data['cop_lthp']-1)/data['cop_lthp']}
-    # conversion_factors={enw: 1/cop_lt,
-    #                     lt_wnw: (cop_lt-1)/cop_lt}
-    )
-
-es_ref.add(tes, lthp)
+    es_ref.add(lthp)
 
 # %% Processing
 
