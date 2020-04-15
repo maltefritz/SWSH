@@ -285,7 +285,9 @@ def pie(data=None, xlabel='', ylabel='', **kwargs):
         kwargs.pop('color', None)
 
     # creat axes
-    ax = data.plot.pie(colors=colors, **kwargs)
+    ax = data.plot.pie(colors=colors, pctdistance=0.8,
+                       counterclock=True, startangle=90,
+                       textprops=dict(color="w"), **kwargs)
 
     # add axis labels
     ax.set_xlabel(xlabel)
