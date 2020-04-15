@@ -496,12 +496,16 @@ def pp_Vorarbeit():
                   ylabel='Gesamtwärmemenge in MWh')
     ax.grid(b=False, which='major', axis='x')
 
-    plt.figure()
-    label = ['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']
-    ax = zplt.pie(wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']].sum()
-                  / wnw['Bedarf'].sum(),
-                  labels=label,
-                  autopct='%.2f%%')
+    fig, ax = plt.subplots()
+    label = ['GuD', 'BHKW', 'SLK', 'EHK', 'Solar', 'WP']
+    zplt.pie(wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'Solar', 'WP']].sum()
+             / wnw['Bedarf'].sum(),
+             autopct='%.2f %%',
+             ax=ax, labels=None)
+    # ax.set_title("Relativer Deckungsbeitrag des Gesamtwärmebedarfs")
+    ax.legend(labels=label)
+    size = fig.get_size_inches()
+    fig.set_size_inches(size[0], size[1]*1.4)
 
     # Jahresdauerlinien aller Technologien
     ax = zplt.line(data=dauerlinie[['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
