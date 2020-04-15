@@ -36,6 +36,7 @@ GuD;beta;-;0.171667949
 GuD;op_cost_var;€/MWh;4.5
 GuD;op_cost_fix;€/MW;30000
 GuD;inv_spez;€/MW;1000000
+BPT;active;-;1
 HP;active;-;1
 HP;Q_N;MW;75
 HP;op_cost_var;€/MWh;0.88
