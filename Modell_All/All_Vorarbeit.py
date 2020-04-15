@@ -207,6 +207,25 @@ if param.loc[('GuD', 'active'), 'value'] == 1:
 
     es_ref.add(gud)
 
+# if param.loc[('bpt', 'active'), 'value'] == 1:
+#     bpt = solph.components.GenericCHP(
+#         label='bpt',
+#         fuel_input={gnw: solph.Flow(
+#             H_L_FG_share_max=liste(param.loc[('bpt', 'H_L_FG_share_max'), 'value']),
+#             nominal_value=param.loc[('bpt', 'Q_in'), 'value'])},
+#         electrical_output={enw: solph.Flow(
+#             variable_costs=param.loc[('bpt', 'op_cost_var'), 'value'],
+#             P_max_woDH=liste(param.loc[('bpt', 'P_max_woDH'), 'value']),
+#             P_min_woDH=liste(param.loc[('bpt', 'P_min_woDH'), 'value']),
+#             Eta_el_max_woDH=liste(param.loc[('bpt', 'Eta_el_max_woDH'), 'value']),
+#             Eta_el_min_woDH=liste(param.loc[('bpt', 'Eta_el_min_woDH'), 'value']))},
+#         heat_output={wnw: solph.Flow(
+#             Q_CW_min=liste(0))},
+#         Beta=liste(0),
+#         back_pressure=True)
+
+#     es_ref.add(bpt)
+
 if param.loc[('HP', 'active'), 'value'] == 1:
     hp = solph.components.OffsetTransformer(
         label='Wärmepumpe',
