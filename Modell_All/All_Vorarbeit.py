@@ -320,6 +320,9 @@ results = solph.processing.results(model)
 es_ref.results['main'] = solph.processing.results(model)
 es_ref.results['meta'] = solph.processing.meta_results(model)
 
+invest_ges = 0
+cost_Anlagen = 0
+
 # Busses
 data_gnw = solph.views.node(results, 'Gasnetzwerk')['sequences']
 data_enw = solph.views.node(results, 'Elektrizitätsnetzwerk')['sequences']
@@ -329,49 +332,85 @@ data_lt_wnw = solph.views.node(results, 'LT-Wärmenetzwerk')['sequences']
 # Sources
 data_gas_source = solph.views.node(results, 'Gasquelle')['sequences']
 data_elec_source = solph.views.node(results, 'Stromquelle')['sequences']
-data_solar_source = solph.views.node(results, 'Solarthermie')['sequences']
+
+if param.loc[('Sol', 'active'), 'value'] == 1:
+    data_solar_source = solph.views.node(results, 'Solarthermie')['sequences']
+    invest_ges += invest_solar
+    cost_Anlagen += (data_solar_source[(('Solarthermie', 'LT-Wärmenetzwerk'), 'flow')].sum()
+                     * (0.01 * invest_solar)/(A*data['solar_data'].sum()))
 
 # Sinks
 data_elec_sink = solph.views.node(results, 'Spotmarkt')['sequences']
 data_heat_sink = solph.views.node(results, 'Wärmebedarf')['sequences']
 
 # Transformer
-data_ehk = solph.views.node(results, 'Elektroheizkessel')['sequences']
-data_slk = solph.views.node(results, 'Spitzenlastkessel')['sequences']
-data_bhkw = solph.views.node(results, 'BHKW')['sequences']
-data_gud = solph.views.node(results, 'GuD')['sequences']
-data_hp = solph.views.node(results, 'Wärmepumpe')['sequences']
-data_lt_hp = solph.views.node(results, 'LT-WP')['sequences']
+if param.loc[('EHK', 'active'), 'value'] == 1:
+    data_ehk = solph.views.node(results, 'Elektroheizkessel')['sequences']
+    invest_ges += (param.loc[('EHK', 'inv_spez'), 'value']
+                   * param.loc[('EHK', 'Q_N'), 'value'])
+    cost_Anlagen += (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
+                     * param.loc[('EHK', 'op_cost_var'), 'value']
+                     + (param.loc[('EHK', 'op_cost_fix'), 'value']
+                        * param.loc[('EHK', 'Q_N'), 'value']))
+
+if param.loc[('SLK', 'active'), 'value'] == 1:
+    data_slk = solph.views.node(results, 'Spitzenlastkessel')['sequences']
+    invest_ges += (param.loc[('SLK', 'inv_spez'), 'value']
+                   * param.loc[('SLK', 'Q_N'), 'value'])
+    cost_Anlagen += (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
+                     * (param.loc[('SLK', 'op_cost_var'), 'value']
+                     + param.loc[('param', 'energy_tax'), 'value'])
+                     + (param.loc[('SLK', 'op_cost_fix'), 'value']
+                        * param.loc[('SLK', 'Q_N'), 'value']))
+
+if param.loc[('BHKW', 'active'), 'value'] == 1:
+    data_bhkw = data_bhkw = solph.views.node(results, 'BHKW')['sequences']
+    invest_ges += (param.loc[('BHKW', 'P_max_woDH'), 'value']
+                   * param.loc[('BHKW', 'inv_spez'), 'value'])
+    cost_Anlagen += (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+                     * param.loc[('BHKW', 'op_cost_var'), 'value']
+                     + (param.loc[('BHKW', 'op_cost_fix'), 'value']
+                        * param.loc[('BHKW', 'P_max_woDH'), 'value']))
+
+if param.loc[('GuD', 'active'), 'value'] == 1:
+    data_gud = data_gud = solph.views.node(results, 'GuD')['sequences']
+    invest_ges += (param.loc[('GuD', 'P_max_woDH'), 'value']
+                   * param.loc[('GuD', 'inv_spez'), 'value'])
+    cost_Anlagen += (data_gud[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+                     * param.loc[('GuD', 'op_cost_var'), 'value']
+                     + (param.loc[('GuD', 'op_cost_fix'), 'value']
+                        * param.loc[('GuD', 'P_max_woDH'), 'value']))
+
+if param.loc[('HP', 'active'), 'value'] == 1:
+    data_hp = solph.views.node(results, 'Wärmepumpe')['sequences']
+    invest_ges += (param.loc[('HP', 'inv_spez'), 'value']
+                   * data['P_max_hp'].max())
+    cost_Anlagen += (data_hp[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')].sum()
+                     * param.loc[('HP', 'op_cost_var'), 'value']
+                     + (param.loc[('HP', 'op_cost_fix'), 'value']
+                        * data['P_max_hp'].max()))
+
+if param.loc[('LT-HP', 'active'), 'value'] == 1:
+    data_lt_hp = solph.views.node(results, 'LT-WP')['sequences']
+    invest_ges += (param.loc[('HP', 'inv_spez'), 'value']
+                   * data_wnw[(('LT-WP', 'Wärmenetzwerk'), 'flow')].max()
+                   / data['cop_lthp'].mean())
+    cost_Anlagen += (data_lt_hp[(('Elektrizitätsnetzwerk', 'LT-WP'), 'flow')].sum()
+                     * param.loc[('HP', 'op_cost_var'), 'value']
+                     + (param.loc[('HP', 'op_cost_fix'), 'value']
+                        * data_wnw[(('LT-WP', 'Wärmenetzwerk'), 'flow')].max()
+                        / data['cop_lthp'].mean()))
 
 # Speicher
-data_tes = solph.views.node(results, 'Wärmespeicher')['sequences']
+if param.loc[('TES', 'active'), 'value'] == 1:
+    data_tes = solph.views.node(results, 'Wärmespeicher')['sequences']
+    invest_ges += (param.loc[('TES', 'inv_spez'), 'value']
+                   * param.loc[('TES', 'Q'), 'value'])
+    cost_Anlagen += (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
+                     * param.loc[('TES', 'op_cost_var'), 'value']
+                     + (param.loc[('TES', 'op_cost_fix'), 'value']
+                        * param.loc[('TES', 'Q'), 'value']))
 
-
-    # %% Investionskosten
-
-invest_ehk = (param.loc[('EHK', 'inv_spez'), 'value']
-              * param.loc[('EHK', 'Q_N'), 'value'])
-
-invest_slk = (param.loc[('SLK', 'inv_spez'), 'value']
-              * param.loc[('SLK', 'Q_N'), 'value'])
-
-invest_bhkw = (param.loc[('BHKW', 'P_max_woDH'), 'value']
-               * param.loc[('BHKW', 'inv_spez'), 'value'])
-
-invest_gud = (param.loc[('GuD', 'P_max_woDH'), 'value']
-              * param.loc[('GuD', 'inv_spez'), 'value'])
-
-invest_hp = (param.loc[('HP', 'inv_spez'), 'value']
-             * data['P_max_hp'].max())
-
-invest_lt_hp = (param.loc[('HP', 'inv_spez'), 'value']
-                * data_wnw[(('LT-WP', 'Wärmenetzwerk'), 'flow')].max()/cop_lt)
-
-invest_tes = (param.loc[('TES', 'inv_spez'), 'value']
-              * param.loc[('TES', 'Q'), 'value'])
-
-invest_ges = (invest_solar + invest_ehk + invest_slk + invest_bhkw
-              + invest_gud + invest_hp + invest_lt_hp + invest_tes)
 
     # %% Zahlungsströme Ergebnis
 
@@ -379,52 +418,6 @@ objective = abs(es_ref.results['meta']['objective'])
 
 
     # %% Geldflüsse
-
-# Ausgaben
-
-# # Anlagenbettriebskosten
-cost_tes = (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
-            * param.loc[('TES', 'op_cost_var'), 'value']
-            + (param.loc[('TES', 'op_cost_fix'), 'value']
-               * param.loc[('TES', 'Q'), 'value']))
-
-cost_st = (data_solar_source[(('Solarthermie', 'LT-Wärmenetzwerk'), 'flow')].sum()
-           * (0.01 * invest_solar)/(A*data['solar_data'].sum()))
-
-cost_bhkw = (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-             * param.loc[('BHKW', 'op_cost_var'), 'value']
-             + (param.loc[('BHKW', 'op_cost_fix'), 'value']
-                * param.loc[('BHKW', 'P_max_woDH'), 'value']))
-
-cost_gud = (data_gud[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-            * param.loc[('GuD', 'op_cost_var'), 'value']
-            + (param.loc[('GuD', 'op_cost_fix'), 'value']
-               * param.loc[('GuD', 'P_max_woDH'), 'value']))
-
-cost_slk = (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
-            * (param.loc[('SLK', 'op_cost_var'), 'value']
-               + param.loc[('param', 'energy_tax'), 'value'])
-            + (param.loc[('SLK', 'op_cost_fix'), 'value']
-               * param.loc[('SLK', 'Q_N'), 'value']))
-
-cost_hp = (data_hp[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')].sum()
-           * param.loc[('HP', 'op_cost_var'), 'value']
-           + (param.loc[('HP', 'op_cost_fix'), 'value']
-              * data['P_max_hp'].max()))
-
-cost_lt_hp = (data_lt_hp[(('Elektrizitätsnetzwerk', 'LT-WP'), 'flow')].sum()
-              * param.loc[('HP', 'op_cost_var'), 'value']
-              + (param.loc[('HP', 'op_cost_fix'), 'value']
-                 * data_wnw[(('LT-WP', 'Wärmenetzwerk'), 'flow')].max()
-                 / cop_lt))
-
-cost_ehk = (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
-            * param.loc[('EHK', 'op_cost_var'), 'value']
-            + (param.loc[('EHK', 'op_cost_fix'), 'value']
-               * param.loc[('EHK', 'Q_N'), 'value']))
-
-cost_Anlagen = (cost_tes + cost_st + cost_bhkw + cost_gud
-                + cost_slk + cost_hp + cost_lt_hp + cost_ehk)
 
 # # Primärenergiebezugskoste
 cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
