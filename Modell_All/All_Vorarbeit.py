@@ -18,8 +18,8 @@ Wärmebedarf Flensburgs aus dem Jahr 2016
 
 """
 import os.path as path
+from sys import exit
 import oemof.solph as solph
-import oemof.outputlib as outputlib
 import pandas as pd
 import numpy as np
 # from invest import invest_st
@@ -85,6 +85,21 @@ heat_demand_local = heat_demand_FL * rel_heat_demand
 total_heat_demand = float(heat_demand_local.sum())
 
 # %% Energiesystem
+
+    # %% LT-WNW Plausibilität prüfen
+if (param.loc[('LT-WP', 'active'), 'value'] == 1
+    and param.loc[('Sol', 'active'), 'value'] == 0
+    and param.loc[('TES', 'active'), 'value'] == 0):
+    print("WARNING: You can't have the low temp heat pump active without ",
+          "using either the TES or solar heat.")
+    exit()
+elif (param.loc[('LT-WP', 'active'), 'value'] == 0
+      and param.loc[('Sol', 'active'), 'value'] == 1
+      or param.loc[('TES', 'active'), 'value'] == 1):
+    print("WARNING: You can't use TES or solar heat without using the low ",
+          "temp heat pump.")
+    exit()
+
 
     # %% Busses
 
@@ -207,24 +222,24 @@ if param.loc[('GuD', 'active'), 'value'] == 1:
 
     es_ref.add(gud)
 
-# if param.loc[('bpt', 'active'), 'value'] == 1:
-#     bpt = solph.components.GenericCHP(
-#         label='bpt',
-#         fuel_input={gnw: solph.Flow(
-#             H_L_FG_share_max=liste(param.loc[('bpt', 'H_L_FG_share_max'), 'value']),
-#             nominal_value=param.loc[('bpt', 'Q_in'), 'value'])},
-#         electrical_output={enw: solph.Flow(
-#             variable_costs=param.loc[('bpt', 'op_cost_var'), 'value'],
-#             P_max_woDH=liste(param.loc[('bpt', 'P_max_woDH'), 'value']),
-#             P_min_woDH=liste(param.loc[('bpt', 'P_min_woDH'), 'value']),
-#             Eta_el_max_woDH=liste(param.loc[('bpt', 'Eta_el_max_woDH'), 'value']),
-#             Eta_el_min_woDH=liste(param.loc[('bpt', 'Eta_el_min_woDH'), 'value']))},
-#         heat_output={wnw: solph.Flow(
-#             Q_CW_min=liste(0))},
-#         Beta=liste(0),
-#         back_pressure=True)
+if param.loc[('bpt', 'active'), 'value'] == 1:
+    bpt = solph.components.GenericCHP(
+        label='bpt',
+        fuel_input={gnw: solph.Flow(
+            H_L_FG_share_max=liste(param.loc[('bpt', 'H_L_FG_share_max'), 'value']),
+            nominal_value=param.loc[('bpt', 'Q_in'), 'value'])},
+        electrical_output={enw: solph.Flow(
+            variable_costs=param.loc[('bpt', 'op_cost_var'), 'value'],
+            P_max_woDH=liste(param.loc[('bpt', 'P_max_woDH'), 'value']),
+            P_min_woDH=liste(param.loc[('bpt', 'P_min_woDH'), 'value']),
+            Eta_el_max_woDH=liste(param.loc[('bpt', 'Eta_el_max_woDH'), 'value']),
+            Eta_el_min_woDH=liste(param.loc[('bpt', 'Eta_el_min_woDH'), 'value']))},
+        heat_output={wnw: solph.Flow(
+            Q_CW_min=liste(0))},
+        Beta=liste(0),
+        back_pressure=True)
 
-#     es_ref.add(bpt)
+    es_ref.add(bpt)
 
 if param.loc[('HP', 'active'), 'value'] == 1:
     hp = solph.components.OffsetTransformer(
@@ -299,37 +314,37 @@ model.solve(solver='gurobi', solve_kwargs={'tee': True},
     # %% Ergebnisse Energiesystem
 
 # Ergebnisse in results
-results = outputlib.processing.results(model)
+results = solph.processing.results(model)
 
 # Main- und Metaergebnisse
-es_ref.results['main'] = outputlib.processing.results(model)
-es_ref.results['meta'] = outputlib.processing.meta_results(model)
+es_ref.results['main'] = solph.processing.results(model)
+es_ref.results['meta'] = solph.processing.meta_results(model)
 
 # Busses
-data_gnw = outputlib.views.node(results, 'Gasnetzwerk')['sequences']
-data_enw = outputlib.views.node(results, 'Elektrizitätsnetzwerk')['sequences']
-data_wnw = outputlib.views.node(results, 'Wärmenetzwerk')['sequences']
-data_lt_wnw = outputlib.views.node(results, 'LT-Wärmenetzwerk')['sequences']
+data_gnw = solph.views.node(results, 'Gasnetzwerk')['sequences']
+data_enw = solph.views.node(results, 'Elektrizitätsnetzwerk')['sequences']
+data_wnw = solph.views.node(results, 'Wärmenetzwerk')['sequences']
+data_lt_wnw = solph.views.node(results, 'LT-Wärmenetzwerk')['sequences']
 
 # Sources
-data_gas_source = outputlib.views.node(results, 'Gasquelle')['sequences']
-data_elec_source = outputlib.views.node(results, 'Stromquelle')['sequences']
-data_solar_source = outputlib.views.node(results, 'Solarthermie')['sequences']
+data_gas_source = solph.views.node(results, 'Gasquelle')['sequences']
+data_elec_source = solph.views.node(results, 'Stromquelle')['sequences']
+data_solar_source = solph.views.node(results, 'Solarthermie')['sequences']
 
 # Sinks
-data_elec_sink = outputlib.views.node(results, 'Spotmarkt')['sequences']
-data_heat_sink = outputlib.views.node(results, 'Wärmebedarf')['sequences']
+data_elec_sink = solph.views.node(results, 'Spotmarkt')['sequences']
+data_heat_sink = solph.views.node(results, 'Wärmebedarf')['sequences']
 
 # Transformer
-data_ehk = outputlib.views.node(results, 'Elektroheizkessel')['sequences']
-data_slk = outputlib.views.node(results, 'Spitzenlastkessel')['sequences']
-data_bhkw = outputlib.views.node(results, 'BHKW')['sequences']
-data_gud = outputlib.views.node(results, 'GuD')['sequences']
-data_hp = outputlib.views.node(results, 'Wärmepumpe')['sequences']
-data_lt_hp = outputlib.views.node(results, 'LT-WP')['sequences']
+data_ehk = solph.views.node(results, 'Elektroheizkessel')['sequences']
+data_slk = solph.views.node(results, 'Spitzenlastkessel')['sequences']
+data_bhkw = solph.views.node(results, 'BHKW')['sequences']
+data_gud = solph.views.node(results, 'GuD')['sequences']
+data_hp = solph.views.node(results, 'Wärmepumpe')['sequences']
+data_lt_hp = solph.views.node(results, 'LT-WP')['sequences']
 
 # Speicher
-data_tes = outputlib.views.node(results, 'Wärmespeicher')['sequences']
+data_tes = solph.views.node(results, 'Wärmespeicher')['sequences']
 
 
     # %% Investionskosten
