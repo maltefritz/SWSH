@@ -94,8 +94,8 @@ if (param.loc[('LT-WP', 'active'), 'value'] == 1
           "using either the TES or solar heat.")
     exit()
 elif (param.loc[('LT-WP', 'active'), 'value'] == 0
-      and param.loc[('Sol', 'active'), 'value'] == 1
-      or param.loc[('TES', 'active'), 'value'] == 1):
+      and (param.loc[('Sol', 'active'), 'value'] == 1
+      or param.loc[('TES', 'active'), 'value'] == 1)):
     print("WARNING: You can't use TES or solar heat without using the low ",
           "temp heat pump.")
     exit()
@@ -197,7 +197,8 @@ if param.loc[('BHKW', 'active'), 'value'] == 1:
             Eta_el_max_woDH=liste(param.loc[('BHKW', 'Eta_el_max_woDH'), 'value']),
             Eta_el_min_woDH=liste(param.loc[('BHKW', 'Eta_el_min_woDH'), 'value']))},
         heat_output={wnw: solph.Flow(
-            Q_CW_min=liste(0))},
+            Q_CW_min=liste(0),
+            Q_CW_max=liste(0))},
         Beta=liste(0),
         back_pressure=False)
 
@@ -216,13 +217,14 @@ if param.loc[('GuD', 'active'), 'value'] == 1:
             Eta_el_max_woDH=liste(param.loc[('GuD', 'Eta_el_max_woDH'), 'value']),
             Eta_el_min_woDH=liste(param.loc[('GuD', 'Eta_el_min_woDH'), 'value']))},
         heat_output={wnw: solph.Flow(
-            Q_CW_min=liste(param.loc[('GuD', 'Q_CW_min'), 'value']))},
+            Q_CW_min=liste(param.loc[('GuD', 'Q_CW_min'), 'value']),
+            Q_CW_max=liste(0))},
         Beta=liste(param.loc[('GuD', 'beta'), 'value']),
         back_pressure=False)
 
     es_ref.add(gud)
 
-if param.loc[('bpt', 'active'), 'value'] == 1:
+if param.loc[('BPT', 'active'), 'value'] == 1:
     bpt = solph.components.GenericCHP(
         label='bpt',
         fuel_input={gnw: solph.Flow(
@@ -235,7 +237,8 @@ if param.loc[('bpt', 'active'), 'value'] == 1:
             Eta_el_max_woDH=liste(param.loc[('bpt', 'Eta_el_max_woDH'), 'value']),
             Eta_el_min_woDH=liste(param.loc[('bpt', 'Eta_el_min_woDH'), 'value']))},
         heat_output={wnw: solph.Flow(
-            Q_CW_min=liste(0))},
+            Q_CW_min=liste(0),
+            Q_CW_max=liste(0))},
         Beta=liste(0),
         back_pressure=True)
 
@@ -309,7 +312,7 @@ if param.loc[('LT-WP', 'active'), 'value'] == 1:
 # Was bedeutet tee?
 model = solph.Model(es_ref)
 model.solve(solver='gurobi', solve_kwargs={'tee': True},
-            cmdline_options={"mipgap": "0.01"})
+            cmdline_options={"mipgap": "0.10"})
 
     # %% Ergebnisse Energiesystem
 
@@ -322,6 +325,7 @@ es_ref.results['meta'] = solph.processing.meta_results(model)
 
 invest_ges = 0
 cost_Anlagen = 0
+labeldict = {}
 
 # Busses
 data_gnw = solph.views.node(results, 'Gasnetzwerk')['sequences']
@@ -338,6 +342,7 @@ if param.loc[('Sol', 'active'), 'value'] == 1:
     invest_ges += invest_solar
     cost_Anlagen += (data_solar_source[(('Solarthermie', 'LT-Wärmenetzwerk'), 'flow')].sum()
                      * (0.01 * invest_solar)/(A*data['solar_data'].sum()))
+    labeldict[(('Solarthermie', 'Wärmenetzwerk'), 'flow')] = 'Q_Sol'
 
 # Sinks
 data_elec_sink = solph.views.node(results, 'Spotmarkt')['sequences']
@@ -352,6 +357,8 @@ if param.loc[('EHK', 'active'), 'value'] == 1:
                      * param.loc[('EHK', 'op_cost_var'), 'value']
                      + (param.loc[('EHK', 'op_cost_fix'), 'value']
                         * param.loc[('EHK', 'Q_N'), 'value']))
+    labeldict[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')] = 'Q_EHK'
+    labeldict[(('Elektrizitätsnetzwerk', 'Elektroheizkessel'), 'flow')] = 'P_zu_EHK'
 
 if param.loc[('SLK', 'active'), 'value'] == 1:
     data_slk = solph.views.node(results, 'Spitzenlastkessel')['sequences']
@@ -362,6 +369,7 @@ if param.loc[('SLK', 'active'), 'value'] == 1:
                      + param.loc[('param', 'energy_tax'), 'value'])
                      + (param.loc[('SLK', 'op_cost_fix'), 'value']
                         * param.loc[('SLK', 'Q_N'), 'value']))
+    labeldict[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')] = 'Q_SLK'
 
 if param.loc[('BHKW', 'active'), 'value'] == 1:
     data_bhkw = data_bhkw = solph.views.node(results, 'BHKW')['sequences']
@@ -371,6 +379,8 @@ if param.loc[('BHKW', 'active'), 'value'] == 1:
                      * param.loc[('BHKW', 'op_cost_var'), 'value']
                      + (param.loc[('BHKW', 'op_cost_fix'), 'value']
                         * param.loc[('BHKW', 'P_max_woDH'), 'value']))
+    labeldict[(('BHKW', 'Wärmenetzwerk'), 'flow')] = 'Q_BHKW'
+    labeldict[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')] = 'P_BHKW'
 
 if param.loc[('GuD', 'active'), 'value'] == 1:
     data_gud = data_gud = solph.views.node(results, 'GuD')['sequences']
@@ -380,6 +390,8 @@ if param.loc[('GuD', 'active'), 'value'] == 1:
                      * param.loc[('GuD', 'op_cost_var'), 'value']
                      + (param.loc[('GuD', 'op_cost_fix'), 'value']
                         * param.loc[('GuD', 'P_max_woDH'), 'value']))
+    labeldict[(('GuD', 'Wärmenetzwerk'), 'flow')] = 'Q_GuD'
+    labeldict[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')] = 'P_GuD'
 
 if param.loc[('HP', 'active'), 'value'] == 1:
     data_hp = solph.views.node(results, 'Wärmepumpe')['sequences']
@@ -389,6 +401,8 @@ if param.loc[('HP', 'active'), 'value'] == 1:
                      * param.loc[('HP', 'op_cost_var'), 'value']
                      + (param.loc[('HP', 'op_cost_fix'), 'value']
                         * data['P_max_hp'].max()))
+    labeldict[(('Wärmepumpe', 'Wärmenetzwerk'), 'flow')] = 'Q_ab_HP'
+    labeldict[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')] = 'P_zu_HP'
 
 if param.loc[('LT-HP', 'active'), 'value'] == 1:
     data_lt_hp = solph.views.node(results, 'LT-WP')['sequences']
@@ -400,6 +414,9 @@ if param.loc[('LT-HP', 'active'), 'value'] == 1:
                      + (param.loc[('HP', 'op_cost_fix'), 'value']
                         * data_wnw[(('LT-WP', 'Wärmenetzwerk'), 'flow')].max()
                         / data['cop_lthp'].mean()))
+    labeldict[(('LT-WP', 'Wärmenetzwerk'), 'flow')] = 'Q_ab_LT-HP'
+    labeldict[(('Elektrizitätsnetzwerk', 'LT-WP'), 'flow')] = 'P_zu_LT-HP'
+    labeldict[(('LT-Wärmenetzwerk', 'LT-WP'), 'flow')] = 'Q_zu_LT-HP'
 
 # Speicher
 if param.loc[('TES', 'active'), 'value'] == 1:
@@ -410,6 +427,10 @@ if param.loc[('TES', 'active'), 'value'] == 1:
                      * param.loc[('TES', 'op_cost_var'), 'value']
                      + (param.loc[('TES', 'op_cost_fix'), 'value']
                         * param.loc[('TES', 'Q'), 'value']))
+    labeldict[(('TES', 'LT-Wärmenetzwerk'), 'flow')] = 'Q_ab_TES'
+    labeldict[(('TES', 'LT-Wärmenetzwerk'), 'status')] = 'Status_ab_TES'
+    labeldict[(('Wärmenetzwerk', 'TES'), 'flow')] = 'Q_zu_TES'
+    labeldict[(('Wärmenetzwerk', 'TES'), 'status')] = 'Status_zu_TES'
 
 
     # %% Zahlungsströme Ergebnis
@@ -446,38 +467,38 @@ Gesamtbetrag = (revenues_spotmarkt + revenues_heatdemand
 
     # %% Output Ergebnisse
 
-# Daten zum Plotten der Wärmeversorgung
-data_wnw.columns = ['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
-                    'TES Ein', 'Status TES Ein', 'WP']
-data_lt_wnw.columns = ['LT-WP zu', 'Solar', 'TES Aus', 'Status TES Aus']
-data_tes.columns = ['TES Ein', 'Status TES Ein', 'TES Aus', 'Status TES Aus',
-                    'Speicherstand']
-data_enw.columns = ['P_BHKW', 'P_zu_EHK', 'P_zu_LTWP', 'P_ab_ges', 'P_zu_WP',
-                    'P_GuD', 'P_zu_ges']
+# # Daten zum Plotten der Wärmeversorgung
+# data_wnw.columns = ['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
+#                     'TES Ein', 'Status TES Ein', 'WP']
+for col in data_wnw.columns:
+    if col in labeldict.keys:
+        data_wnw.rename({col: labeldict[col]})
 
-df1 = pd.concat([data_wnw[['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
-                           'TES Ein', 'WP']],
-                 data_lt_wnw[['LT-WP zu', 'Solar', 'TES Aus']],
-                 data_tes[['Speicherstand']],
-                 data_enw[['P_BHKW', 'P_GuD', 'P_zu_WP', 'P_zu_LTWP']]],
-                axis=1)
-df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
-           sep=";")
+# data_lt_wnw.columns = ['LT-WP zu', 'Solar', 'TES Aus', 'Status TES Aus']
+# data_tes.columns = ['TES Ein', 'Status TES Ein', 'TES Aus', 'Status TES Aus',
+#                     'Speicherstand']
+# data_enw.columns = ['P_BHKW', 'P_zu_EHK', 'P_zu_LTWP', 'P_ab_ges', 'P_zu_WP',
+#                     'P_GuD', 'P_zu_ges']
 
-# Daten zum Plotten der Investitionsrechnung
-d2 = {'invest_ges': [invest_ges], 'invest_solar': [invest_solar],
-      'invest_ehk': [invest_ehk], 'invest_slk': [invest_slk],
-      'invest_bhkw': [invest_bhkw], 'invest_gud': [invest_gud],
-      'invest_hp': [invest_hp], 'invest_tes': [invest_tes],
-      'Q_tes': [param.loc[('TES', 'Q'), 'value']],
-      'total_heat_demand': [total_heat_demand], 'Gesamtbetrag': [Gesamtbetrag]}
-df2 = pd.DataFrame(data=d2)
-df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
-           sep=";")
+# df1 = pd.concat([data_wnw[['BHKW', 'EHK', 'GuD', 'LT-WP ab', 'SLK', 'Bedarf',
+#                            'TES Ein', 'WP']],
+#                  data_lt_wnw[['LT-WP zu', 'Solar', 'TES Aus']],
+#                  data_tes[['Speicherstand']],
+#                  data_enw[['P_BHKW', 'P_GuD', 'P_zu_WP', 'P_zu_LTWP']]],
+#                 axis=1)
+# df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
+#            sep=";")
 
-# Daten für die ökologische Bewertung
-df3 = pd.concat([data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')],
-                 data_enw[['P_ab_ges', 'P_zu_ges']]],
-                axis=1)
-df3.columns = ['Gas_in', 'P_out', 'P_in']
-df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")
+# # Daten zum Plotten der Investitionsrechnung
+# d2 = {'invest_ges': [invest_ges], 'Q_tes': [param.loc[('TES', 'Q'), 'value']],
+#       'total_heat_demand': [total_heat_demand], 'Gesamtbetrag': [Gesamtbetrag]}
+# df2 = pd.DataFrame(data=d2)
+# df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
+#            sep=";")
+
+# # Daten für die ökologische Bewertung
+# df3 = pd.concat([data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')],
+#                  data_enw[['P_ab_ges', 'P_zu_ges']]],
+#                 axis=1)
+# df3.columns = ['Gas_in', 'P_out', 'P_in']
+# df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")
