@@ -236,7 +236,6 @@ df = pd.DataFrame(columns=Q_range/Q_N)
 
 for T in T_range:
     cd_cons.set_attr(T=T)
-    cb_dhp.set_attr(T=((1/360) * (T**2) + (1/12) * T + 30))
     cop_carnot = []
     guetegrad = []
     P_list = []
