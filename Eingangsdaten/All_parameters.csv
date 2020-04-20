@@ -42,7 +42,7 @@ HP;Q_N;MW;75
 HP;op_cost_var;€/MWh;0.88
 HP;op_cost_fix;€/MW;881
 HP;inv_spez;€/MW;220350
-LT-WP;active;-;1
+LT-HP;active;-;1
 Sol;active;-;1
 Sol;A;m2;107434
 TES;active;-;1
