@@ -7,7 +7,6 @@ Created on Thu Jan 16 14:23:17 2020
 import os.path as path
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 from invest import npv, LCOH, invest_stes
 from znes_plotting import plot as zplt
 from znes_plotting import shared
@@ -459,17 +458,18 @@ def pp_Vorarbeit():
 
     # %% Visualisierung
     # Stacked area plot aller Technologien ohne LT-WP
-    ax = zplt.area(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'Solar']],
+    ax = zplt.area(data=wnw[['Q_GuD', 'Q_BHKW', 'Q_SLK', 'Q_EHK', 'Q_ab_HP',
+                             'Q_Sol']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW')
 
     # Scatter plot des BHKWs und der GuD-Anlage
     fig, ax = plt.subplots()
 
-    zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='BHKW',
+    zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='Q_BHKW',
                  ylabel='Elektrische Leistung P in MW', y='P_BHKW',
                  color=znescolors['darkblue'], ax=ax)
 
-    zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='GuD',
+    zplt.scatter(data=wnw, xlabel='Wärmestrom Q in MW', x='Q_GuD',
                  ylabel='Elektrische Leistung P in MW', y='P_GuD',
                  color=znescolors['red'], ax=ax)
     ax.legend(labels=['BHKW', 'GuD'], loc='lower right')
@@ -478,28 +478,36 @@ def pp_Vorarbeit():
     fig, ax = plt.subplots()
 
     zplt.scatter(data=wnw, xlabel='Zugführte el. Leistung P in MW',
-                 x='P_zu_WP',
-                 ylabel='Abgegebener Wärmestrom Q in MW', y='WP',
+                 x='P_zu_HP',
+                 ylabel='Abgegebener Wärmestrom Q in MW', y='Q_ab_HP',
                  color=znescolors['darkblue'], ax=ax)
 
     zplt.scatter(data=wnw, xlabel='Zugführte el. Leistung P in MW',
-                 x='P_zu_LTWP',
-                 ylabel='Abgegebener Wärmestrom Q in MW', y='LT-WP ab',
+                 x='P_zu_LT-HP',
+                 ylabel='Abgegebener Wärmestrom Q in MW', y='Q_ab_LT-HP',
                  color=znescolors['red'], ax=ax)
     ax.legend(labels=['District Heating WP', 'Low Temperature WP'],
               loc='lower right')
 
     # Balkendiagramm Gesamtwärmemengen aller Technologien
-    plt.figure()
-    ax = zplt.bar(data=wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'WP', 'LT-WP ab',
-                            'LT-WP zu', 'Solar']].sum(),
+    fig, ax = plt.subplots()
+    ax = zplt.bar(data=wnw[['Q_GuD', 'Q_BHKW', 'Q_SLK', 'Q_EHK', 'Q_ab_HP',
+                            'Q_ab_LT-HP', 'Q_zu_LT-HP', 'Q_Sol']].sum(),
                   ylabel='Gesamtwärmemenge in MWh')
     ax.grid(b=False, which='major', axis='x')
+    xlabels = ax.get_xticklabels()
+    ax.set_xticklabels(xlabels, rotation=30)
+    # ax.legend(labels=['GuD', 'BHKW', 'SLK', 'EHK', 'HP ab', 'LT-HP ab',
+    #                   'LT-HP zu', 'Solar'])
+    # size = fig.get_size_inches()
+    # fig.set_size_inches(size[0]*1.3, size[1]*1.2)
 
+    # Piechart der Gesamtwärmemengen
     fig, ax = plt.subplots()
-    label = ['GuD', 'BHKW', 'SLK', 'EHK', 'Solar', 'WP']
-    zplt.pie(wnw[['GuD', 'BHKW', 'SLK', 'EHK', 'Solar', 'WP']].sum()
-             / wnw['Bedarf'].sum(),
+    label = ['GuD', 'BHKW', 'SLK', 'EHK', 'Solar', 'HP']
+    zplt.pie(wnw[['Q_GuD', 'Q_BHKW', 'Q_SLK', 'Q_EHK', 'Q_Sol',
+                  'Q_ab_HP']].sum()
+             / wnw['Q_demand'].sum(),
              autopct='%.2f %%',
              ax=ax, labels=None)
     # ax.set_title("Relativer Deckungsbeitrag des Gesamtwärmebedarfs")
@@ -508,21 +516,21 @@ def pp_Vorarbeit():
     fig.set_size_inches(size[0], size[1]*1.4)
 
     # Jahresdauerlinien aller Technologien
-    ax = zplt.line(data=dauerlinie[['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
-                                    'LT-WP ab', 'Solar']],
+    ax = zplt.line(data=dauerlinie[['Q_GuD', 'Q_BHKW', 'Q_SLK', 'Q_EHK',
+                                    'Q_ab_HP', 'Q_ab_LT-HP', 'Q_Sol']],
                    xlabel='Stunden', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     # Jahresdauerlinien aller Technologien ohne LT-HP
-    ax = zplt.line(data=dauerlinie[['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
-                                    'Solar']],
+    ax = zplt.line(data=dauerlinie[['Q_GuD', 'Q_BHKW', 'Q_SLK', 'Q_EHK',
+                                    'Q_ab_HP', 'Q_Sol']],
                    xlabel='Stunden', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
     # Jahresdauerlinie des TES
-    ax = zplt.line(data=dauerlinie[['TES Ein', 'TES Aus']],
+    ax = zplt.line(data=dauerlinie[['Q_zu_TES', 'Q_ab_TES']],
                    xlabel='Stunden', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
@@ -533,42 +541,42 @@ def pp_Vorarbeit():
     # ax.grid(b=False, which='minor', axis='x')
 
     # Jahresverlauf aller Technologien einzeln
-    ax = zplt.line(data=wnw[['BHKW', 'Bedarf']],
+    ax = zplt.line(data=wnw[['Q_BHKW', 'Q_demand']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['EHK', 'Bedarf']],
+    ax = zplt.line(data=wnw[['Q_EHK', 'Q_demand']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['GuD', 'Bedarf']],
+    ax = zplt.line(data=wnw[['Q_GuD', 'Q_demand']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['SLK', 'Bedarf']],
+    ax = zplt.line(data=wnw[['Q_SLK', 'Q_demand']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['WP', 'Bedarf']],
+    ax = zplt.line(data=wnw[['Q_ab_HP', 'Q_demand']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['LT-WP ab', 'Bedarf']],
+    ax = zplt.line(data=wnw[['Q_ab_LT-HP', 'Q_demand']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['Solar', 'Bedarf']],
+    ax = zplt.line(data=wnw[['Q_Sol', 'Q_demand']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
 
-    ax = zplt.line(data=wnw[['TES Ein', 'TES Aus', 'Bedarf']],
+    ax = zplt.line(data=wnw[['Q_zu_TES', 'Q_ab_TES', 'Q_demand']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
     ax.grid(b=False, which='minor', axis='x')
@@ -590,17 +598,17 @@ def pp_Vorarbeit():
     # 7-Tage Plots
     idx = pd.date_range('2016-04-04 00:00:00', '2016-04-10 0:00:00', freq='h')
 
-    ax = zplt.area(data=wnw.loc[idx, ['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
-                                      'Solar']],
+    ax = zplt.area(data=wnw.loc[idx, ['Q_GuD', 'Q_BHKW', 'Q_SLK', 'Q_EHK',
+                                      'Q_ab_HP', 'Q_Sol']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW')
     ax.legend(loc='upper right')
 
-    ax = zplt.line(data=wnw.loc[idx, ['GuD', 'BHKW', 'SLK', 'EHK', 'WP',
-                                      'LT-WP ab', 'Bedarf']],
+    ax = zplt.line(data=wnw.loc[idx, ['Q_GuD', 'Q_BHKW', 'Q_SLK', 'Q_EHK',
+                                      'Q_ab_HP', 'Q_ab_LT-HP', 'Q_demand']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
 
-    ax = zplt.line(data=wnw.loc[idx, ['TES Ein', 'TES Aus', 'Bedarf']],
+    ax = zplt.line(data=wnw.loc[idx, ['Q_zu_TES', 'Q_ab_TES', 'Q_demand']],
                    xlabel='Datum', ylabel='Wärmeleistung in MW',
                    drawstyle='steps-mid')
 
@@ -608,7 +616,7 @@ def pp_Vorarbeit():
                    ylabel='Speicherstand in MWh', drawstyle='steps-mid')
     ax.get_legend().remove()
 
-    ax = zplt.line(data=wnw.loc[idx, ['Solar', 'Bedarf']], xlabel='Datum',
+    ax = zplt.line(data=wnw.loc[idx, ['Q_Sol', 'Q_demand']], xlabel='Datum',
                    ylabel='Wärmeleistung in MW', drawstyle='steps-mid')
 
     filename = path.join(dirpath, 'Vor_plots.pdf')
@@ -630,7 +638,8 @@ def run_all():
     pp_Sol()
     print('####################')
 
+
 dirpath = path.abspath(
         path.join(__file__, "../..", "Ergebnisse\\Vorarbeit"))
 wnw = pd.read_csv(path.join(dirpath, 'Vor_wnw.csv'),
-                      sep=";", index_col=0, parse_dates=True)
+                  sep=";", index_col=0, parse_dates=True)
