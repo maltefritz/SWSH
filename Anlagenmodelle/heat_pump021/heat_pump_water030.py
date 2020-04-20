@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
+"""TESPy compression heat pump model for district heating.
+
 Created on Thu Jan  9 10:07:02 2020
 
-@author: Malte Fritz
+@author: Malte Fritz and Jonas Freißmann
 """
+import os.path as path
 
 from tespy.networks import network
 from tespy.components import (sink, source, splitter, compressor, condenser,
@@ -17,17 +18,21 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from time import time
+
 Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: '))) * -1e6
-# T_amb = 9.1876779
-T_amb = 15
-T_DH_vl = 85
-T_DH_rl = 60
-T_amb_out = T_amb - 10
+# T_amb and T_amb_out kommen von der Drammen District Heating Wärmepumpe aus
+# Norwegen. T_amb ist die Außentemperatur in einem Fluß und T_amb_out die
+# Differenz vom Austritt zum Eintritt
+T_amb = 8
+T_DH_vl = 95
+T_DH_rl = 55
+T_amb_out = T_amb - 4
 
 # %% network
 
-nw = network(fluids=['water', 'NH3', 'air'],
-                 T_unit='C', p_unit='bar', h_unit='kJ / kg', m_unit='kg / s')
+nw = network(fluids=['water', 'NH3', 'air'], T_unit='C', p_unit='bar',
+             h_unit='kJ / kg', m_unit='kg / s')
 
 # %% components
 
@@ -41,7 +46,7 @@ amb_out2 = sink('sink ambient 2')
 
 # ambient air system
 sp = splitter('splitter')
-fan = compressor('fan')
+pu = pump('pump')
 
 # consumer system
 
@@ -92,13 +97,13 @@ dr_su = connection(dr, 'out2', su, 'in2')
 
 nw.add_conns(ves_dr, dr_erp, erp_ev, ev_dr, dr_su)
 
-amb_fan = connection(amb, 'out1', fan, 'in1')
-fan_sp = connection(fan, 'out1', sp, 'in1')
+amb_pu = connection(amb, 'out1', pu, 'in1')
+pu_sp = connection(pu, 'out1', sp, 'in1')
 sp_su = connection(sp, 'out1', su, 'in1')
 su_ev = connection(su, 'out1', ev, 'in1')
 ev_amb_out = connection(ev, 'out1', amb_out1, 'in1')
 
-nw.add_conns(amb_fan, fan_sp, sp_su, su_ev, ev_amb_out)
+nw.add_conns(amb_pu, pu_sp, sp_su, su_ev, ev_amb_out)
 
 # connection evaporator system - compressor system
 
@@ -137,7 +142,7 @@ mot5 = char_line(x=x, y=y)
 
 power = bus('total compressor power')
 power.add_comps({'c': cp1, 'char': mot1}, {'c': cp2, 'char': mot2},
-                {'c': fan, 'char': mot3}, {'c': dhp, 'char': mot4},
+                {'c': pu, 'char': mot3}, {'c': dhp, 'char': mot4},
                 {'c': erp, 'char': mot5})
 heat = bus('total delivered heat')
 heat.add_comps({'c': cd})
@@ -153,27 +158,27 @@ cd.set_attr(pr1=0.99, pr2=0.99, ttd_u=5, design=['pr2', 'ttd_u'],
 dhp.set_attr(eta_s=0.8, design=['eta_s'], offdesign=['eta_s_char'])
 cons.set_attr(pr=0.99, design=['pr'], offdesign=['zeta'])
 
-# air fan
+# water pump
 
-fan.set_attr(eta_s=0.65, design=['eta_s'], offdesign=['eta_s_char'])
+pu.set_attr(eta_s=0.75, design=['eta_s'], offdesign=['eta_s_char'])
 
 # evaporator system
 
 kA_char1 = ldc('heat exchanger', 'kA_char1', 'DEFAULT', char_line)
 kA_char2 = ldc('heat exchanger', 'kA_char2', 'EVAPORATING FLUID', char_line)
 
-ev.set_attr(pr1=0.999, pr2=0.99, ttd_l=5,
+ev.set_attr(pr1=0.98, pr2=0.99, ttd_l=5,
             kA_char1=kA_char1, kA_char2=kA_char2,
             design=['pr1', 'ttd_l'], offdesign=['zeta1', 'kA'])
-su.set_attr(pr1=0.999, pr2=0.99, ttd_u=2, design=['pr1', 'pr2', 'ttd_u'],
+su.set_attr(pr1=0.98, pr2=0.99, ttd_u=2, design=['pr1', 'pr2', 'ttd_u'],
             offdesign=['zeta1', 'zeta2', 'kA'])
 erp.set_attr(eta_s=0.8, design=['eta_s'], offdesign=['eta_s_char'])
 
 # compressor system
 
-cp1.set_attr(eta_s=0.85, design=['eta_s'], offdesign=['eta_s_char'])
+cp1.set_attr(eta_s=0.9, design=['eta_s'], offdesign=['eta_s_char'])
 cp2.set_attr(eta_s=0.9, pr=3, design=['eta_s'], offdesign=['eta_s_char'])
-ic.set_attr(pr1=0.99, pr2=0.999, design=['pr1', 'pr2'],
+ic.set_attr(pr1=0.99, pr2=0.98, design=['pr1', 'pr2'],
             offdesign=['zeta1', 'zeta2', 'kA'])
 
 # %% connection parametrization
@@ -192,16 +197,16 @@ su_cp1.set_attr(p0=5, h0=1700)
 
 # evaporator system hot side
 
-# fan blows at constant rate
-amb_fan.set_attr(T=T_amb, p=1, fluid={'air': 1, 'NH3': 0, 'water': 0},
-                 offdesign=['v'])
+# pumping at constant rate in partload
+amb_pu.set_attr(T=T_amb, p=1, fluid={'air': 0, 'NH3': 0, 'water': 1},
+                offdesign=['v'])
 sp_su.set_attr(offdesign=['v'])
 ev_amb_out.set_attr(p=1, T=T_amb_out, design=['T'])
 
 # compressor-system
 
 he_cp2.set_attr(Td_bp=5, p0=20, design=['Td_bp'])
-ic_out.set_attr(T=30, design=['T'])
+ic_out.set_attr(T=10, design=['T'])
 
 # %% key paramter
 
@@ -211,102 +216,111 @@ heat.set_attr(P=Q_N)
 
 nw.solve('design')
 nw.print_results()
-nw.save('hp_air')
+nw.save('hp_water')
 
-nw.solve('offdesign', design_path='hp_air')
+cp1.eta_s_char.func.extrapolate = True
+cp2.eta_s_char.func.extrapolate = True
 
-Q_range = np.linspace(0.3, 1.0, 8)[::-1] * Q_N
-df = pd.DataFrame(columns=Q_range/Q_N)
-cop_carnot = []
-guetegrad = []
+nw.solve('offdesign', design_path='hp_water')
+nw.set_attr(iterinfo=False)
 
-heat.set_attr(P=np.nan)
+T_db = []
+P_max = []
+P_min = []
+c_1 = []
+c_0 = []
 
-for Q in Q_range:
-    heat.set_attr(P=Q)
-    nw.solve('offdesign', design_path='hp_air')
-    print('Load: ' + '%.1f' % (Q/Q_N))
-    print('Power input: ' + '%.0f' % power.P.val + ' W')
-    print('Heat output: ' + '%.0f' % heat.P.val + ' W')
-    print('COP: ' + '%.2f' % abs(heat.P.val / power.P.val))
+m_design = he_cp2.m.val
 
-    if nw.lin_dep:
-        guetegrad += [np.nan]
-        print('Warning: Network is linear dependent')
+T_range = range(76, 121)
+m_range = np.linspace(0.45, 1.0, 8)[::-1] * m_design
+# df = pd.DataFrame(columns=m_range/m_design)
 
-    else:
-        cop = abs(heat.P.val) / power.P.val
+for T in T_range:
+    cd_cons.set_attr(T=T)
+    cop_carnot = []
+    guetegrad = []
+    P_list = []
+    Q_range = []
 
-        T_ln_sink = (T_DH_vl - T_DH_rl) / np.log((273.15 + T_DH_vl)
-                                                 / (273.15 + T_DH_rl))
-        T_ln_source = (T_amb - T_amb_out) / np.log((273.15 + T_amb)
-                                                   / (273.15 + T_amb_out))
-        cop_car = T_ln_sink / (T_ln_sink - T_ln_source)
-        cop_carnot += [cop_car]
-        guetegrad += [cop / cop_car]
+    heat.set_attr(P=np.nan)
+    tmp = time()
 
-df.loc[0, :] = guetegrad
+    for m in m_range:
+        he_cp2.set_attr(m=m)
+        if m == m_range[0]:
+            if T == T_range[0]:
+                nw.solve('offdesign', design_path='hp_water', init_path='hp_water')
+            else:
+                nw.solve('offdesign', design_path='hp_water', init_path='hp_water_init')
+            nw.save_connections('hp_water_init/connections.csv')
+        else:
+            nw.solve('offdesign', design_path='hp_water')
 
+        if nw.lin_dep:
+            guetegrad += [np.nan]
+            print('Warning: Network is linear dependent')
 
-# %% Plotting
-colors = ['#00395b', '#74adc1', '#b54036', '#ec6707', '#bfbfbf', '#999999',
-          '#010101', '#00395b', '#74adc1', '#b54036', '#ec6707']
+        else:
+            cop = abs(heat.P.val) / power.P.val
+            P_list += [power.P.val]
 
-fig, ax = plt.subplots()
+            Q_source = abs(ev.Q.val + su.Q.val)
+            SQ_source = abs(ev.SQ2.val + su.SQ2.val)
 
+            Q_sink = abs(cd.Q.val)
+            SQ_sink = abs(cd.SQ1.val)
 
-plt.plot(df.loc[0], '-x', Color=colors[0], markersize=7, linewidth=2)
+            Q_range += [heat.P.val]
 
-ax.set_ylabel('Gütegrad')
-ax.set_xlabel('Teillast')
-ax.grid(linestyle='--')
-plt.title('Gütegrad Luft-Wärmepumpe')
+            T_m_sink = Q_sink / SQ_sink
+            T_m_source = Q_source / SQ_source
 
-# plt.ylim([0.2, 0.4])
-# plt.xlim([0.3, 1.2])
+            T_ln_sink = (T_DH_vl - T_DH_rl) / np.log((273.15 + T_DH_vl)
+                                                     / (273.15 + T_DH_rl))
+            T_ln_source = (T_amb - T_amb_out) / np.log((273.15 + T_amb)
+                                                       / (273.15 + T_amb_out))
 
-plt.show()
+            cop_car = T_m_sink / (T_m_sink - T_m_source)
+            cop_carnot += [cop_car]
 
+            guetegrad += [cop / cop_car]
 
-# %% Paramater für Solph
+    T_db += [T]
+    P_max += [abs(max(P_list))/1e6]
+    P_min += [abs(min(P_list))/1e6]
+    c_1 += [abs((Q_range[0] - Q_range[-1])/1e6)/(P_max[-1] - P_min[-1])]
+    c_0 += [abs(Q_range[0]/1e6) - c_1[-1] * P_max[-1]]
 
-# Rechnung für c_0, c_1 und P_in nach solph
-# Q und P sind in MW angegeben
-gd_max = max(df)
-gd_min = min(df)
-cop_carnot_min = min(cop_carnot)
-cop_carnot_max = max(cop_carnot)
-COP_max = gd_max * cop_carnot_min
-COP_min = gd_min * cop_carnot_max
-Q_out_max = min(Q_range)/1e6                # Mathematisch richtig, weil
-Q_out_min = max(Q_range)/1e6                # Q_range negativ ist
-s_max = (Q_out_max*1e6)/Q_N
-s_min = Q_out_min/Q_out_max
-P_in_max = abs(Q_out_max/COP_max)
-P_in_min = abs(Q_out_min/COP_min)
-c_1 = abs((Q_out_max - Q_out_min))/(P_in_max - P_in_min)
-c_0 = abs(Q_out_max )- c_1 * P_in_max
+    # df.loc[0, :] = guetegrad
+    solph_komp = {'T_DH_VL / C': T_db, 'P_max / MW': P_max,
+                  'P_min / MW': P_min, 'c_1': c_1, 'c_0': c_0}
+    # print(solph_komp)
+    df3 = pd.DataFrame(solph_komp)
+    # print(time() - tmp)
+    tmp = time()
 
-# %% Ausdruck Ergebnisse Solph
+    # %% Plotting
+    colors = ['#00395b', '#74adc1', '#b54036', '#ec6707', '#bfbfbf', '#999999',
+              '#010101', '#00395b', '#74adc1', '#b54036', '#ec6707']
 
-print('_____________________________')
-print('#############################')
-print()
-print('Ergebnisse Luft-Wärmepumpe:')
-print()
-print('Q_N: ' + "%.2f" % abs(Q_N/1e6) + " MW")
-print('gd_max: ' + "%.4f" % gd_max)
-print('gd_min: ' + "%.4f" % gd_min)
-print('COP_max_T_geg : ' + "%.4f" % COP_max)
-print('COP_min_T_geg : ' + "%.4f" % COP_min)
-print('c_1: ' + "%.4f" % c_1)
-print('c_0: ' + "%.4f" % c_0)
-print('Q_out_max: ' + "%.2f" % Q_out_max + " MW")
-print('Q_out_min: ' + "%.2f" % Q_out_min + " MW")
-print('P_in_max = nominal_value: ' + "%.2f" % P_in_max + " MW")
-print('P_in_min: ' + "%.2f" % P_in_min + " MW")
-print('solph_max: ' + "%.2f" % s_max)
-print('solph_min: ' + "%.2f" % s_min)
-print()
-print('_____________________________')
-print('#############################')
+    # fig, ax = plt.subplots()
+    #
+    # df2 = pd.DataFrame({'Power P': np.array(P_list)/1e6,
+    #                     'Heat Q': abs(Q_range)/1e6})
+    # df2.index = df2['Power P']
+    # del df2['Power P']
+    #
+    # plt.plot(df2, '-x', Color=colors[0],
+    #          markersize=7, linewidth=2)
+    # ax.set_ylabel('Wärmestrom Q in MW')
+    # ax.set_xlabel('Leistung P in MW')
+    # ax.grid(linestyle='--')
+    # plt.title('PQ-Diagramm für T= ' + str(T))
+
+    # plt.show()
+    # print(time() - tmp)
+
+# dirpath = path.abspath(path.join(__file__, "../../.."))
+# writepath = path.join(dirpath, 'Eingangsdaten', 'Wärmepumpe_Wasser.csv')
+df3.to_csv('data_WP.csv', sep=';', na_rep='#N/A', index=False)
