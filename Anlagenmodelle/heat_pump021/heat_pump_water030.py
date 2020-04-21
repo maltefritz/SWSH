@@ -242,6 +242,7 @@ for T in T_range:
     guetegrad = []
     P_list = []
     Q_range = []
+    cop_list = []
 
     heat.set_attr(P=np.nan)
     tmp = time()
@@ -263,6 +264,7 @@ for T in T_range:
 
         else:
             cop = abs(heat.P.val) / power.P.val
+            cop_list += [cop]
             P_list += [power.P.val]
 
             Q_source = abs(ev.Q.val + su.Q.val)
@@ -285,6 +287,8 @@ for T in T_range:
             cop_carnot += [cop_car]
 
             guetegrad += [cop / cop_car]
+
+    print(Q_range[0], Q_range[-1], cop_list[0])
 
     T_db += [T]
     P_max += [abs(max(P_list))/1e6]
@@ -321,6 +325,6 @@ for T in T_range:
     # plt.show()
     # print(time() - tmp)
 
-# dirpath = path.abspath(path.join(__file__, "../../.."))
-# writepath = path.join(dirpath, 'Eingangsdaten', 'Wärmepumpe_Wasser.csv')
-df3.to_csv('data_WP.csv', sep=';', na_rep='#N/A', index=False)
+dirpath = path.abspath(path.join(__file__, "../../.."))
+writepath = path.join(dirpath, 'Eingangsdaten', 'Wärmepumpe_Wasser.csv')
+df3.to_csv(writepath, sep=';', na_rep='#N/A', index=False)
