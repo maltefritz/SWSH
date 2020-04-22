@@ -25,8 +25,8 @@ Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: '))) * -1e6
 # Norwegen. T_amb ist die Außentemperatur in einem Fluß und T_amb_out die
 # Differenz vom Austritt zum Eintritt
 T_amb = 8
-T_DH_vl = 95
-T_DH_rl = 55
+T_DH_vl = 77
+T_DH_rl = 54
 T_amb_out = T_amb - 4
 
 # %% network
@@ -232,8 +232,8 @@ c_0 = []
 
 m_design = he_cp2.m.val
 
-T_range = range(76, 121)
-m_range = np.linspace(0.45, 1.0, 8)[::-1] * m_design
+T_range = range(66, 96)
+m_range = np.linspace(0.4, 1.0, 8)[::-1] * m_design
 # df = pd.DataFrame(columns=m_range/m_design)
 
 for T in T_range:
@@ -288,7 +288,7 @@ for T in T_range:
 
             guetegrad += [cop / cop_car]
 
-    print(Q_range[0], Q_range[-1], cop_list[0])
+    print(Q_range[0], Q_range[-1], Q_range[-1] / Q_N)
 
     T_db += [T]
     P_max += [abs(max(P_list))/1e6]
