@@ -138,6 +138,16 @@ if param.loc[('Sol', 'active'), 'value'] == 1:
 
     es_ref.add(solar_source)
 
+if param.loc[('MR', 'active'), 'value'] == 1:
+    mr_source = solph.Source(label='Mustrun',
+                             outputs={wnw: solph.Flow(
+                                variable_costs=0,
+                                nominal_value=float(param.loc[(
+                                    "MR", "Q_N"), "value"]),
+                                actual_value=1)})
+
+    es_ref.add(mr_source)
+
     # %% Sinks
 
 elec_sink = solph.Sink(
@@ -154,6 +164,13 @@ heat_sink = solph.Sink(
         fixed=True)})
 
 es_ref.add(elec_sink, heat_sink)
+
+if param.loc[('EC', 'active'), 'value'] == 1:
+    ec_sink = solph.Sink(label='Emergency-cooling',
+                         inputs={wnw: solph.Flow(
+                                 variable_costs=0)})
+
+    es_ref.add(ec_sink)
 
     # %% Transformer
 
@@ -350,9 +367,17 @@ if param.loc[('Sol', 'active'), 'value'] == 1:
                      * (0.01 * invest_solar)/(A*data['solar_data'].sum()))
     labeldict[(('Solarthermie', 'LT-Wärmenetzwerk'), 'flow')] = 'Q_Sol'
 
+if param.loc[('MR', 'active'), 'value'] == 1:
+    data_mr_source = views.node(results, 'Mustrun')['sequences']
+    labeldict[(('Mustrun', 'Wärmenetzwerk'), 'flow')] = 'Q_MR'
+
 # Sinks
 data_elec_sink = views.node(results, 'Spotmarkt')['sequences']
 data_heat_sink = views.node(results, 'Wärmebedarf')['sequences']
+
+if param.loc[('EC', 'active'), 'value'] == 1:
+    data_mr_source = views.node(results, 'Emergency-cooling')['sequences']
+    labeldict[(('Wärmenetzwerk', 'Emergency-cooling'), 'flow')] = 'Q_EC'
 
 # Transformer
 if param.loc[('EHK', 'active'), 'value'] == 1:
