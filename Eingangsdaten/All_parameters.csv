@@ -45,6 +45,9 @@ HP;inv_spez;€/MW;220350
 LT-HP;active;-;1
 Sol;active;-;1
 Sol;A;m2;107434
+MR;active;-;0
+MR;Q;MW;25
+EC;active;-;0
 TES;active;-;1
 TES;Q;MWh;150000
 TES;op_cost_var;€/MW;0.66
