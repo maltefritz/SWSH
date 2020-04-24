@@ -1,4 +1,0 @@
-label;cp;busses;bus_param;bus_P_ref;bus_char;design;offdesign;design_path;local_design;local_offdesign
-consumer feed flow;sink;[];[];[];[];[];[];nan;False;False
-sink ambient 1;sink;[];[];[];[];[];[];nan;False;False
-sink ambient 2;sink;[];[];[];[];[];[];nan;False;False
