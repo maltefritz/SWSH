@@ -262,6 +262,7 @@ if param.loc[('BPT', 'active'), 'value'] == 1:
 
     es_ref.add(bpt)
 
+# 30% m-Teillast bei 65-114°C und 50% m-Teillast bei 115-124°C
 if param.loc[('HP', 'active'), 'value'] == 1:
     hp = solph.components.OffsetTransformer(
         label='Wärmepumpe',

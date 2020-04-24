@@ -25,8 +25,8 @@ Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: '))) * -1e6
 # Norwegen. T_amb ist die Außentemperatur in einem Fluß und T_amb_out die
 # Differenz vom Austritt zum Eintritt
 T_amb = 8
-T_DH_vl = 77
-T_DH_rl = 54
+T_DH_vl = 90
+T_DH_rl = 50
 T_amb_out = T_amb - 4
 
 # %% network
@@ -232,8 +232,8 @@ c_0 = []
 
 m_design = he_cp2.m.val
 
-T_range = range(66, 96)
-m_range = np.linspace(0.4, 1.0, 8)[::-1] * m_design
+T_range = range(65, 115)
+m_range = np.linspace(0.3, 1.0, 8)[::-1] * m_design
 # df = pd.DataFrame(columns=m_range/m_design)
 
 for T in T_range:
@@ -251,9 +251,11 @@ for T in T_range:
         he_cp2.set_attr(m=m)
         if m == m_range[0]:
             if T == T_range[0]:
-                nw.solve('offdesign', design_path='hp_water', init_path='hp_water')
+                nw.solve('offdesign', design_path='hp_water',
+                         init_path='hp_water')
             else:
-                nw.solve('offdesign', design_path='hp_water', init_path='hp_water_init')
+                nw.solve('offdesign', design_path='hp_water',
+                         init_path='hp_water_init')
             nw.save_connections('hp_water_init/connections.csv')
         else:
             nw.solve('offdesign', design_path='hp_water')
@@ -308,22 +310,22 @@ for T in T_range:
     colors = ['#00395b', '#74adc1', '#b54036', '#ec6707', '#bfbfbf', '#999999',
               '#010101', '#00395b', '#74adc1', '#b54036', '#ec6707']
 
-    # fig, ax = plt.subplots()
-    #
-    # df2 = pd.DataFrame({'Power P': np.array(P_list)/1e6,
-    #                     'Heat Q': abs(Q_range)/1e6})
-    # df2.index = df2['Power P']
-    # del df2['Power P']
-    #
-    # plt.plot(df2, '-x', Color=colors[0],
-    #          markersize=7, linewidth=2)
-    # ax.set_ylabel('Wärmestrom Q in MW')
-    # ax.set_xlabel('Leistung P in MW')
-    # ax.grid(linestyle='--')
-    # plt.title('PQ-Diagramm für T= ' + str(T))
+    fig, ax = plt.subplots()
 
-    # plt.show()
-    # print(time() - tmp)
+    df2 = pd.DataFrame({'Power P': np.array(P_list)/1e6,
+                        'Heat Q': [abs(Q/1e6) for Q in Q_range]})
+    df2.index = df2['Power P']
+    del df2['Power P']
+
+    plt.plot(df2, '-x', Color=colors[0],
+             markersize=7, linewidth=2)
+    ax.set_ylabel('Wärmestrom Q in MW')
+    ax.set_xlabel('Leistung P in MW')
+    ax.grid(linestyle='--')
+    plt.title('PQ-Diagramm für T= ' + str(T))
+
+    plt.show()
+    print(time() - tmp)
 
 dirpath = path.abspath(path.join(__file__, "../../.."))
 writepath = path.join(dirpath, 'Eingangsdaten', 'Wärmepumpe_Wasser.csv')

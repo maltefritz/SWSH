@@ -69,16 +69,11 @@ c_1 = []
 c_0 = []
 
 for T in tvl_list:
-    if T > 70 and T < 120:
-        P_max += [hpdata.loc[T, 'P_max / MW']]
-        P_min += [hpdata.loc[T, 'P_min / MW']]
-        c_1 += [hpdata.loc[T, 'c_1']]
-        c_0 += [hpdata.loc[T, 'c_0']]
-    else:
-        P_max += [0]
-        P_min += [0]
-        c_1 += [0]
-        c_0 += [0]
+    P_max += [hpdata.loc[T, 'P_max / MW']]
+    P_min += [hpdata.loc[T, 'P_min / MW']]
+    c_1 += [hpdata.loc[T, 'c_1']]
+    c_0 += [hpdata.loc[T, 'c_0']]
+
 
 # LT-Wärmepumpe
 cop_lthp = []
