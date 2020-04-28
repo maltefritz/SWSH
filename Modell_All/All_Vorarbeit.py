@@ -301,6 +301,7 @@ if param.loc[('TES', 'active'), 'value'] == 1:
             nonconvex=solph.NonConvex(
                 minimum_uptime=int(param.loc[('TES', 'min_uptime'), 'value'])))},
         initial_storage_level=param.loc[('TES', 'init_storage'), 'value'],
+        loss_rate=param.loc[('TES', 'Q_rel_loss'), 'value'],
         inflow_conversion_factor=param.loc[('TES', 'inflow_conv'), 'value'],
         outflow_conversion_factor=param.loc[('TES', 'outflow_conv'), 'value'])
 

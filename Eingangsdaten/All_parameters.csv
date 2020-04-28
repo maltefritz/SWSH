@@ -56,7 +56,7 @@ TES;Q_rel_in_min;-;0.1
 TES;Q_N_out;MW;85
 TES;Q_rel_out_max;-;1
 TES;Q_rel_out_min;-;0.1
-TES;Q_rel_loss;-;0.01
+TES;Q_rel_loss;-;0.0001
 TES;op_cost_var;€/MW;0.66
 TES;op_cost_fix;€/MW;88
 TES;inv_spez;€/MW;18750
