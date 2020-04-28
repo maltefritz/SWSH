@@ -287,6 +287,7 @@ if param.loc[('TES', 'active'), 'value'] == 1:
         label='Wärmespeicher',
         nominal_storage_capacity=param.loc[('TES', 'Q'), 'value'],
         inputs={wnw: solph.Flow(
+            storageflowlimit=True,
             nominal_value=param.loc[('TES', 'Q_N_in'), 'value'],
             max=param.loc[('TES', 'Q_rel_in_max'), 'value'],
             min=param.loc[('TES', 'Q_rel_in_min'), 'value'],
@@ -295,6 +296,7 @@ if param.loc[('TES', 'active'), 'value'] == 1:
                 minimum_uptime=int(param.loc[('TES', 'min_uptime'), 'value']),
                 initial_status=int(param.loc[('TES', 'init_status'), 'value'])))},
         outputs={lt_wnw: solph.Flow(
+            storageflowlimit=True,
             nominal_value=param.loc[('TES', 'Q_N_out'), 'value'],
             max=param.loc[('TES', 'Q_rel_out_max'), 'value'],
             min=param.loc[('TES', 'Q_rel_out_min'), 'value'],
@@ -330,6 +332,8 @@ if param.loc[('LT-HP', 'active'), 'value'] == 1:
 
 # Was bedeutet tee?
 model = solph.Model(es_ref)
+solph.constraints.limit_active_flow_count_by_keyword(
+    model, 'storageflowlimit', lower_limit=0, upper_limit=1)
 model.solve(solver='gurobi', solve_kwargs={'tee': True},
             cmdline_options={"mipgap": "0.10"})
 
@@ -438,6 +442,7 @@ if param.loc[('HP', 'active'), 'value'] == 1:
                         * data['P_max_hp'].max()))
     labeldict[(('Wärmepumpe', 'Wärmenetzwerk'), 'flow')] = 'Q_ab_HP'
     labeldict[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')] = 'P_zu_HP'
+    labeldict[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'status')] = 'Status_HP'
 
 if param.loc[('LT-HP', 'active'), 'value'] == 1:
     data_lt_hp = views.node(results, 'LT-WP')['sequences']
@@ -466,7 +471,7 @@ if param.loc[('TES', 'active'), 'value'] == 1:
     labeldict[(('Wärmespeicher', 'LT-Wärmenetzwerk'), 'status')] = 'Status_ab_TES'
     labeldict[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')] = 'Q_zu_TES'
     labeldict[(('Wärmenetzwerk', 'Wärmespeicher'), 'status')] = 'Status_zu_TES'
-    labeldict[(('Wärmespeicher', 'None'), 'capacity')] = 'Speicherstand'
+    labeldict[(('Wärmespeicher', 'None'), 'storage_content')] = 'Speicherstand'
 
 
     # %% Zahlungsströme Ergebnis
