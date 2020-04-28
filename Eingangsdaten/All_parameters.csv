@@ -50,6 +50,13 @@ MR;Q;MW;25
 EC;active;-;0
 TES;active;-;1
 TES;Q;MWh;150000
+TES;Q_N_in;MW;85
+TES;Q_rel_in_max;-;1
+TES;Q_rel_in_min;-;0.1
+TES;Q_N_out;MW;85
+TES;Q_rel_out_max;-;1
+TES;Q_rel_out_min;-;0.1
+TES;Q_rel_loss;-;0.01
 TES;op_cost_var;€/MW;0.66
 TES;op_cost_fix;€/MW;88
 TES;inv_spez;€/MW;18750
@@ -57,7 +64,7 @@ TES;min_uptime;-;3
 TES;init_status;-;0
 TES;init_storage;-;0.1
 TES;inflow_conv;-;1
-TES;outflow_conv;-;0.75
+TES;outflow_conv;-;1
 param;gas_price;€/MWh;14.14
 param;co2_certificate;€/MWh;1.07
 param;elec_consumer_charges;€/MWh;85.51
