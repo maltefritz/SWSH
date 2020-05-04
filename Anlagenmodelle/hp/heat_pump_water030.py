@@ -232,8 +232,9 @@ c_0 = []
 
 m_design = he_cp2.m.val
 
-T_range = range(65, 115)
+T_range = range(65, 125)
 m_range = np.linspace(0.3, 1.0, 8)[::-1] * m_design
+m_range_ht = np.linspace(0.5, 1.0, 6)[::-1] * m_design
 # df = pd.DataFrame(columns=m_range/m_design)
 
 for T in T_range:
@@ -247,48 +248,91 @@ for T in T_range:
     heat.set_attr(P=np.nan)
     tmp = time()
 
-    for m in m_range:
-        he_cp2.set_attr(m=m)
-        if m == m_range[0]:
-            if T == T_range[0]:
-                nw.solve('offdesign', design_path='hp_water',
-                         init_path='hp_water')
+    if T <= 115:
+        for m in m_range:
+            he_cp2.set_attr(m=m)
+            if m == m_range[0]:
+                if T == T_range[0]:
+                    nw.solve('offdesign', design_path='hp_water',
+                             init_path='hp_water')
+                else:
+                    nw.solve('offdesign', design_path='hp_water',
+                             init_path='hp_water_init')
+                nw.save_connections('hp_water_init/connections.csv')
             else:
+                nw.solve('offdesign', design_path='hp_water')
+
+            if nw.lin_dep:
+                guetegrad += [np.nan]
+                print('Warning: Network is linear dependent')
+
+            else:
+                cop = abs(heat.P.val) / power.P.val
+                cop_list += [cop]
+                P_list += [power.P.val]
+
+                Q_source = abs(ev.Q.val + su.Q.val)
+                SQ_source = abs(ev.SQ2.val + su.SQ2.val)
+
+                Q_sink = abs(cd.Q.val)
+                SQ_sink = abs(cd.SQ1.val)
+
+                Q_range += [heat.P.val]
+
+                T_m_sink = Q_sink / SQ_sink
+                T_m_source = Q_source / SQ_source
+
+                T_ln_sink = (T_DH_vl - T_DH_rl) / np.log((273.15 + T_DH_vl)
+                                                         / (273.15 + T_DH_rl))
+                T_ln_source = ((T_amb - T_amb_out) /
+                               np.log((273.15 + T_amb) / (273.15 + T_amb_out)))
+
+                cop_car = T_m_sink / (T_m_sink - T_m_source)
+                cop_carnot += [cop_car]
+
+                guetegrad += [cop / cop_car]
+
+    else:
+        for m in m_range_ht:
+            he_cp2.set_attr(m=m)
+            if m == m_range_ht[0]:
                 nw.solve('offdesign', design_path='hp_water',
                          init_path='hp_water_init')
-            nw.save_connections('hp_water_init/connections.csv')
-        else:
-            nw.solve('offdesign', design_path='hp_water')
+                nw.save_connections('hp_water_init/connections.csv')
+            else:
+                nw.solve('offdesign', design_path='hp_water')
 
-        if nw.lin_dep:
-            guetegrad += [np.nan]
-            print('Warning: Network is linear dependent')
+            if nw.lin_dep:
+                guetegrad += [np.nan]
+                print('Warning: Network is linear dependent')
 
-        else:
-            cop = abs(heat.P.val) / power.P.val
-            cop_list += [cop]
-            P_list += [power.P.val]
+            else:
+                cop = abs(heat.P.val) / power.P.val
+                cop_list += [cop]
+                P_list += [power.P.val]
 
-            Q_source = abs(ev.Q.val + su.Q.val)
-            SQ_source = abs(ev.SQ2.val + su.SQ2.val)
+                Q_source = abs(ev.Q.val + su.Q.val)
+                SQ_source = abs(ev.SQ2.val + su.SQ2.val)
 
-            Q_sink = abs(cd.Q.val)
-            SQ_sink = abs(cd.SQ1.val)
+                Q_sink = abs(cd.Q.val)
+                SQ_sink = abs(cd.SQ1.val)
 
-            Q_range += [heat.P.val]
+                Q_range += [heat.P.val]
 
-            T_m_sink = Q_sink / SQ_sink
-            T_m_source = Q_source / SQ_source
+                T_m_sink = Q_sink / SQ_sink
+                T_m_source = Q_source / SQ_source
 
-            T_ln_sink = (T_DH_vl - T_DH_rl) / np.log((273.15 + T_DH_vl)
-                                                     / (273.15 + T_DH_rl))
-            T_ln_source = (T_amb - T_amb_out) / np.log((273.15 + T_amb)
-                                                       / (273.15 + T_amb_out))
+                T_ln_sink = ((T_DH_vl - T_DH_rl)
+                             / np.log((273.15 + T_DH_vl)
+                                      / (273.15 + T_DH_rl)))
+                T_ln_source = ((T_amb - T_amb_out)
+                               / np.log((273.15 + T_amb)
+                                        / (273.15 + T_amb_out)))
 
-            cop_car = T_m_sink / (T_m_sink - T_m_source)
-            cop_carnot += [cop_car]
+                cop_car = T_m_sink / (T_m_sink - T_m_source)
+                cop_carnot += [cop_car]
 
-            guetegrad += [cop / cop_car]
+                guetegrad += [cop / cop_car]
 
     print(Q_range[0], Q_range[-1], Q_range[-1] / Q_N)
 
