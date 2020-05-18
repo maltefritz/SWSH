@@ -172,7 +172,7 @@ kA_char2 = dc_cc(func=char_line(x2, y2), param='m')
 
 fgc.set_attr(pr1=0.99, pr2=0.99,
              kA_char1=kA_char1, kA_char2=kA_char2,
-             design=['pr1', 'pr2'], offdesign=['zeta1', 'zeta2', 'kA'])
+             design=['pr1', 'pr2'], offdesign=['zeta1', 'zeta2', 'kA_char'])
 
 # consumer
 
@@ -210,7 +210,7 @@ P_L = []
 Q_L = []
 
 mode = 'design'
-nw.solve(mode=mode, init_path='ice_design')
+nw.solve(mode=mode)  # , init_path='ice_design')
 nw.print_results()
 nw.save('ice_design')
 print(power.P.val, heat.P.val,
