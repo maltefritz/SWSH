@@ -154,7 +154,7 @@ nw.add_busses(power, heat)
 # condenser system
 
 cd.set_attr(pr1=0.99, pr2=0.99, ttd_u=5, design=['pr2', 'ttd_u'],
-            offdesign=['zeta2', 'kA'])
+            offdesign=['zeta2', 'kA_char'])
 dhp.set_attr(eta_s=0.8, design=['eta_s'], offdesign=['eta_s_char'])
 cons.set_attr(pr=0.99, design=['pr'], offdesign=['zeta'])
 
@@ -169,7 +169,7 @@ kA_char2 = ldc('heat exchanger', 'kA_char2', 'EVAPORATING FLUID', char_line)
 
 ev.set_attr(pr1=0.98, pr2=0.99, ttd_l=5,
             kA_char1=kA_char1, kA_char2=kA_char2,
-            design=['pr1', 'ttd_l'], offdesign=['zeta1', 'kA'])
+            design=['pr1', 'ttd_l'], offdesign=['zeta1', 'kA_char'])
 su.set_attr(pr1=0.98, pr2=0.99, ttd_u=2, design=['pr1', 'pr2', 'ttd_u'],
             offdesign=['zeta1', 'zeta2', 'kA'])
 erp.set_attr(eta_s=0.8, design=['eta_s'], offdesign=['eta_s_char'])
@@ -179,7 +179,7 @@ erp.set_attr(eta_s=0.8, design=['eta_s'], offdesign=['eta_s_char'])
 cp1.set_attr(eta_s=0.9, design=['eta_s'], offdesign=['eta_s_char'])
 cp2.set_attr(eta_s=0.9, pr=3, design=['eta_s'], offdesign=['eta_s_char'])
 ic.set_attr(pr1=0.99, pr2=0.98, design=['pr1', 'pr2'],
-            offdesign=['zeta1', 'zeta2', 'kA'])
+            offdesign=['zeta1', 'zeta2', 'kA_char'])
 
 # %% connection parametrization
 
