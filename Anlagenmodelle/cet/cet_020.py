@@ -221,20 +221,20 @@ eta_s_char2 = ldc('turbine', 'eta_s_char', 'TRAUPEL', char_line)
 
 # steam turbine
 suph.set_attr(pr1=0.99, pr2=0.98, ttd_u=50, design=['pr1', 'pr2', 'ttd_u'],
-              offdesign=['zeta1', 'zeta2', 'kA'])
+              offdesign=['zeta1', 'zeta2', 'kA_char'])
 eco.set_attr(pr1=0.99, pr2=1, design=['pr1', 'pr2'],
-             offdesign=['zeta1', 'zeta2', 'kA'])
+             offdesign=['zeta1', 'zeta2', 'kA_char'])
 evap.set_attr(pr1=0.99, ttd_l=20, design=['pr1', 'ttd_l'],
-              offdesign=['zeta1', 'kA'])
+              offdesign=['zeta1', 'kA_char'])
 turb_hp.set_attr(eta_s=0.88, eta_s_char=eta_s_char1, design=['eta_s'],
                  offdesign=['eta_s_char', 'cone'])
 turb_lp.set_attr(eta_s=0.88, eta_s_char=eta_s_char2, design=['eta_s'],
                  offdesign=['eta_s_char', 'cone'])
 
 cond_dh.set_attr(kA_char1=cd_char_hot, pr1=0.99, pr2=0.98, ttd_u=5,
-                 design=['ttd_u', 'pr2'], offdesign=['zeta2', 'kA'])
+                 design=['ttd_u', 'pr2'], offdesign=['zeta2', 'kA_char'])
 cond.set_attr(pr1=0.99, pr2=0.98, ttd_u=5, design=['ttd_u', 'pr2'],
-              offdesign=['zeta2', 'kA'])
+              offdesign=['zeta2', 'kA_char'])
 
 pump1.set_attr(eta_s=0.8, eta_s_char=eta_s_p1, design=['eta_s'],
                offdesign=['eta_s_char'])
@@ -468,4 +468,4 @@ df = pd.DataFrame({'plant': [plant_name]*9,
                              P_min_woDH/1e6, eta_el_max, eta_el_min,
                              H_L_FG_share_max, Q_CW_min/1e6, beta]})
 
-df.to_csv('data_' + plant_name + '.csv', index=False, sep=";")
+# df.to_csv('data_' + plant_name + '.csv', index=False, sep=";")

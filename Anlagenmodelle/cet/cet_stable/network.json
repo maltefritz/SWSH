@@ -1,0 +1,15 @@
+{
+    "fluids":
+    {
+        "CO2": "HEOS",
+        "O2": "HEOS",
+        "N2": "HEOS",
+	"Ar": "HEOS",
+	"CH4": "HEOS",
+	"H2O": "HEOS"
+    },
+    "T_unit": "C",
+    "h_unit": "kJ / kg",
+    "m_unit": "kg / s",
+    "h_range": [150, 3000]
+}
