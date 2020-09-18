@@ -96,12 +96,12 @@ def main():
 
         # %% LT-WNW Plausibilität prüfen
     if (param['LT-HP']['active']
-        and param['Sol']['active']
-        and param['TES']['active']):
+        and not param['Sol']['active']
+        and not param['TES']['active']):
         print("WARNING: You can't have the low temp heat pump active without ",
               "using either the TES or solar heat.")
         exit()
-    elif (param['LT-HP']['active']
+    elif (not param['LT-HP']['active']
           and (param['Sol']['active']
           or param['TES']['active'])):
         print("WARNING: You can't use TES or solar heat without using the low ",
