@@ -1,6 +1,6 @@
 label;P;P_set
-power output;-135393035.29489255;False
-gas turbine power output;-98777726.47930092;False
-heat output;-70000000.00000001;True
-heat cond;-16852146.381838363;False
-heat input;254542467.27888194;False
+power output;-145063966.41705924;False
+gas turbine power output;-105833278.40244354;False
+heat output;-75000000.0;True
+heat cond;-18055871.1233982;False
+heat input;272724072.1663695;False

@@ -16,11 +16,21 @@ from tespy.networks.networks import network
 from tespy.tools.characteristics import char_line
 from tespy.tools.data_containers import dc_cc
 
+import json
+from time import time
 from tespy.tools.characteristics import load_default_char as ldc
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from matplotlib import pyplot as plt
+import matplotlib as mpl
 import pandas as pd
+
+plt.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['savefig.bbox'] = 'tight'
+mpl.rcParams['savefig.pad_inches'] = 0.1
+mpl.rcParams['font.family'] = 'Carlito'
+mpl.rcParams['font.size'] = 20
+mpl.rcParams['figure.max_open_warning'] = 50
 
 Q_N = abs(float(input('Gib die Nennwaermeleistung in MW ein: ')))*-1e6
 
@@ -282,10 +292,6 @@ cw_o.set_attr(T=30, design=['T'], offdesign=['m'])
 # %% design case 1:
 # district heating condeser layout
 
-P = []
-Q = []
-Q_cond = []
-Q_ti = []
 
 # Q_N=65
 
@@ -330,142 +336,244 @@ print('no heat, full power')
 
 nw.solve(mode='offdesign', design_path='cet_design_minQ')
 nw.print_results()
-P += [abs(power.P.val)]
-Q += [abs(heat_out.P.val)]
-Q_cond += [abs(heat_cond.P.val)]
-Q_ti += [heat_in.P.val]
+# P += [abs(power.P.val)]
+# Q += [abs(heat_out.P.val)]
+# Q_cond += [abs(heat_cond.P.val)]
+# Q_ti += [heat_in.P.val]
 
-Q_in = Q_ti[-1]
+# Q_in = Q_ti[-1]
 
-    # %%move to maximum heat extraction at maximum gas turbine power
+solphparams = pd.DataFrame(columns=['P_max_woDH', 'eta_el_max',
+                                    'P_min_woDH', 'eta_el_min',
+                                    'H_L_FG_share_max',
+                                    'Q_CW_min',
+                                    'beta'])
 
-Q_step = np.linspace(-10e6, Q_N, num=7)
+QPjson = dict()
 
-for Q_val in Q_step:
-    heat_out.set_attr(P=Q_val)
+cmap_list = []
+# ausnahmeWert = 74.4
+# T_range = [*range(65, 74), ausnahmeWert, *range(75, 125)]
+# T_range = [*range(65, 125)]
+# T_range = [*range(65, 125, 2)]
+# T_range = [121, 122, 123, 124]
+T_range = [95, 96, 97, 98]
+unsolvableVals = [74, 75, 76, 79]
+
+for val in unsolvableVals:
+    if val in T_range:
+        T_range.remove(val)
+
+for Tval in T_range:
+    start_time = time()
+    P = []
+    Q = []
+    Q_cond = []
+    Q_ti = []
+
+    print('#######', Tval, '#######')
+    dh_o.set_attr(T=int(Tval))
+        # %%move to maximum heat extraction at maximum gas turbine power
+    gt_power.set_attr(P=gt_power_design)
+    heat_out.set_attr(P=-10e6)
+
+    Q_step = np.linspace(-10e6, Q_N, num=7)
+
+    for Q_val in Q_step:
+        heat_out.set_attr(P=Q_val)
+        nw.solve(mode='offdesign', design_path='cet_design_minQ')
+        print(Q_val)
+        P += [abs(power.P.val)]
+        Q += [abs(heat_out.P.val)]
+        Q_cond += [abs(heat_cond.P.val)]
+        Q_ti += [heat_in.P.val]
+
+        # %% from minimum to maximum gas turbine power at maximum heat extraction
+
+    print('#######', Tval, '#######')
+    print('maximum power to minimum power at maximum heat')
+
+    heat_out.set_attr(P=np.nan)
+    # mp_ls.set_attr(m=mp_ls.m.val)
+    lp_ws.set_attr(m=lp_ws.m.val)
     nw.solve(mode='offdesign', design_path='cet_design_minQ')
-    print(Q_val)
-    P += [abs(power.P.val)]
-    Q += [abs(heat_out.P.val)]
-    Q_cond += [abs(heat_cond.P.val)]
-    Q_ti += [heat_in.P.val]
 
-    # %% from minimum to maximum gas turbine power at maximum heat extraction
+    # parameter for top_right:
+    P_t_r = P[-1]
+    Q_t_r = Q[-1]
+    Q_cond_t_r = Q_cond[-1]
+    Q_in_t_r = Q_ti[-1]
 
-print('maximum power to minimum power at maximum heat')
+    TL_step = np.linspace(0.9, 0.3, num=7)
 
-heat_out.set_attr(P=np.nan)
-mp_ls.set_attr(m=mp_ls.m.val)
-nw.solve(mode='offdesign', design_path='cet_design_minQ')
+    for TL_val in TL_step:
+        gt_power.set_attr(P=gt_power_design * TL_val)
+        nw.solve(mode='offdesign', design_path='cet_design_minQ')
+        P += [abs(power.P.val)]
+        Q += [abs(heat_out.P.val)]
+        Q_cond += [abs(heat_cond.P.val)]
+        Q_ti += [heat_in.P.val]
+        print('Frischdampfmassenstrom: ', '{:.1f}'.format(ls.m.val))
+        print('MD-Dampfmassenstrom: ', '{:.1f}'.format(mp_ls.m.val))
+        print('ND-Dampfmassenstrom: ', '{:.1f}'.format(lp_ws.m.val))
+        print('GT-Massenstrom: ', '{:.1f}'.format(gt_in.m.val))
+    Q_TL = heat_out.P.val
 
-# parameter for top_right:
-P_t_r = P[-1]
-Q_t_r = Q[-1]
-Q_cond_t_r = Q_cond[-1]
-Q_in_t_r = Q_ti[-1]
+    # parameter for buttom_right:
+    P_b_r = P[-1]
+    Q_b_r = Q[-1]
+    Q_cond_b_r = Q_cond[-1]
+    Q_in_b_r = Q_ti[-1]
 
-TL_step = np.linspace(0.9, 0.3, num=7)
+        # %% back to design case, but minimum gas turbine power
 
-for TL_val in TL_step:
-    gt_power.set_attr(P=gt_power_design * TL_val)
-    nw.solve(mode='offdesign', design_path='cet_design_minQ')
-    P += [abs(power.P.val)]
-    Q += [abs(heat_out.P.val)]
-    Q_cond += [abs(heat_cond.P.val)]
-    Q_ti += [heat_in.P.val]
-Q_TL = heat_out.P.val
+    print('#######', Tval, '#######')
+    print('maximum heat to minimum heat, minimum power')
 
-# parameter for buttom_right:
-P_b_r = P[-1]
-Q_b_r = Q[-1]
-Q_cond_b_r = Q_cond[-1]
-Q_in_b_r = Q_ti[-1]
+    lp_ws.set_attr(m=np.nan)
 
-    # %% back to design case, but minimum gas turbine power
+    Q_step = np.linspace(Q_TL, -1e5, num=9, endpoint=False)
 
-print('maximum heat to minimum heat, minimum power')
+    for Q_val in Q_step:
+        heat_out.set_attr(P=Q_val)
+        nw.solve(mode='offdesign', design_path='cet_design_minQ')
+        print(Q_val)
+        P += [abs(power.P.val)]
+        Q += [abs(heat_out.P.val)]
+        Q_cond += [abs(heat_cond.P.val)]
+        Q_ti += [heat_in.P.val]
 
-mp_ls.set_attr(m=np.nan)
+    # %% postprocessing
 
-Q_step = np.linspace(Q_TL, -1e5, num=9, endpoint=False)
+    # P_Q_Diagramm
+    # cmap_list += [Tval]*23
+    # fig, ax = plt.subplots(figsize=[11, 7])
 
-for Q_val in Q_step:
-    heat_out.set_attr(P=Q_val)
-    nw.solve(mode='offdesign', design_path='cet_design_minQ')
-    print(Q_val)
-    P += [abs(power.P.val)]
-    Q += [abs(heat_out.P.val)]
-    Q_cond += [abs(heat_cond.P.val)]
-    Q_ti += [heat_in.P.val]
+    # scatterplot = ax.scatter([Qval/1e6 for Qval in Q],
+    #                          [Pval/1e6 for Pval in P],
+    #                          c=cmap_list, cmap='inferno', alpha=0.7,
+    #                          s=80, edgecolor='k', linewidth=0.25)
 
-# %% postprocessing
+    # cbar = plt.colorbar(scatterplot, ax=ax)
+    # cbar.set_label('Vorlauftemperatur in °C')
+    # ax.grid(linestyle='--')
+    # ax.set_xlabel('Wärmestrom Qdot in MW')
+    # ax.set_ylabel('El. Leistung P in MW')
+    # # ax.set_title('Vorlauftemperatur = ' + str(Tval) + ' °C')
+    # plt.show()
+    end_time = time()
+    elapsed_time = end_time - start_time
 
-# P_Q_Diagramm
+    QPjson[Tval] = {'Q': Q, 'P': P,
+                    'Laufzeit': elapsed_time}
 
-plt.plot(Q, P, 'x')
-plt.show()
+    # lineare Regression
+    x = np.array(Q[4:7]).reshape((-1, 1))
+    y = np.array(P[4:7])
 
-# lineare Regression
+    linreg = LinearRegression().fit(x, y)
+    P_t_l = linreg.intercept_
 
-x = np.array(Q[3:7]).reshape((-1, 1))
-y = np.array(P[3:7])
+    x = np.array(Q[14:]).reshape((-1, 1))
+    y = np.array(P[14:])
 
-linreg = LinearRegression().fit(x, y)
-P_t_l = linreg.intercept_
+    linreg = LinearRegression().fit(x, y)
+    P_b_l = linreg.intercept_
 
-x = np.array(Q[15:23]).reshape((-1, 1))
-y = np.array(P[15:23])
+    # Mittelwerte der zugeführten Wärme
+    Q_in_t = sum(Q_ti[4:7])/len(Q_ti[4:7])
+    Q_in_b = sum(Q_ti[14:])/len(Q_ti[14:])
 
-linreg = LinearRegression().fit(x, y)
-P_b_l = linreg.intercept_
+    # Q_in top and bottom
+    x = np.array(Q[4:7]).reshape((-1, 1))
+    y = np.array(Q_ti[4:7])
 
-# Mittelwerte der zugeführten Wärme
+    linreg = LinearRegression().fit(x, y)
+    Q_in_t_l_linreg = linreg.intercept_
 
-Q_in_t = sum(Q_ti[0:8])/8
-Q_in_b = sum(Q_ti[15:24])/9
+    x = np.array(Q[14:]).reshape((-1, 1))
+    y = np.array(Q_ti[14:])
 
-# solph Parameter
+    linreg = LinearRegression().fit(x, y)
+    Q_in_b_l_linreg = linreg.intercept_
 
-P_max_woDH = P_t_l
-eta_el_max = P_t_l/Q_in_t
-P_min_woDH = P_b_l
-eta_el_min = P_b_l/Q_in_b
-H_L_FG_t_r = 1-(P_t_r + Q_t_r + Q_cond_t_r) / Q_in_t_r
-H_L_FG_b_r = 1-(P_b_r + Q_b_r + Q_cond_b_r) / Q_in_b_r
-H_L_FG_share_max = (H_L_FG_t_r + H_L_FG_b_r) / 2
-Q_CW_min = Q_cond_t_r
-beta_unten = abs((P_b_r - P_b_l) / Q_b_r)
-beta_oben = abs((P_t_r - P_t_l) / Q_t_r)
-beta = (beta_oben + beta_unten) / 2
+    # solph Parameter
 
+    ratio = (Q_b_r - Q_t_r + P_b_r - P_t_r)/(Q_in_b_r - Q_in_t_r)
+    H_L = 1 - ratio
+    Q_CW = Q_in_t_r * ratio - P_t_r - Q_t_r
+    print('{:.3f}'.format(H_L), '{:.1f}'.format(Q_CW/1e6),
+          '{:.3f}'.format(ratio))
 
-print('_____________________________')
-print('#############################')
-print()
-print('Ergebnisse:')
-print()
-print('Q_N: ' + "%.2f" % abs(Q_N/1e6) + " MW")
-print('Q_in: ' + "%.2f" % (Q_in_t/1e6) + " MW")
-print('P_max_woDH: ' + "%.2f" % (P_max_woDH/1e6) + " MW")
-print('P_min_woDH: ' + "%.2f" % (P_min_woDH/1e6) + " MW")
-print('eta_el_max: ' + "%.4f" % eta_el_max)
-print('eta_el_min: ' + "%.4f" % eta_el_min)
-print('H_L_FG_share_max: ' + "%.4f" % H_L_FG_share_max)
-print('Q_CW_min: ' + "%.2f" % (Q_CW_min/1e6) + " MW")
-print('beta: ' + "%.4f" % beta)
-print()
-print('_____________________________')
-print('#############################')
+    solphparams.loc[Tval, 'Q_in'] = Q_in_t_l_linreg
+    solphparams.loc[Tval, 'P_max_woDH'] = P_t_l
+    solphparams.loc[Tval, 'eta_el_max'] = P_t_l/Q_in_t_l_linreg
+    solphparams.loc[Tval, 'P_min_woDH'] = P_b_l
+    solphparams.loc[Tval, 'eta_el_min'] = P_b_l/Q_in_b_l_linreg
+    beta_unten = abs((P_b_r - P_b_l) / Q_b_r)
+    beta_oben = abs((P_t_r - P_t_l) / Q_t_r)
+    solphparams.loc[Tval, 'beta'] = (beta_oben + beta_unten) / 2
 
-plant_name = 'GuD'
+    # not_used_high = Q_in_t - P_t_l - Q_t_r * (1-solphparams.loc[Tval, 'beta'])
+    # not_used_low = Q_in_b - P_b_l - Q_b_r * (1-solphparams.loc[Tval, 'beta'])
 
-df = pd.DataFrame({'plant': [plant_name]*9,
-                   'parameter': ['Q_N', 'Q_in', 'P_max_woDH', 'P_min_woDH',
-                                 'Eta_el_max_woDH', 'Eta_el_min_woDH',
-                                 'H_L_FG_share_max', 'Q_CW_min', 'beta'],
-                   'unit': ['MW', 'MW', 'MW', 'MW', '-', '-', '-', 'MW', '-'],
-                   'value': [abs(Q_N/1e6), Q_in_t/1e6, P_max_woDH/1e6,
-                             P_min_woDH/1e6, eta_el_max, eta_el_min,
-                             H_L_FG_share_max, Q_CW_min/1e6, beta]})
+    # not_used_high = Q_in_t - P_t_r - Q_t_r
+    # not_used_low = Q_in_b - P_b_r - Q_b_r
+
+    # H_L = (not_used_high - not_used_low)/(Q_in_t - Q_in_b)
+    # Q_CW = not_used_low - H_L * Q_in_b
+
+    # not_used_high = Q_in_t_r - P_t_r - Q_t_r
+    # not_used_low = Q_in_b_r - P_b_r - Q_b_r
+
+    # H_L = (not_used_high - not_used_low)/(Q_in_t_r - Q_in_b_r)
+    # Q_CW = not_used_low - H_L * Q_in_b_r
+
+    # H_L_FG_t_r = 1-(P_t_r + Q_t_r + Q_cond_t_r) / Q_in_t_r
+    # H_L_FG_b_r = 1-(P_b_r + Q_b_r + Q_cond_b_r) / Q_in_b_r
+    # solphparams.loc[Tval, 'H_L_FG_share_max'] = (H_L_FG_t_r + H_L_FG_b_r) / 2
+    # solphparams.loc[Tval, 'H_L_FG_share_max'] = H_L_FG_t_r
+    # solphparams.loc[Tval, 'Q_CW_min'] = Q_cond_t_r
+    solphparams.loc[Tval, 'H_L_FG_share_max'] = H_L
+    solphparams.loc[Tval, 'Q_CW_min'] = Q_CW
+
+    print('_____________________________')
+    print('#############################')
+    print()
+    print('Simulationslaufzeit: ', str(elapsed_time))
+
+    # print('_____________________________')
+    # print('#############################')
+    # print()
+    # print('Ergebnisse:')
+    # print()
+    # print('Q_N: ' + "%.2f" % abs(Q_N/1e6) + " MW")
+    # print('Q_in: ' + "%.2f" % (Q_in_t/1e6) + " MW")
+    # print('P_max_woDH: ' + "%.2f" % (P_max_woDH/1e6) + " MW")
+    # print('P_min_woDH: ' + "%.2f" % (P_min_woDH/1e6) + " MW")
+    # print('eta_el_max: ' + "%.4f" % eta_el_max)
+    # print('eta_el_min: ' + "%.4f" % eta_el_min)
+    # print('H_L_FG_share_max: ' + "%.4f" % H_L_FG_share_max)
+    # print('Q_CW_min: ' + "%.2f" % (Q_CW_min/1e6) + " MW")
+    # print('beta: ' + "%.4f" % beta)
+    # print()
+    # print('_____________________________')
+    # print('#############################')
+
+with open('ccet_QPdata.json', 'w') as file:
+    json.dump(QPjson, file, indent=4)
+
+solphparams.to_csv('solphparams.csv', sep=';')
+
+# plant_name = 'GuD'
+
+# df = pd.DataFrame({'plant': [plant_name]*9,
+#                    'parameter': ['Q_N', 'Q_in', 'P_max_woDH', 'P_min_woDH',
+#                                  'Eta_el_max_woDH', 'Eta_el_min_woDH',
+#                                  'H_L_FG_share_max', 'Q_CW_min', 'beta'],
+#                    'unit': ['MW', 'MW', 'MW', 'MW', '-', '-', '-', 'MW', '-'],
+#                    'value': [abs(Q_N/1e6), Q_in_t/1e6, P_max_woDH/1e6,
+#                              P_min_woDH/1e6, eta_el_max, eta_el_min,
+#                              H_L_FG_share_max, Q_CW_min/1e6, beta]})
 
 # df.to_csv('data_' + plant_name + '.csv', index=False, sep=";")
