@@ -1,0 +1,97 @@
+{
+  "TES": {
+    "active": true,
+    "Q": 150000.0,
+    "Q_N_in": 85.0,
+    "Q_rel_in_max": 1.0,
+    "Q_rel_in_min": 0.1,
+    "Q_N_out": 85.0,
+    "Q_rel_out_max": 1.0,
+    "Q_rel_out_min": 0.1,
+    "Q_rel_loss": 0.0001,
+    "op_cost_var": 0.66,
+    "op_cost_fix": 88.0,
+    "inv_spez": 18750.0,
+    "min_uptime": 3.0,
+    "init_status": 0.0,
+    "init_storage": 0.1,
+    "inflow_conv": 1.0,
+    "outflow_conv": 1.0
+  },
+  "HP": {
+    "active": true,
+    "Q_N": 75.0,
+    "op_cost_var": 0.88,
+    "op_cost_fix": 881.0,
+    "inv_spez": 220350.0
+  },
+  "EC": {
+    "active": false
+  },
+  "GuD": {
+    "active": true,
+    "Q_N": 71.0,
+    "Q_in": 258.1878319,
+    "P_max_woDH": 146.23847130000001,
+    "P_min_woDH": 54.35741321,
+    "Eta_el_max_woDH": 0.566403421,
+    "Eta_el_min_woDH": 0.45782468200000004,
+    "H_L_FG_share_max": 0.133211158,
+    "Q_CW_min": 15.37140763,
+    "beta": 0.171667949,
+    "op_cost_var": 4.5,
+    "op_cost_fix": 30000.0,
+    "inv_spez": 1000000.0
+  },
+  "EHK": {
+    "active": true,
+    "Q_N": 75.0,
+    "eta": 0.99,
+    "op_cost_var": 0.5,
+    "op_cost_fix": 1100.0,
+    "inv_spez": 80000.0
+  },
+  "BPT": {
+    "active": false
+  },
+  "param": {
+    "gas_price": 14.14,
+    "co2_certificate": 1.07,
+    "elec_consumer_charges": 85.51,
+    "heat_price": 68.59,
+    "energy_tax": 5.5
+  },
+  "BHKW": {
+    "active": true,
+    "Q_N": 73.5,
+    "Q_in": 220.4506659,
+    "P_max_woDH": 103.2900785,
+    "P_min_woDH": 51.38135867,
+    "H_L_FG_share_max": 0.192874083,
+    "H_L_FG_share_min": 0.36399976,
+    "Eta_el_max_woDH": 0.46850263799999997,
+    "Eta_el_min_woDH": 0.425595905,
+    "op_cost_var": 10.0,
+    "op_cost_fix": 10000.0,
+    "inv_spez": 1000000.0
+  },
+  "LT-HP": {
+    "active": true
+  },
+  "SLK": {
+    "active": true,
+    "Q_N": 75.0,
+    "eta": 0.88,
+    "op_cost_var": 1.1,
+    "op_cost_fix": 2000.0,
+    "inv_spez": 60000.0
+  },
+  "Sol": {
+    "active": true,
+    "A": 107434.0
+  },
+  "MR": {
+    "active": false,
+    "Q": 25.0
+  }
+}
