@@ -9,12 +9,13 @@ from tespy.networks import network
 from tespy.components import (sink, source, valve, turbine, splitter, merge,
                               condenser, pump, heat_exchanger_simple,
                               cycle_closer)
-from tespy.connections import connection, bus, ref
+from tespy.connections import connection, bus
 from tespy.tools.characteristics import char_line
 
-import matplotlib.pyplot as plt
-import pandas as pd
+# import matplotlib.pyplot as plt
+# import pandas as pd
 import numpy as np
+
 
 # %% network
 
@@ -27,7 +28,7 @@ nw = network(fluids=fluids, p_unit='bar', T_unit='C', h_unit='kJ / kg')
 # turbine part
 turb_hp = turbine('high pressure turbine')
 split = splitter('extraction splitter')
-turb_lp= turbine('low pressure turbine')
+turb_lp = turbine('low pressure turbine')
 
 # condenser and preheater
 cond = condenser('condenser')
@@ -104,15 +105,15 @@ nw.add_busses(power_bus, heat_bus)
 # %% parametrization of components
 
 turb_hp.set_attr(eta_s=0.9, design=['eta_s'],
-                    offdesign=['eta_s_char', 'cone'])
+                 offdesign=['eta_s_char', 'cone'])
 turb_lp.set_attr(eta_s=0.9, design=['eta_s'],
-                    offdesign=['eta_s_char', 'cone'])
+                 offdesign=['eta_s_char', 'cone'])
 
 cond.set_attr(pr1=0.99, pr2=0.99, ttd_u=12, design=['pr2', 'ttd_u'],
-              offdesign=['zeta2', 'kA'])
+              offdesign=['zeta2', 'kA_char'])
 preheat.set_attr(pr1=0.99, pr2=0.99, ttd_u=5,
-                   design=['pr2', 'ttd_u', 'ttd_l'],
-                   offdesign=['zeta2', 'kA'])
+                 design=['pr2', 'ttd_u', 'ttd_l'],
+                 offdesign=['zeta2', 'kA_char'])
 
 pu.set_attr(eta_s=0.8, design=['eta_s'], offdesign=['eta_s_char'])
 sg.set_attr(pr=0.95)
@@ -129,12 +130,12 @@ turb_hp_split.set_attr(p=10, design=['p'])
 preheat_sg.set_attr(h0=310)
 
 # cooling water inlet
-dh_bf.set_attr(T=60, p=10, fluid={'water': 1})
-dh_ff.set_attr(T=110)
+dh_bf.set_attr(T=50, p=10, fluid={'water': 1})
+dh_ff.set_attr(T=90)
 
 # setting key parameters:
 # Power of the plant
-power_bus.set_attr(P=-5e6)
+power_bus.set_attr(P=-75e6)
 
 
 # %% solving
@@ -158,7 +159,8 @@ nw.print_results()
 # m_range = [1.05, 1, 0.9, 0.8, 0.7, 0.6]
 
 # # temperatures for the heating system
-# T_range = [120, 110, 100, 95, 90, 85, 80, 75, 70]
+# # T_range = [120, 110, 100, 95, 90, 85, 80, 75, 70]
+# T_range = [90, 85, 80, 75, 70, 65, 60]
 
 # df_P = pd.DataFrame(columns=m_range)
 # df_Q = pd.DataFrame(columns=m_range)
@@ -181,8 +183,8 @@ nw.print_results()
 #             nw.solve(init_path='chp_' + str(m), design_path=path, mode=mode)
 
 #         nw.save('chp_' + str(m))
-#         Q += [heat_bus.P.val]
-#         P += [power_bus.P.val]
+#         Q += [-heat_bus.P.val]
+#         P += [-power_bus.P.val]
 
 #     df_Q.loc[T] = Q
 #     df_P.loc[T] = P
@@ -202,18 +204,18 @@ nw.print_results()
 # for T in T_range:
 #     if T % 10 == 0:
 #         plt.plot(df_Q.loc[T], df_P.loc[T], '-x', Color=colors[i],
-#                   label='$T_{VL}$ = ' + str(T) + ' °C', markersize=7,
-#                   linewidth=2)
+#                  label='$T_{VL}$ = ' + str(T) + ' °C', markersize=7,
+#                  linewidth=2)
 #         i += 1
 
 # ax.set_ylabel('$P$ in MW')
 # ax.set_xlabel('$\dot{Q}$ in MW')
 # plt.title('P-Q diagram for CHP with backpressure steam turbine')
 # plt.legend(loc='lower left')
-# ax.set_ylim([0, 7e6])
-# ax.set_xlim([0, 14e6])
-# plt.yticks(np.arange(0, 7e6, step=1e6), np.arange(0, 7, step=1))
-# plt.xticks(np.arange(0, 14e6, step=2e6), np.arange(0, 14, step=2))
+# # ax.set_ylim([0, 7e6])
+# # ax.set_xlim([0, 14e6])
+# # plt.yticks(np.arange(0, 7e6, step=1e6), np.arange(0, 7, step=1))
+# # plt.xticks(np.arange(0, 14e6, step=2e6), np.arange(0, 14, step=2))
 
 # plt.show()
 
