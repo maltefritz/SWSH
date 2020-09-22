@@ -16,6 +16,7 @@ from tespy.networks.networks import network
 from tespy.tools.characteristics import char_line
 from tespy.tools.data_containers import dc_cc
 
+from os.path import abspath, join
 import json
 from time import time
 from tespy.tools.characteristics import load_default_char as ldc
@@ -563,7 +564,10 @@ for Tval in T_range:
 with open('ccet_QPdata.json', 'w') as file:
     json.dump(QPjson, file, indent=4)
 
-solphparams.to_csv('solphparams.csv', sep=';')
+dir_path = abspath(join(__file__, "../.."))
+save_path = join(dir_path, 'Eingangsdaten', 'ccet_parameters.csv')
+
+solphparams.to_csv(save_path, sep=';')
 
 # plant_name = 'GuD'
 
