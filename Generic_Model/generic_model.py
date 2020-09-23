@@ -181,17 +181,18 @@ def main():
         # %% Transformer
 
     if param['EHK']['active']:
-        ehk = solph.Transformer(
-            label='Elektroheizkessel',
-            inputs={enw: solph.Flow()},
-            outputs={wnw: solph.Flow(
-                nominal_value=param['EHK']['Q_N'],
-                max=1,
-                min=0,
-                variable_costs=param['EHK']['op_cost_var'])},
-            conversion_factors={wnw: param['EHK']['eta']})
+        for i in range(1, param['EHK']['amount']+1):
+            ehk = solph.Transformer(
+                label='Elektroheizkessel_' + str(i),
+                inputs={enw: solph.Flow()},
+                outputs={wnw: solph.Flow(
+                    nominal_value=param['EHK']['Q_N'],
+                    max=1,
+                    min=0,
+                    variable_costs=param['EHK']['op_cost_var'])},
+                conversion_factors={wnw: param['EHK']['eta']})
 
-        es_ref.add(ehk)
+            es_ref.add(ehk)
 
     if param['SLK']['active']:
         slk = solph.Transformer(
@@ -394,15 +395,23 @@ def main():
 
     # Transformer
     if param['EHK']['active']:
-        data_ehk = views.node(results, 'Elektroheizkessel')['sequences']
         invest_ges += (param['EHK']['inv_spez']
-                       * param['EHK']['Q_N'])
-        cost_Anlagen += (data_ehk[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')].sum()
-                         * param['EHK']['op_cost_var']
-                         + (param['EHK']['op_cost_fix']
-                            * param['EHK']['Q_N']))
-        labeldict[(('Elektroheizkessel', 'Wärmenetzwerk'), 'flow')] = 'Q_EHK'
-        labeldict[(('Elektrizitätsnetzwerk', 'Elektroheizkessel'), 'flow')] = 'P_zu_EHK'
+                       * param['EHK']['Q_N']
+                       * param['EHK']['amount'])
+
+        for i in range(1, param['EHK']['amount']+1):
+            label_id = 'Elektroheizkessel_' + str(i)
+            data_ehk = views.node(results, label_id)['sequences']
+
+            cost_Anlagen += (
+                data_ehk[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
+                * param['EHK']['op_cost_var']
+                + (param['EHK']['op_cost_fix']
+                   * param['EHK']['Q_N'])
+                )
+
+            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_EHK_' + str(i)
+            labeldict[(('Elektrizitätsnetzwerk', label_id), 'flow')] = 'P_zu_EHK_' + str(i)
 
     if param['SLK']['active']:
         data_slk = views.node(results, 'Spitzenlastkessel')['sequences']
