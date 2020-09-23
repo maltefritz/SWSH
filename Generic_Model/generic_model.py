@@ -250,88 +250,92 @@ def main():
             es_ref.add(gud)
 
     if param['BPT']['active']:
-        bpt = solph.components.GenericCHP(
-            label='bpt',
-            fuel_input={gnw: solph.Flow(
-                H_L_FG_share_max=liste(param['bpt']['H_L_FG_share_max']),
-                nominal_value=param['bpt']['Q_in'])},
-            electrical_output={enw: solph.Flow(
-                variable_costs=param['bpt']['op_cost_var'],
-                P_max_woDH=liste(param['bpt']['P_max_woDH']),
-                P_min_woDH=liste(param['bpt']['P_min_woDH']),
-                Eta_el_max_woDH=liste(param['bpt']['Eta_el_max_woDH']),
-                Eta_el_min_woDH=liste(param['bpt']['Eta_el_min_woDH']))},
-            heat_output={wnw: solph.Flow(
-                Q_CW_min=liste(0),
-                Q_CW_max=liste(0))},
-            Beta=liste(0),
-            back_pressure=True)
+        for i in range(1, param['BPT']['amount']+1):
+            bpt = solph.components.GenericCHP(
+                label='bpt' + str(i),
+                fuel_input={gnw: solph.Flow(
+                    H_L_FG_share_max=liste(param['bpt']['H_L_FG_share_max']),
+                    nominal_value=param['bpt']['Q_in'])},
+                electrical_output={enw: solph.Flow(
+                    variable_costs=param['bpt']['op_cost_var'],
+                    P_max_woDH=liste(param['bpt']['P_max_woDH']),
+                    P_min_woDH=liste(param['bpt']['P_min_woDH']),
+                    Eta_el_max_woDH=liste(param['bpt']['Eta_el_max_woDH']),
+                    Eta_el_min_woDH=liste(param['bpt']['Eta_el_min_woDH']))},
+                heat_output={wnw: solph.Flow(
+                    Q_CW_min=liste(0),
+                    Q_CW_max=liste(0))},
+                Beta=liste(0),
+                back_pressure=True)
 
-        es_ref.add(bpt)
+            es_ref.add(bpt)
 
     # 30% m-Teillast bei 65-114°C und 50% m-Teillast bei 115-124°C
     if param['HP']['active']:
-        hp = solph.components.OffsetTransformer(
-            label='Wärmepumpe',
-            inputs={enw: solph.Flow(
-                nominal_value=1,
-                max=data['P_max_hp'],
-                min=data['P_min_hp'],
-                variable_costs=param['HP']['op_cost_var'],
-                nonconvex=solph.NonConvex())},
-            outputs={wnw: solph.Flow(
-                )},
-            coefficients=[data['c_0_hp'], data['c_1_hp']])
+        for i in range(1, param['HP']['amount']+1):
+            hp = solph.components.OffsetTransformer(
+                label='HP_' + str(i),
+                inputs={enw: solph.Flow(
+                    nominal_value=1,
+                    max=data['P_max_hp'],
+                    min=data['P_min_hp'],
+                    variable_costs=param['HP']['op_cost_var'],
+                    nonconvex=solph.NonConvex())},
+                outputs={wnw: solph.Flow(
+                    )},
+                coefficients=[data['c_0_hp'], data['c_1_hp']])
 
-        es_ref.add(hp)
+            es_ref.add(hp)
 
 
         # %% Speicher
 
     # Saisonaler Speicher
     if param['TES']['active']:
-        tes = solph.components.GenericStorage(
-            label='Wärmespeicher',
-            nominal_storage_capacity=param['TES']['Q'],
-            inputs={wnw: solph.Flow(
-                storageflowlimit=True,
-                nominal_value=param['TES']['Q_N_in'],
-                max=param['TES']['Q_rel_in_max'],
-                min=param['TES']['Q_rel_in_min'],
-                variable_costs=param['TES']['op_cost_var'],
-                nonconvex=solph.NonConvex(
-                    minimum_uptime=int(param['TES']['min_uptime']),
-                    initial_status=int(param['TES']['init_status'])))},
-            outputs={lt_wnw: solph.Flow(
-                storageflowlimit=True,
-                nominal_value=param['TES']['Q_N_out'],
-                max=param['TES']['Q_rel_out_max'],
-                min=param['TES']['Q_rel_out_min'],
-                nonconvex=solph.NonConvex(
-                    minimum_uptime=int(param['TES']['min_uptime'])))},
-            initial_storage_level=param['TES']['init_storage'],
-            loss_rate=param['TES']['Q_rel_loss'],
-            inflow_conversion_factor=param['TES']['inflow_conv'],
-            outflow_conversion_factor=param['TES']['outflow_conv'])
+        for i in range(1, param['TES']['amount']+1):
+            tes = solph.components.GenericStorage(
+                label='TES_' + str(i),
+                nominal_storage_capacity=param['TES']['Q'],
+                inputs={wnw: solph.Flow(
+                    storageflowlimit=True,
+                    nominal_value=param['TES']['Q_N_in'],
+                    max=param['TES']['Q_rel_in_max'],
+                    min=param['TES']['Q_rel_in_min'],
+                    variable_costs=param['TES']['op_cost_var'],
+                    nonconvex=solph.NonConvex(
+                        minimum_uptime=int(param['TES']['min_uptime']),
+                        initial_status=int(param['TES']['init_status'])))},
+                outputs={lt_wnw: solph.Flow(
+                    storageflowlimit=True,
+                    nominal_value=param['TES']['Q_N_out'],
+                    max=param['TES']['Q_rel_out_max'],
+                    min=param['TES']['Q_rel_out_min'],
+                    nonconvex=solph.NonConvex(
+                        minimum_uptime=int(param['TES']['min_uptime'])))},
+                initial_storage_level=param['TES']['init_storage'],
+                loss_rate=param['TES']['Q_rel_loss'],
+                inflow_conversion_factor=param['TES']['inflow_conv'],
+                outflow_conversion_factor=param['TES']['outflow_conv'])
 
-        es_ref.add(tes)
+            es_ref.add(tes)
 
     # Low temperature heat pump
 
     if param['LT-HP']['active']:
-        lthp = solph.Transformer(
-            label="LT-WP",
-            inputs={lt_wnw: solph.Flow(),
-                    enw: solph.Flow(
-                        variable_costs=param['HP']['op_cost_var'])},
-            outputs={wnw: solph.Flow()},
-            conversion_factors={enw: 1/data['cop_lthp'],
-                                lt_wnw: (data['cop_lthp']-1)/data['cop_lthp']}
-            # conversion_factors={enw: 1/cop_lt,
-            #                     lt_wnw: (cop_lt-1)/cop_lt}
-            )
+        for i in range(1, param['LT-HP']['amount']+1):
+            lthp = solph.Transformer(
+                label="LT-HP_" + str(i),
+                inputs={lt_wnw: solph.Flow(),
+                        enw: solph.Flow(
+                            variable_costs=param['HP']['op_cost_var'])},
+                outputs={wnw: solph.Flow()},
+                conversion_factors={enw: 1/data['cop_lthp'],
+                                    lt_wnw: (data['cop_lthp']-1)/data['cop_lthp']}
+                # conversion_factors={enw: 1/cop_lt,
+                #                     lt_wnw: (cop_lt-1)/cop_lt}
+                )
 
-        es_ref.add(lthp)
+            es_ref.add(lthp)
 
     # %% Processing
 
@@ -449,45 +453,66 @@ def main():
             labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_' + label_id
 
     if param['HP']['active']:
-        data_hp = views.node(results, 'Wärmepumpe')['sequences']
         invest_ges += (param['HP']['inv_spez']
-                       * data['P_max_hp'].max())
-        cost_Anlagen += (data_hp[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')].sum()
-                         * param['HP']['op_cost_var']
-                         + (param['HP']['op_cost_fix']
-                            * data['P_max_hp'].max()))
-        labeldict[(('Wärmepumpe', 'Wärmenetzwerk'), 'flow')] = 'Q_ab_HP'
-        labeldict[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'flow')] = 'P_zu_HP'
-        labeldict[(('Elektrizitätsnetzwerk', 'Wärmepumpe'), 'status')] = 'Status_HP'
+                       * data['P_max_hp'].max()
+                       * param['HP']['amount'])
+
+        for i in range(1, param['HP']['amount']+1):
+            label_id = 'HP_' + str(i)
+            data_hp = views.node(results, label_id)['sequences']
+
+            cost_Anlagen += (
+                data_hp[(('Elektrizitätsnetzwerk', label_id), 'flow')].sum()
+                * param['HP']['op_cost_var']
+                + (param['HP']['op_cost_fix']
+                   * data['P_max_hp'].max())
+                )
+
+            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
+            labeldict[(('Elektrizitätsnetzwerk', label_id), 'flow')] = 'P_zu_' + label_id
+            labeldict[(('Elektrizitätsnetzwerk', label_id), 'status')] = 'Status_' + label_id
 
     if param['LT-HP']['active']:
-        data_lt_hp = views.node(results, 'LT-WP')['sequences']
-        invest_ges += (param['HP']['inv_spez']
-                       * data_wnw[(('LT-WP', 'Wärmenetzwerk'), 'flow')].max()
-                       / data['cop_lthp'].mean())
-        cost_Anlagen += (data_lt_hp[(('Elektrizitätsnetzwerk', 'LT-WP'), 'flow')].sum()
-                         * param['HP']['op_cost_var']
-                         + (param['HP']['op_cost_fix']
-                            * data_wnw[(('LT-WP', 'Wärmenetzwerk'), 'flow')].max()
-                            / data['cop_lthp'].mean()))
-        labeldict[(('LT-WP', 'Wärmenetzwerk'), 'flow')] = 'Q_ab_LT-HP'
-        labeldict[(('Elektrizitätsnetzwerk', 'LT-WP'), 'flow')] = 'P_zu_LT-HP'
-        labeldict[(('LT-Wärmenetzwerk', 'LT-WP'), 'flow')] = 'Q_zu_LT-HP'
+        for i in range(1, param['LT-HP']['amount']+1):
+            label_id = 'LT-HP_' + str(i)
+            data_lt_hp = views.node(results, label_id)['sequences']
+
+            invest_ges += (param['HP']['inv_spez']
+                           * data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].max()
+                           / data['cop_lthp'].mean())
+
+            cost_Anlagen += (
+                data_lt_hp[(('Elektrizitätsnetzwerk', label_id), 'flow')].sum()
+                * param['HP']['op_cost_var']
+                + (param['HP']['op_cost_fix']
+                   * data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].max()
+                   / data['cop_lthp'].mean())
+                )
+
+            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
+            labeldict[(('Elektrizitätsnetzwerk', label_id), 'flow')] = 'P_zu_' + label_id
+            labeldict[(('LT-Wärmenetzwerk', label_id), 'flow')] = 'Q_zu_' + label_id
 
     # Speicher
     if param['TES']['active']:
-        data_tes = views.node(results, 'Wärmespeicher')['sequences']
         invest_ges += (param['TES']['inv_spez']
-                       * param['TES']['Q'])
-        cost_Anlagen += (data_tes[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')].sum()
-                         * param['TES']['op_cost_var']
-                         + (param['TES']['op_cost_fix']
-                            * param['TES']['Q']))
-        labeldict[(('Wärmespeicher', 'LT-Wärmenetzwerk'), 'flow')] = 'Q_ab_TES'
-        labeldict[(('Wärmespeicher', 'LT-Wärmenetzwerk'), 'status')] = 'Status_ab_TES'
-        labeldict[(('Wärmenetzwerk', 'Wärmespeicher'), 'flow')] = 'Q_zu_TES'
-        labeldict[(('Wärmenetzwerk', 'Wärmespeicher'), 'status')] = 'Status_zu_TES'
-        labeldict[(('Wärmespeicher', 'None'), 'storage_content')] = 'Speicherstand'
+                       * param['TES']['Q']
+                       * param['TES']['amount'])
+
+        for i in range(1, param['TES']['amount']+1):
+            label_id = 'TES_' + str(i)
+            data_tes = views.node(results, label_id)['sequences']
+
+            cost_Anlagen += (data_tes[(('Wärmenetzwerk', label_id), 'flow')].sum()
+                             * param['TES']['op_cost_var']
+                             + (param['TES']['op_cost_fix']
+                                * param['TES']['Q']))
+
+            labeldict[((label_id, 'LT-Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
+            labeldict[((label_id, 'LT-Wärmenetzwerk'), 'status')] = 'Status_ab_' + label_id
+            labeldict[(('Wärmenetzwerk', label_id), 'flow')] = 'Q_zu_' + label_id
+            labeldict[(('Wärmenetzwerk', label_id), 'status')] = 'Status_zu_' + label_id
+            labeldict[((label_id, 'None'), 'storage_content')] = 'Speicherstand_' + label_id
 
 
         # %% Zahlungsströme Ergebnis
