@@ -1,6 +1,7 @@
 {
   "TES": {
     "active": true,
+    "amount": 2,
     "Q": 150000.0,
     "Q_N_in": 85.0,
     "Q_rel_in_max": 1.0,
@@ -20,6 +21,7 @@
   },
   "HP": {
     "active": true,
+    "amount": 2,
     "Q_N": 75.0,
     "op_cost_var": 0.88,
     "op_cost_fix": 881.0,
@@ -53,7 +55,8 @@
     "inv_spez": 80000.0
   },
   "BPT": {
-    "active": false
+    "active": false,
+    "amount": 2
   },
   "param": {
     "gas_price": 14.14,
@@ -77,7 +80,8 @@
     "inv_spez": 1000000.0
   },
   "LT-HP": {
-    "active": true
+    "active": true,
+    "amount": 2
   },
   "SLK": {
     "active": true,
