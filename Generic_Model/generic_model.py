@@ -210,25 +210,26 @@ def main():
             es_ref.add(slk)
 
     if param['BHKW']['active']:
-        bhkw = solph.components.GenericCHP(
-            label='BHKW',
-            fuel_input={gnw: solph.Flow(
-                H_L_FG_share_max=liste(param['BHKW']['H_L_FG_share_max']),
-                H_L_FG_share_min=liste(param['BHKW']['H_L_FG_share_min']),
-                nominal_value=param['BHKW']['Q_in'])},
-            electrical_output={enw: solph.Flow(
-                variable_costs=param['BHKW']['op_cost_var'],
-                P_max_woDH=liste(param['BHKW']['P_max_woDH']),
-                P_min_woDH=liste(param['BHKW']['P_min_woDH']),
-                Eta_el_max_woDH=liste(param['BHKW']['Eta_el_max_woDH']),
-                Eta_el_min_woDH=liste(param['BHKW']['Eta_el_min_woDH']))},
-            heat_output={wnw: solph.Flow(
-                Q_CW_min=liste(0),
-                Q_CW_max=liste(0))},
-            Beta=liste(0),
-            back_pressure=False)
+        for i in range(1, param['BHKW']['amount']+1):
+            bhkw = solph.components.GenericCHP(
+                label='BHKW_' + str(i),
+                fuel_input={gnw: solph.Flow(
+                    H_L_FG_share_max=liste(param['BHKW']['H_L_FG_share_max']),
+                    H_L_FG_share_min=liste(param['BHKW']['H_L_FG_share_min']),
+                    nominal_value=param['BHKW']['Q_in'])},
+                electrical_output={enw: solph.Flow(
+                    variable_costs=param['BHKW']['op_cost_var'],
+                    P_max_woDH=liste(param['BHKW']['P_max_woDH']),
+                    P_min_woDH=liste(param['BHKW']['P_min_woDH']),
+                    Eta_el_max_woDH=liste(param['BHKW']['Eta_el_max_woDH']),
+                    Eta_el_min_woDH=liste(param['BHKW']['Eta_el_min_woDH']))},
+                heat_output={wnw: solph.Flow(
+                    Q_CW_min=liste(0),
+                    Q_CW_max=liste(0))},
+                Beta=liste(0),
+                back_pressure=False)
 
-        es_ref.add(bhkw)
+            es_ref.add(bhkw)
 
     if param['GuD']['active']:
         for i in range(1, param['GuD']['amount']+1):
@@ -435,16 +436,24 @@ def main():
             labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_SLK_' + str(i)
 
     if param['BHKW']['active']:
-        data_bhkw = views.node(results, 'BHKW')['sequences']
         invest_ges += (param['BHKW']['P_max_woDH']
-                       * param['BHKW']['inv_spez'])
-        cost_Anlagen += (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-                         * param['BHKW']['op_cost_var']
-                         + (param['BHKW']['op_cost_fix']
-                            * param['BHKW']['P_max_woDH']))
-        labeldict[(('BHKW', 'Wärmenetzwerk'), 'flow')] = 'Q_BHKW'
-        labeldict[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')] = 'P_BHKW'
-        labeldict[(('Gasnetzwerk', 'BHKW'), 'flow')] = 'H_BHKW'
+                       * param['BHKW']['inv_spez']
+                       * param['BHKW']['amount'])
+
+        for i in range(1, param['BHKW']['amount']+1):
+            label_id = 'BHKW' + str(i)
+            data_bhkw = views.node(results, label_id)['sequences']
+
+            cost_Anlagen += (
+                data_bhkw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
+                * param['BHKW']['op_cost_var']
+                + (param['BHKW']['op_cost_fix']
+                   * param['BHKW']['P_max_woDH'])
+                )
+
+            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_' + label_id
+            labeldict[((label_id, 'Elektrizitätsnetzwerk'), 'flow')] = 'P_' + label_id
+            labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_' + label_id
 
     if param['GuD']['active']:
         invest_ges += (param['GuD']['P_max_woDH']
