@@ -195,18 +195,19 @@ def main():
             es_ref.add(ehk)
 
     if param['SLK']['active']:
-        slk = solph.Transformer(
-            label='Spitzenlastkessel',
-            inputs={gnw: solph.Flow()},
-            outputs={wnw: solph.Flow(
-                nominal_value=param['SLK']['Q_N'],
-                max=1,
-                min=0,
-                variable_costs=(param['SLK']['op_cost_var']
-                                + param['param']['energy_tax']))},
-            conversion_factors={wnw: param['SLK']['eta']})
+        for i in range(1, param['SLK']['amount']+1):
+            slk = solph.Transformer(
+                label='Spitzenlastkessel_' + str(i),
+                inputs={gnw: solph.Flow()},
+                outputs={wnw: solph.Flow(
+                    nominal_value=param['SLK']['Q_N'],
+                    max=1,
+                    min=0,
+                    variable_costs=(param['SLK']['op_cost_var']
+                                    + param['param']['energy_tax']))},
+                conversion_factors={wnw: param['SLK']['eta']})
 
-        es_ref.add(slk)
+            es_ref.add(slk)
 
     if param['BHKW']['active']:
         bhkw = solph.components.GenericCHP(
@@ -414,16 +415,24 @@ def main():
             labeldict[(('Elektrizitätsnetzwerk', label_id), 'flow')] = 'P_zu_EHK_' + str(i)
 
     if param['SLK']['active']:
-        data_slk = views.node(results, 'Spitzenlastkessel')['sequences']
         invest_ges += (param['SLK']['inv_spez']
-                       * param['SLK']['Q_N'])
-        cost_Anlagen += (data_slk[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')].sum()
-                         * (param['SLK']['op_cost_var']
-                         + param['param']['energy_tax'])
-                         + (param['SLK']['op_cost_fix']
-                            * param['SLK']['Q_N']))
-        labeldict[(('Spitzenlastkessel', 'Wärmenetzwerk'), 'flow')] = 'Q_SLK'
-        labeldict[(('Gasnetzwerk', 'Spitzenlastkessel'), 'flow')] = 'H_SLK'
+                       * param['SLK']['Q_N']
+                       * param['SLK']['amount'])
+
+        for i in range(1, param['SLK']['amount']+1):
+            label_id = 'Spitzenlastkessel_' + str(i)
+            data_slk = views.node(results, label_id)['sequences']
+
+            cost_Anlagen += (
+                data_slk[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
+                * (param['SLK']['op_cost_var']
+                   + param['param']['energy_tax'])
+                + (param['SLK']['op_cost_fix']
+                   * param['SLK']['Q_N'])
+                )
+
+            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_SLK_' + str(i)
+            labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_SLK_' + str(i)
 
     if param['BHKW']['active']:
         data_bhkw = views.node(results, 'BHKW')['sequences']
