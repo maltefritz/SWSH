@@ -229,24 +229,25 @@ def main():
         es_ref.add(bhkw)
 
     if param['GuD']['active']:
-        gud = solph.components.GenericCHP(
-            label='GuD',
-            fuel_input={gnw: solph.Flow(
-                H_L_FG_share_max=liste(param['GuD']['H_L_FG_share_max']),
-                nominal_value=param['GuD']['Q_in'])},
-            electrical_output={enw: solph.Flow(
-                variable_costs=param['GuD']['op_cost_var'],
-                P_max_woDH=liste(param['GuD']['P_max_woDH']),
-                P_min_woDH=liste(param['GuD']['P_min_woDH']),
-                Eta_el_max_woDH=liste(param['GuD']['Eta_el_max_woDH']),
-                Eta_el_min_woDH=liste(param['GuD']['Eta_el_min_woDH']))},
-            heat_output={wnw: solph.Flow(
-                Q_CW_min=liste(param['GuD']['Q_CW_min']),
-                Q_CW_max=liste(0))},
-            Beta=liste(param['GuD']['beta']),
-            back_pressure=False)
+        for i in range(1, param['GuD']['amount']+1):
+            gud = solph.components.GenericCHP(
+                label='GuD_' + str(i),
+                fuel_input={gnw: solph.Flow(
+                    H_L_FG_share_max=liste(param['GuD']['H_L_FG_share_max']),
+                    nominal_value=param['GuD']['Q_in'])},
+                electrical_output={enw: solph.Flow(
+                    variable_costs=param['GuD']['op_cost_var'],
+                    P_max_woDH=liste(param['GuD']['P_max_woDH']),
+                    P_min_woDH=liste(param['GuD']['P_min_woDH']),
+                    Eta_el_max_woDH=liste(param['GuD']['Eta_el_max_woDH']),
+                    Eta_el_min_woDH=liste(param['GuD']['Eta_el_min_woDH']))},
+                heat_output={wnw: solph.Flow(
+                    Q_CW_min=liste(param['GuD']['Q_CW_min']),
+                    Q_CW_max=liste(0))},
+                Beta=liste(param['GuD']['beta']),
+                back_pressure=False)
 
-        es_ref.add(gud)
+            es_ref.add(gud)
 
     if param['BPT']['active']:
         bpt = solph.components.GenericCHP(
@@ -340,6 +341,7 @@ def main():
     model = solph.Model(es_ref)
     solph.constraints.limit_active_flow_count_by_keyword(
         model, 'storageflowlimit', lower_limit=0, upper_limit=1)
+    # model.write('my_model.lp', io_options={'symbolic_solver_labels': True})
     model.solve(solver='gurobi', solve_kwargs={'tee': True},
                 cmdline_options={"mipgap": "0.10"})
 
@@ -415,7 +417,7 @@ def main():
         labeldict[(('Gasnetzwerk', 'Spitzenlastkessel'), 'flow')] = 'H_SLK'
 
     if param['BHKW']['active']:
-        data_bhkw = data_bhkw = views.node(results, 'BHKW')['sequences']
+        data_bhkw = views.node(results, 'BHKW')['sequences']
         invest_ges += (param['BHKW']['P_max_woDH']
                        * param['BHKW']['inv_spez'])
         cost_Anlagen += (data_bhkw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
@@ -427,16 +429,24 @@ def main():
         labeldict[(('Gasnetzwerk', 'BHKW'), 'flow')] = 'H_BHKW'
 
     if param['GuD']['active']:
-        data_gud = data_gud = views.node(results, 'GuD')['sequences']
         invest_ges += (param['GuD']['P_max_woDH']
-                       * param['GuD']['inv_spez'])
-        cost_Anlagen += (data_gud[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-                         * param['GuD']['op_cost_var']
-                         + (param['GuD']['op_cost_fix']
-                            * param['GuD']['P_max_woDH']))
-        labeldict[(('GuD', 'Wärmenetzwerk'), 'flow')] = 'Q_GuD'
-        labeldict[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')] = 'P_GuD'
-        labeldict[(('Gasnetzwerk', 'GuD'), 'flow')] = 'H_GuD'
+                       * param['GuD']['inv_spez']
+                       * param['GuD']['amount'])
+
+        for i in range(1, param['GuD']['amount']+1):
+            label_id = 'GuD_' + str(i)
+            data_gud = views.node(results, label_id)['sequences']
+
+            cost_Anlagen += (
+                data_gud[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
+                * param['GuD']['op_cost_var']
+                + (param['GuD']['op_cost_fix']
+                   * param['GuD']['P_max_woDH'])
+                )
+
+            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_' + label_id
+            labeldict[((label_id, 'Elektrizitätsnetzwerk'), 'flow')] = 'P_' + label_id
+            labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_' + label_id
 
     if param['HP']['active']:
         data_hp = views.node(results, 'Wärmepumpe')['sequences']
@@ -549,11 +559,7 @@ def main():
 
     # Daten zum Plotten der Wärmeversorgung
 
-    df1 = pd.concat([data_wnw[['Q_BHKW', 'Q_EHK', 'Q_GuD', 'Q_ab_LT-HP', 'Q_SLK',
-                               'Q_demand', 'Q_zu_TES', 'Q_ab_HP']],
-                     data_lt_wnw[['Q_zu_LT-HP', 'Q_Sol', 'Q_ab_TES']],
-                     data_tes[['Speicherstand']],
-                     data_enw[['P_BHKW', 'P_GuD', 'P_zu_HP', 'P_zu_LT-HP']]],
+    df1 = pd.concat([data_wnw, data_lt_wnw, data_tes, data_enw],
                     axis=1)
     df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
                sep=";")
