@@ -441,7 +441,7 @@ def main():
                        * param['BHKW']['amount'])
 
         for i in range(1, param['BHKW']['amount']+1):
-            label_id = 'BHKW' + str(i)
+            label_id = 'BHKW_' + str(i)
             data_bhkw = views.node(results, label_id)['sequences']
 
             cost_Anlagen += (

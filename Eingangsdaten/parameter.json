@@ -46,6 +46,7 @@
   },
   "EHK": {
     "active": true,
+    "amount": 1,
     "Q_N": 75.0,
     "eta": 0.99,
     "op_cost_var": 0.5,
@@ -64,6 +65,7 @@
   },
   "BHKW": {
     "active": true,
+    "amount": 1,
     "Q_N": 73.5,
     "Q_in": 220.4506659,
     "P_max_woDH": 103.2900785,
@@ -81,6 +83,7 @@
   },
   "SLK": {
     "active": true,
+    "amount": 1,
     "Q_N": 75.0,
     "eta": 0.88,
     "op_cost_var": 1.1,
