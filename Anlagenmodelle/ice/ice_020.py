@@ -310,13 +310,13 @@ for Tval in T_range:
     # min Q (Opened Bypass), from min P to max P
     print('Opened bypass, go from minimum to maximum power')
 
-    ice_power = np.linspace(ice_P_design * 0.5, ice_P_design, 5)
+    ice_power_range = np.linspace(ice_P_design * 0.5, ice_P_design, 5)
     fg_chbp.set_attr(m=np.nan)
     fgc_ch.set_attr(m=np.nan)
 
     fgc_ch.set_attr(m=0.01)
 
-    for P in ice_power:
+    for P in ice_power_range:
         ice.set_attr(P=P)
         nw.solve(mode=mode, design_path='ice_design')
         print(power.P.val, heat.P.val,
@@ -333,17 +333,17 @@ for Tval in T_range:
 
     fg_chbp.set_attr(m=0)
 
-    for P in ice_power:
+    for P in ice_power_range:
         ice.set_attr(P=P)
         nw.solve(mode=mode, design_path='ice_design')
         print(power.P.val, heat.P.val,
               -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
         P_L += [abs(power.P.val)]
         Q_L += [abs(heat.P.val)]
-        if P == ice_power[0]:
+        if P == ice_power_range[0]:
             H_L_FG_max1 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
             eta_el_min_br = abs(power.P.val) / ti.P.val
-        elif P == ice_power[-1]:
+        elif P == ice_power_range[-1]:
             H_L_FG_max2 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
             eta_el_max_tr = abs(power.P.val) / ti.P.val
 
