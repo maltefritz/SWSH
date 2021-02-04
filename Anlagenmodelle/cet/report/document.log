@@ -1,0 +1,829 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7250 64-bit) (preloaded format=pdflatex 2020.12.3)  3 FEB 2021 12:32
+entering extended mode
+**./document.tex
+(document.tex
+LaTeX2e <2019-10-01> patch level 3
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\article
+.cls"
+Document Class: article 2019/10/25 v1.4k Standard LaTeX document class
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\size10.
+clo"
+File: size10.clo 2019/10/25 v1.4k Standard LaTeX file (size option)
+)
+\c@part=\count80
+\c@section=\count81
+\c@subsection=\count82
+\c@subsubsection=\count83
+\c@paragraph=\count84
+\c@subparagraph=\count85
+\c@figure=\count86
+\c@table=\count87
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/geometry\geo
+metry.sty"
+Package: geometry 2020/01/02 v5.9 Page Geometry
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\key
+val.sty"
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/iftex\ifvt
+ex.sty"
+Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/iftex\ifte
+x.sty"
+Package: iftex 2019/11/07 v1.0c TeX engine tests
+))
+\Gm@cnth=\count88
+\Gm@cntv=\count89
+\c@Gm@tempcnt=\count90
+\Gm@bindingoffset=\dimen103
+\Gm@wd@mp=\dimen104
+\Gm@odd@mp=\dimen105
+\Gm@even@mp=\dimen106
+\Gm@layoutwidth=\dimen107
+\Gm@layoutheight=\dimen108
+\Gm@layouthoffset=\dimen109
+\Gm@layoutvoffset=\dimen110
+\Gm@dimlist=\toks15
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/geometry\geo
+metry.cfg"))
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\gra
+phicx.sty"
+Package: graphicx 2017/06/01 v1.1a Enhanced LaTeX Graphics (DPC,SPQR)
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\gra
+phics.sty"
+Package: graphics 2019/11/01 v1.3d Standard LaTeX Graphics (DPC,SPQR)
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\tri
+g.sty"
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg
+\graphics.cfg"
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 105.
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-def
+\pdftex.def"
+File: pdftex.def 2018/01/08 v1.0l Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen111
+\Gin@req@width=\dimen112
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/float\float.
+sty"
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count91
+\float@exts=\toks16
+\float@box=\box27
+\@float@everytoks=\toks17
+\@floatcapt=\box28
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\hyp
+erref.sty"
+Package: hyperref 2019/11/10 v7.00c Hypertext links for LaTeX
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/ltxcmds\lt
+xcmds.sty"
+Package: ltxcmds 2019/12/15 v1.24 LaTeX kernel commands for general use (HO)
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/pdftexcmds\p
+dftexcmds.sty"
+Package: pdftexcmds 2019/11/24 v0.31 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/infwarerr\
+infwarerr.sty"
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+)
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/kvsetkeys\
+kvsetkeys.sty"
+Package: kvsetkeys 2019/12/15 v1.18 Key value parser (HO)
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/kvdefineke
+ys\kvdefinekeys.sty"
+Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/pdfescape\
+pdfescape.sty"
+Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hycolor\hyco
+lor.sty"
+Package: hycolor 2019/12/15 v1.9 Color options for hyperref/bookmark (HO)
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hycolor\xcol
+or-patch.sty"
+Package: xcolor-patch 2019/12/15 xcolor patch
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\hop
+atch.sty"
+Package: hopatch 2016/05/16 v1.3 Wrapper for package hooks (HO)
+)))
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/letltxmacro\
+letltxmacro.sty"
+Package: letltxmacro 2019/12/03 v1.6 Let assignment for LaTeX macros (HO)
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/auxhook\auxh
+ook.sty"
+Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/kvoptions\kv
+options.sty"
+Package: kvoptions 2019/11/29 v3.13 Key value format for package options (HO)
+)
+\@linkdim=\dimen113
+\Hy@linkcounter=\count92
+\Hy@pagecounter=\count93
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\pd1
+enc.def"
+File: pd1enc.def 2019/11/10 v7.00c Hyperref: PDFDocEncoding definition (HO)
+Now handling font encoding PD1 ...
+... no UTF-8 mapping file for font encoding PD1
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/intcalc\in
+tcalc.sty"
+Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/etexcmds\e
+texcmds.sty"
+Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
+)
+\Hy@SavedSpaceFactor=\count94
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/00miktex\hyp
+erref.cfg"
+File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive
+)
+Package hyperref Info: Hyper figures OFF on input line 4535.
+Package hyperref Info: Link nesting OFF on input line 4540.
+Package hyperref Info: Hyper index ON on input line 4543.
+Package hyperref Info: Plain pages OFF on input line 4550.
+Package hyperref Info: Backreferencing OFF on input line 4555.
+Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
+Package hyperref Info: Bookmarks ON on input line 4788.
+\c@Hy@tempcnt=\count95
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/url\url.sty"
+\Urlmuskip=\muskip10
+Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 5147.
+\XeTeXLinkMargin=\dimen114
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/bitset\bit
+set.sty"
+Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/bigintcalc
+\bigintcalc.sty"
+Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
+)
+))
+\Fld@menulength=\count96
+\Field@Width=\dimen115
+\Fld@charsize=\dimen116
+Package hyperref Info: Hyper figures OFF on input line 6418.
+Package hyperref Info: Link nesting OFF on input line 6423.
+Package hyperref Info: Hyper index ON on input line 6426.
+Package hyperref Info: backreferencing OFF on input line 6433.
+Package hyperref Info: Link coloring OFF on input line 6438.
+Package hyperref Info: Link coloring with OCG OFF on input line 6443.
+Package hyperref Info: PDF/A mode OFF on input line 6448.
+LaTeX Info: Redefining \ref on input line 6488.
+LaTeX Info: Redefining \pageref on input line 6492.
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/atbegshi\a
+tbegshi.sty"
+Package: atbegshi 2019/12/05 v1.19 At begin shipout hook (HO)
+)
+\Hy@abspage=\count97
+\c@Item=\count98
+\c@Hfootnote=\count99
+)
+Package hyperref Info: Driver (autodetected): hpdftex.
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\hpd
+ftex.def"
+File: hpdftex.def 2019/11/10 v7.00c Hyperref driver for pdfTeX
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/atveryend\at
+veryend.sty"
+Package: atveryend 2019-12-11 v1.11 Hooks at the very end of document (HO)
+Package atveryend Info: \enddocument detected (standard20110627).
+)
+\Fld@listcount=\count100
+\c@bookmark@seq@number=\count101
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/rerunfileche
+ck\rerunfilecheck.sty"
+Package: rerunfilecheck 2019/12/05 v1.9 Rerun checks for auxiliary files (HO)
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/uniquecoun
+ter\uniquecounter.sty"
+Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
+)
+Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
+86.
+)
+\Hy@SectionHShift=\skip43
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/booktabs\boo
+ktabs.sty"
+Package: booktabs 2019/10/08 v1.6180339 publication quality tables
+\heavyrulewidth=\dimen117
+\lightrulewidth=\dimen118
+\cmidrulewidth=\dimen119
+\belowrulesep=\dimen120
+\belowbottomsep=\dimen121
+\aboverulesep=\dimen122
+\abovetopsep=\dimen123
+\cmidrulesep=\dimen124
+\cmidrulekern=\dimen125
+\defaultaddspace=\dimen126
+\@cmidla=\count102
+\@cmidlb=\count103
+\@aboverulesep=\dimen127
+\@belowrulesep=\dimen128
+\@thisruleclass=\count104
+\@lastruleclass=\count105
+\@thisrulewidth=\dimen129
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsm
+ath.sty"
+Package: amsmath 2019/11/16 v2.17d AMS math features
+\@mathmargin=\skip44
+
+For additional information on amsmath, use the `?' option.
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amst
+ext.sty"
+Package: amstext 2000/06/29 v2.01 AMS text
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsg
+en.sty"
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks18
+\ex@=\dimen130
+))
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsb
+sy.sty"
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen131
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amso
+pn.sty"
+Package: amsopn 2016/03/08 v2.02 operator names
+)
+\inf@bad=\count106
+LaTeX Info: Redefining \frac on input line 227.
+\uproot@=\count107
+\leftroot@=\count108
+LaTeX Info: Redefining \overline on input line 389.
+\classnum@=\count109
+\DOTSCASE@=\count110
+LaTeX Info: Redefining \ldots on input line 486.
+LaTeX Info: Redefining \dots on input line 489.
+LaTeX Info: Redefining \cdots on input line 610.
+\Mathstrutbox@=\box29
+\strutbox@=\box30
+\big@size=\dimen132
+LaTeX Font Info:    Redeclaring font encoding OML on input line 733.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 734.
+\macc@depth=\count111
+\c@MaxMatrixCols=\count112
+\dotsspace@=\muskip11
+\c@parentequation=\count113
+\dspbrk@lvl=\count114
+\tag@help=\toks19
+\row@=\count115
+\column@=\count116
+\maxfields@=\count117
+\andhelp@=\toks20
+\eqnshift@=\dimen133
+\alignsep@=\dimen134
+\tagshift@=\dimen135
+\tagwidth@=\dimen136
+\totwidth@=\dimen137
+\lineht@=\dimen138
+\@envbody=\toks21
+\multlinegap=\skip45
+\multlinetaggap=\skip46
+\mathdisplay@stack=\toks22
+LaTeX Info: Redefining \[ on input line 2858.
+LaTeX Info: Redefining \] on input line 2859.
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/units\units.
+sty"
+Package: units 1998/08/04 v0.9b Typesetting units
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ifthen.
+sty"
+Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/units\nicefr
+ac.sty"
+Package: nicefrac 1998/08/04 v0.9b Nice fractions
+\L@UnitsRaiseDisplaystyle=\skip47
+\L@UnitsRaiseTextstyle=\skip48
+\L@UnitsRaiseScriptstyle=\skip49
+))
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/cleveref\cle
+veref.sty"
+Package: cleveref 2018/03/27 v0.21.4 Intelligent cross-referencing
+Package cleveref Info: `hyperref' support loaded on input line 2370.
+LaTeX Info: Redefining \cref on input line 2370.
+LaTeX Info: Redefining \Cref on input line 2370.
+LaTeX Info: Redefining \crefrange on input line 2370.
+LaTeX Info: Redefining \Crefrange on input line 2370.
+LaTeX Info: Redefining \cpageref on input line 2370.
+LaTeX Info: Redefining \Cpageref on input line 2370.
+LaTeX Info: Redefining \cpagerefrange on input line 2370.
+LaTeX Info: Redefining \Cpagerefrange on input line 2370.
+LaTeX Info: Redefining \labelcref on input line 2370.
+LaTeX Info: Redefining \labelcpageref on input line 2370.
+) (document.aux
+
+LaTeX Warning: Label `eq:Connection_ref' multiply defined.
+
+
+LaTeX Warning: Label `eq:Connection_ref@cref' multiply defined.
+
+
+LaTeX Warning: Label `eq:Connection_ref' multiply defined.
+
+
+LaTeX Warning: Label `eq:Connection_ref@cref' multiply defined.
+
+
+LaTeX Warning: Label `eq:Connection_ref' multiply defined.
+
+
+LaTeX Warning: Label `eq:Connection_ref@cref' multiply defined.
+
+
+LaTeX Warning: Label `eq:Bus_energy_flow_sum' multiply defined.
+
+
+LaTeX Warning: Label `eq:Bus_energy_flow_sum@cref' multiply defined.
+
+)
+\openout1 = `document.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+*geometry* verbose mode - [ preamble ] result:
+* driver: pdftex
+* paper: a4paper
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(56.9055pt, 450.97528pt, 89.62709pt)
+* v-part:(T,H,B)=(56.9055pt, 686.7347pt, 101.40665pt)
+* \paperwidth=597.50787pt
+* \paperheight=845.04684pt
+* \textwidth=450.97528pt
+* \textheight=686.7347pt
+* \oddsidemargin=-15.36449pt
+* \evensidemargin=-15.36449pt
+* \topmargin=-52.36449pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=10.0pt
+* \footskip=30.0pt
+* \marginparwidth=65.0pt
+* \marginparsep=11.0pt
+* \columnsep=10.0pt
+* \skip\footins=9.0pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/context/base/mkii\
+supp-pdf.mkii"
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count118
+\scratchdimen=\dimen139
+\scratchbox=\box31
+\nofMPsegments=\count119
+\nofMParguments=\count120
+\everyMPshowfont=\toks23
+\MPscratchCnt=\count121
+\MPscratchDim=\dimen140
+\MPnumerator=\count122
+\makeMPintoPDFobject=\count123
+\everyMPtoPDFconversion=\toks24
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/epstopdf-pkg
+\epstopdf-base.sty"
+Package: epstopdf-base 2019-12-09 v2.10 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+)
+\AtBeginShipoutBox=\box32
+Package hyperref Info: Link coloring OFF on input line 20.
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\nam
+eref.sty"
+Package: nameref 2019/09/16 v2.46 Cross-referencing by name of section
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/refcount\ref
+count.sty"
+Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
+)
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/generic/gettitlest
+ring\gettitlestring.sty"
+Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
+)
+\c@section@level=\count124
+)
+LaTeX Info: Redefining \ref on input line 20.
+LaTeX Info: Redefining \pageref on input line 20.
+LaTeX Info: Redefining \nameref on input line 20.
+ (document.out) (document.out)
+\@outlinefile=\write3
+\openout3 = `document.out'.
+
+ (report.tex
+LaTeX Font Info:    Trying to load font information for OMS+cmr on input line 4
+.
+
+("C:\Users\Malte Fritz\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\omscmr.
+fd"
+File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 4.
+ [1
+
+{C:/Users/Malte Fritz/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+Overfull \hbox (15.01941pt too wide) in paragraph at lines 32--44
+ [] 
+ []
+
+
+Overfull \hbox (88.848pt too wide) in paragraph at lines 67--78
+ [] 
+ []
+
+[2]
+Overfull \hbox (33.47562pt too wide) in paragraph at lines 136--144
+ [] 
+ []
+
+
+Overfull \hbox (18.94441pt too wide) in paragraph at lines 157--164
+ [] 
+ []
+
+[3]
+<figures/Compressor_CharLine_eta_s_char_compressor.pdf, id=264, 427.87668pt x 3
+04.4468pt>
+File: figures/Compressor_CharLine_eta_s_char_compressor.pdf Graphic file (type 
+pdf)
+<use figures/Compressor_CharLine_eta_s_char_compressor.pdf>
+Package pdftex.def Info: figures/Compressor_CharLine_eta_s_char_compressor.pdf 
+ used on input line 234.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+<figures/Compressor_CharLine_eta_s_char_fuel_compressor.pdf, id=266, 427.87668p
+t x 304.4468pt>
+File: figures/Compressor_CharLine_eta_s_char_fuel_compressor.pdf Graphic file (
+type pdf)
+<use figures/Compressor_CharLine_eta_s_char_fuel_compressor.pdf>
+Package pdftex.def Info: figures/Compressor_CharLine_eta_s_char_fuel_compressor
+.pdf  used on input line 242.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+
+Overfull \hbox (17.22221pt too wide) in paragraph at lines 232--248
+[]$[]$ $[]$ 
+ []
+
+[4 <./figures/Compressor_CharLine_eta_s_char_compressor.pdf> <./figures/Compres
+sor_CharLine_eta_s_char_fuel_compressor.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/Compressor_CharLine_eta_s_char_fue
+l_compressor.pdf): PDF inclusion: multiple pdfs with page group included in a s
+ingle page
+>] [5]
+<figures/Turbine_CharLine_eta_s_char_gas_turbine.pdf, id=364, 427.87668pt x 304
+.4468pt>
+File: figures/Turbine_CharLine_eta_s_char_gas_turbine.pdf Graphic file (type pd
+f)
+<use figures/Turbine_CharLine_eta_s_char_gas_turbine.pdf>
+Package pdftex.def Info: figures/Turbine_CharLine_eta_s_char_gas_turbine.pdf  u
+sed on input line 380.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+<figures/Turbine_CharLine_eta_s_char_steam_turbine_high_pressure.pdf, id=366, 4
+27.93158pt x 304.4468pt>
+File: figures/Turbine_CharLine_eta_s_char_steam_turbine_high_pressure.pdf Graph
+ic file (type pdf)
+<use figures/Turbine_CharLine_eta_s_char_steam_turbine_high_pressure.pdf>
+Package pdftex.def Info: figures/Turbine_CharLine_eta_s_char_steam_turbine_high
+_pressure.pdf  used on input line 388.
+(pdftex.def)             Requested size: 225.48764pt x 160.42229pt.
+
+Overfull \hbox (17.22221pt too wide) in paragraph at lines 378--394
+[]$[]$ $[]$ 
+ []
+
+<figures/Turbine_CharLine_eta_s_char_steam_turbine_low_pressure.pdf, id=369, 42
+7.93158pt x 304.4468pt>
+File: figures/Turbine_CharLine_eta_s_char_steam_turbine_low_pressure.pdf Graphi
+c file (type pdf)
+<use figures/Turbine_CharLine_eta_s_char_steam_turbine_low_pressure.pdf>
+Package pdftex.def Info: figures/Turbine_CharLine_eta_s_char_steam_turbine_low_
+pressure.pdf  used on input line 397.
+(pdftex.def)             Requested size: 225.48764pt x 160.42229pt.
+[6 <./figures/Turbine_CharLine_eta_s_char_gas_turbine.pdf> <./figures/Turbine_C
+harLine_eta_s_char_steam_turbine_high_pressure.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/Turbine_CharLine_eta_s_char_steam_
+turbine_high_pressure.pdf): PDF inclusion: multiple pdfs with page group includ
+ed in a single page
+> <./figures/Turbine_CharLine_eta_s_char_steam_turbine_low_pressure.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/Turbine_CharLine_eta_s_char_steam_
+turbine_low_pressure.pdf): PDF inclusion: multiple pdfs with page group include
+d in a single page
+>]
+<figures/HeatExchanger_CharLine_kA_char1_superheater.pdf, id=474, 427.87668pt x
+ 304.4468pt>
+File: figures/HeatExchanger_CharLine_kA_char1_superheater.pdf Graphic file (typ
+e pdf)
+<use figures/HeatExchanger_CharLine_kA_char1_superheater.pdf>
+Package pdftex.def Info: figures/HeatExchanger_CharLine_kA_char1_superheater.pd
+f  used on input line 468.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+<figures/HeatExchanger_CharLine_kA_char2_superheater.pdf, id=476, 427.87668pt x
+ 304.4468pt>
+File: figures/HeatExchanger_CharLine_kA_char2_superheater.pdf Graphic file (typ
+e pdf)
+<use figures/HeatExchanger_CharLine_kA_char2_superheater.pdf>
+Package pdftex.def Info: figures/HeatExchanger_CharLine_kA_char2_superheater.pd
+f  used on input line 476.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+
+Overfull \hbox (17.22221pt too wide) in paragraph at lines 466--482
+[]$[]$ $[]$ 
+ []
+
+<figures/HeatExchanger_CharLine_kA_char1_evaporator.pdf, id=478, 427.87668pt x 
+304.4468pt>
+File: figures/HeatExchanger_CharLine_kA_char1_evaporator.pdf Graphic file (type
+ pdf)
+<use figures/HeatExchanger_CharLine_kA_char1_evaporator.pdf>
+Package pdftex.def Info: figures/HeatExchanger_CharLine_kA_char1_evaporator.pdf
+  used on input line 485.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+<figures/HeatExchanger_CharLine_kA_char2_evaporator.pdf, id=480, 427.87668pt x 
+304.4468pt>
+File: figures/HeatExchanger_CharLine_kA_char2_evaporator.pdf Graphic file (type
+ pdf)
+<use figures/HeatExchanger_CharLine_kA_char2_evaporator.pdf>
+Package pdftex.def Info: figures/HeatExchanger_CharLine_kA_char2_evaporator.pdf
+  used on input line 493.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+
+Overfull \hbox (17.22221pt too wide) in paragraph at lines 483--499
+[]$[]$ $[]$ 
+ []
+
+[7 <./figures/HeatExchanger_CharLine_kA_char1_superheater.pdf> <./figures/HeatE
+xchanger_CharLine_kA_char2_superheater.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/HeatExchanger_CharLine_kA_char2_su
+perheater.pdf): PDF inclusion: multiple pdfs with page group included in a sing
+le page
+>]
+<figures/HeatExchanger_CharLine_kA_char1_economizer.pdf, id=552, 427.87668pt x 
+304.4468pt>
+File: figures/HeatExchanger_CharLine_kA_char1_economizer.pdf Graphic file (type
+ pdf)
+<use figures/HeatExchanger_CharLine_kA_char1_economizer.pdf>
+Package pdftex.def Info: figures/HeatExchanger_CharLine_kA_char1_economizer.pdf
+  used on input line 502.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+<figures/HeatExchanger_CharLine_kA_char2_economizer.pdf, id=554, 427.87668pt x 
+304.4468pt>
+File: figures/HeatExchanger_CharLine_kA_char2_economizer.pdf Graphic file (type
+ pdf)
+<use figures/HeatExchanger_CharLine_kA_char2_economizer.pdf>
+Package pdftex.def Info: figures/HeatExchanger_CharLine_kA_char2_economizer.pdf
+  used on input line 510.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+
+Overfull \hbox (17.22221pt too wide) in paragraph at lines 500--516
+[]$[]$ $[]$ 
+ []
+
+[8 <./figures/HeatExchanger_CharLine_kA_char1_evaporator.pdf> <./figures/HeatEx
+changer_CharLine_kA_char2_evaporator.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/HeatExchanger_CharLine_kA_char2_ev
+aporator.pdf): PDF inclusion: multiple pdfs with page group included in a singl
+e page
+> <./figures/HeatExchanger_CharLine_kA_char1_economizer.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/HeatExchanger_CharLine_kA_char1_ec
+onomizer.pdf): PDF inclusion: multiple pdfs with page group included in a singl
+e page
+> <./figures/HeatExchanger_CharLine_kA_char2_economizer.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/HeatExchanger_CharLine_kA_char2_ec
+onomizer.pdf): PDF inclusion: multiple pdfs with page group included in a singl
+e page
+>]
+<figures/Condenser_CharLine_kA_char1_district_heating_condenser.pdf, id=690, 42
+7.89236pt x 304.4468pt>
+File: figures/Condenser_CharLine_kA_char1_district_heating_condenser.pdf Graphi
+c file (type pdf)
+<use figures/Condenser_CharLine_kA_char1_district_heating_condenser.pdf>
+Package pdftex.def Info: figures/Condenser_CharLine_kA_char1_district_heating_c
+ondenser.pdf  used on input line 645.
+(pdftex.def)             Requested size: 225.48764pt x 160.43158pt.
+<figures/Condenser_CharLine_kA_char2_district_heating_condenser.pdf, id=693, 42
+7.87668pt x 304.4468pt>
+File: figures/Condenser_CharLine_kA_char2_district_heating_condenser.pdf Graphi
+c file (type pdf)
+<use figures/Condenser_CharLine_kA_char2_district_heating_condenser.pdf>
+Package pdftex.def Info: figures/Condenser_CharLine_kA_char2_district_heating_c
+ondenser.pdf  used on input line 653.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+
+Overfull \hbox (17.22221pt too wide) in paragraph at lines 643--659
+[]$[]$ $[]$ 
+ []
+
+[9]
+<figures/Condenser_CharLine_kA_char1_condenser.pdf, id=712, 427.87668pt x 304.4
+468pt>
+File: figures/Condenser_CharLine_kA_char1_condenser.pdf Graphic file (type pdf)
+
+<use figures/Condenser_CharLine_kA_char1_condenser.pdf>
+Package pdftex.def Info: figures/Condenser_CharLine_kA_char1_condenser.pdf  use
+d on input line 662.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+<figures/Condenser_CharLine_kA_char2_condenser.pdf, id=714, 427.87668pt x 304.4
+468pt>
+File: figures/Condenser_CharLine_kA_char2_condenser.pdf Graphic file (type pdf)
+
+<use figures/Condenser_CharLine_kA_char2_condenser.pdf>
+Package pdftex.def Info: figures/Condenser_CharLine_kA_char2_condenser.pdf  use
+d on input line 670.
+(pdftex.def)             Requested size: 225.48764pt x 160.44087pt.
+
+Overfull \hbox (17.22221pt too wide) in paragraph at lines 660--676
+[]$[]$ $[]$ 
+ []
+
+<figures/Pump_CharLine_eta_s_char_feed_water_pump_1.pdf, id=717, 427.89236pt x 
+304.4468pt>
+File: figures/Pump_CharLine_eta_s_char_feed_water_pump_1.pdf Graphic file (type
+ pdf)
+<use figures/Pump_CharLine_eta_s_char_feed_water_pump_1.pdf>
+Package pdftex.def Info: figures/Pump_CharLine_eta_s_char_feed_water_pump_1.pdf
+  used on input line 716.
+(pdftex.def)             Requested size: 225.48764pt x 160.43158pt.
+<figures/Pump_CharLine_eta_s_char_feed_water_pump_2.pdf, id=720, 427.89236pt x 
+304.4468pt>
+File: figures/Pump_CharLine_eta_s_char_feed_water_pump_2.pdf Graphic file (type
+ pdf)
+<use figures/Pump_CharLine_eta_s_char_feed_water_pump_2.pdf>
+Package pdftex.def Info: figures/Pump_CharLine_eta_s_char_feed_water_pump_2.pdf
+  used on input line 724.
+(pdftex.def)             Requested size: 225.48764pt x 160.43158pt.
+
+Overfull \hbox (17.22221pt too wide) in paragraph at lines 714--730
+[]$[]$ $[]$ 
+ []
+
+[10 <./figures/Condenser_CharLine_kA_char1_district_heating_condenser.pdf> <./f
+igures/Condenser_CharLine_kA_char2_district_heating_condenser.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/Condenser_CharLine_kA_char2_distri
+ct_heating_condenser.pdf): PDF inclusion: multiple pdfs with page group include
+d in a single page
+> <./figures/Condenser_CharLine_kA_char1_condenser.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/Condenser_CharLine_kA_char1_conden
+ser.pdf): PDF inclusion: multiple pdfs with page group included in a single pag
+e
+> <./figures/Condenser_CharLine_kA_char2_condenser.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/Condenser_CharLine_kA_char2_conden
+ser.pdf): PDF inclusion: multiple pdfs with page group included in a single pag
+e
+>] [11 <./figures/Pump_CharLine_eta_s_char_feed_water_pump_1.pdf> <./figures/Pu
+mp_CharLine_eta_s_char_feed_water_pump_2.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/Pump_CharLine_eta_s_char_feed_wate
+r_pump_2.pdf): PDF inclusion: multiple pdfs with page group included in a singl
+e page
+>]
+<figures/Bus_CharLine_gas_turbineoffdesign.pdf, id=930, 427.52168pt x 309.46555
+pt>
+File: figures/Bus_CharLine_gas_turbineoffdesign.pdf Graphic file (type pdf)
+<use figures/Bus_CharLine_gas_turbineoffdesign.pdf>
+Package pdftex.def Info: figures/Bus_CharLine_gas_turbineoffdesign.pdf  used on
+ input line 807.
+(pdftex.def)             Requested size: 225.48764pt x 163.22264pt.
+<figures/Bus_CharLine_fuel_compressoroffdesign.pdf, id=931, 427.52168pt x 307.3
+9403pt>
+File: figures/Bus_CharLine_fuel_compressoroffdesign.pdf Graphic file (type pdf)
+
+<use figures/Bus_CharLine_fuel_compressoroffdesign.pdf>
+Package pdftex.def Info: figures/Bus_CharLine_fuel_compressoroffdesign.pdf  use
+d on input line 815.
+(pdftex.def)             Requested size: 225.48764pt x 162.13005pt.
+
+Overfull \hbox (17.22221pt too wide) in paragraph at lines 805--821
+[]$[]$ $[]$ 
+ []
+
+[12 <./figures/Bus_CharLine_gas_turbineoffdesign.pdf> <./figures/Bus_CharLine_f
+uel_compressoroffdesign.pdf
+
+pdfTeX warning: pdflatex.exe (file ./figures/Bus_CharLine_fuel_compressoroffdes
+ign.pdf): PDF inclusion: multiple pdfs with page group included in a single pag
+e
+>])
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 22.
+ [13]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 22.
+ (document.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 22.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 22.
+Package rerunfilecheck Info: File `document.out' has not changed.
+(rerunfilecheck)             Checksum: E4493EDD375EB191E6CF1261B6230A99;3911.
+
+
+LaTeX Warning: There were multiply-defined labels.
+
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 22.
+ ) 
+Here is how much of TeX's memory you used:
+ 8484 strings out of 492483
+ 151329 string characters out of 3118869
+ 252683 words of memory out of 3000000
+ 12525 multiletter control sequences out of 15000+200000
+ 5780 words of font info for 22 fonts, out of 3000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 40i,19n,30p,379b,356s stack positions out of 5000i,500n,10000p,200000b,50000s
+<C:/Users/Malte Fritz/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/am
+sfonts/cm/cmbx10.pfb><C:/Users/Malte Fritz/AppData/Local/Programs/MiKTeX 2.9/fo
+nts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Users/Malte Fritz/AppData/Local/Pro
+grams/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/Malte Frit
+z/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
+C:/Users/Malte Fritz/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfo
+nts/cm/cmmi5.pfb><C:/Users/Malte Fritz/AppData/Local/Programs/MiKTeX 2.9/fonts/
+type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/Malte Fritz/AppData/Local/Programs
+/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/Malte Fritz/AppD
+ata/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/Users
+/Malte Fritz/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/c
+mr7.pfb><C:/Users/Malte Fritz/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/pub
+lic/amsfonts/cm/cmsy10.pfb><C:/Users/Malte Fritz/AppData/Local/Programs/MiKTeX 
+2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/Malte Fritz/AppData/Loca
+l/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on document.pdf (13 pages, 18886143 bytes).
+PDF statistics:
+ 1083 PDF objects out of 1200 (max. 8388607)
+ 168 named destinations out of 1000 (max. 500000)
+ 512 words of extra memory for PDF output out of 10000 (max. 10000000)
+
