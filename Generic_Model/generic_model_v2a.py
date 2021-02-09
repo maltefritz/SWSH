@@ -393,11 +393,14 @@ def main():
     data_enw = views.node(results, 'Elektrizitätsnetzwerk')['sequences']
     data_wnw = views.node(results, 'Wärmenetzwerk')['sequences']
     data_lt_wnw = views.node(results, 'LT-Wärmenetzwerk')['sequences']
+    data_wnw_node = views.node(results, 'Knoten')['sequences']
 
     labeldict[(('Gasquelle', 'Gasnetzwerk'), 'flow')] = 'H_source'
     labeldict[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')] = 'P_spot_market'
     labeldict[(('Stromquelle', 'Elektrizitätsnetzwerk'), 'flow')] = 'P_source'
     labeldict[(('Wärmenetzwerk', 'Wärmebedarf'), 'flow')] = 'Q_demand'
+    labeldict[(('Wärmenetzwerk', 'HT_to_node'), 'flow')] = 'Q_HT_TES'
+    labeldict[(('LT-Wärmenetzwerk', 'LT_to_node'), 'flow')] = 'Q_LT_TES'
 
     # Sources
     data_gas_source = views.node(results, 'Gasquelle')['sequences']
@@ -418,9 +421,13 @@ def main():
     data_elec_sink = views.node(results, 'Spotmarkt')['sequences']
     data_heat_sink = views.node(results, 'Wärmebedarf')['sequences']
 
-    if param['EC']['active']:
-        data_mr_source = views.node(results, 'HT-EC')['sequences']
-        labeldict[(('Wärmenetzwerk', 'HT-EC'), 'flow')] = 'Q_EC'
+    if param['HT-EC']['active']:
+        data_ht_ec = views.node(results, 'HT-EC')['sequences']
+        labeldict[(('Wärmenetzwerk', 'HT-EC'), 'flow')] = 'Q_HT_EC'
+
+    if param['LT-EC']['active']:
+        data_lt_ec = views.node(results, 'LT-EC')['sequences']
+        labeldict[(('Wärmenetzwerk', 'LT-EC'), 'flow')] = 'Q_LT_EC'
 
     # Transformer
     if param['EHK']['active']:
@@ -560,9 +567,14 @@ def main():
 
             labeldict[((label_id, 'LT-Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
             labeldict[((label_id, 'LT-Wärmenetzwerk'), 'status')] = 'Status_ab_' + label_id
-            labeldict[(('Wärmenetzwerk', label_id), 'flow')] = 'Q_zu_' + label_id
-            labeldict[(('Wärmenetzwerk', label_id), 'status')] = 'Status_zu_' + label_id
+            labeldict[(('Knoten', label_id), 'flow')] = 'Q_zu_' + label_id
+            labeldict[(('Knoten', label_id), 'status')] = 'Status_zu_' + label_id
             labeldict[((label_id, 'None'), 'storage_content')] = 'Speicherstand_' + label_id
+
+    # Knoten
+    labeldict[(('HT_to_node', 'Knoten'), 'flow')] = 'Q_HT_node'
+    labeldict[(('LT_to_node', 'Knoten'), 'flow')] = 'Q_LT_node'
+    labeldict[(('Knoten', 'Knoten'), 'flow')] = 'Q_node_TES'
 
 
         # %% Zahlungsströme Ergebnis
@@ -613,6 +625,12 @@ def main():
         else:
             print(col, ' not in labeldict')
 
+    for col in data_wnw_node.columns:
+        if col in labeldict:
+            data_wnw_node.rename(columns={col: labeldict[col]}, inplace=True)
+        else:
+            print(col, ' not in labeldict')
+
     for col in data_tes.columns:
         if col in labeldict:
             data_tes.rename(columns={col: labeldict[col]}, inplace=True)
@@ -634,7 +652,7 @@ def main():
 
     # Daten zum Plotten der Wärmeversorgung
 
-    df1 = pd.concat([data_wnw, data_lt_wnw, data_tes, data_enw],
+    df1 = pd.concat([data_wnw, data_lt_wnw, data_tes, data_enw, data_wnw_node],
                     axis=1)
     df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
                sep=";")
