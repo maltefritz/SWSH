@@ -396,7 +396,7 @@ def main():
     data_heat_sink = views.node(results, 'Wärmebedarf')['sequences']
 
     if param['EC']['active']:
-        data_mr_source = views.node(results, 'Emergency-cooling')['sequences']
+        data_ec = views.node(results, 'Emergency-cooling')['sequences']
         labeldict[(('Wärmenetzwerk', 'Emergency-cooling'), 'flow')] = 'Q_EC'
 
     # Transformer
