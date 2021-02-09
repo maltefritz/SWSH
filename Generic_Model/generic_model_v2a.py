@@ -654,7 +654,8 @@ def main():
 
     df1 = pd.concat([data_wnw, data_lt_wnw, data_tes, data_enw, data_wnw_node],
                     axis=1)
-    df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
+    df1.to_csv(path.join(
+        dirpath, 'Ergebnisse\\Generic Model v2a\\Vor_wnw.csv'),
                sep=";")
 
 
@@ -664,7 +665,8 @@ def main():
                              'Q_tes': [param['TES']['Q']],
                              'total_heat_demand': [total_heat_demand],
                              'Gesamtbetrag': [Gesamtbetrag]})
-    df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
+    df2.to_csv(path.join(
+        dirpath, 'Ergebnisse\\Generic Model v2a\\Vor_Invest.csv'),
                sep=";")
 
 
@@ -673,7 +675,9 @@ def main():
     df3 = pd.concat([data_gnw[['H_source']],
                      data_enw[['P_spot_market', 'P_source']]],
                     axis=1)
-    df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")
+    df3.to_csv(path.join(
+        dirpath, 'Ergebnisse\\Generic Model v2a\\Vor_CO2.csv'),
+               sep=";")
 
 
 if __name__ == '__main__':
