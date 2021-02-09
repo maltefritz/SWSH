@@ -64,7 +64,7 @@ def main():
     # filename = path.join(dirpath, 'Eingangsdaten\\All_parameters.csv')
     # param = pd.read_csv(filename, sep=";", index_col=['plant', 'parameter'])
 
-    filepath = path.join(dirpath, 'Eingangsdaten\\parameter.json')
+    filepath = path.join(dirpath, 'Eingangsdaten\\parameter_v2a.json')
     with open(filepath, 'r') as file:
         param = json.load(file)
 
@@ -373,7 +373,7 @@ def main():
         model, 'storageflowlimit', lower_limit=0, upper_limit=1)
     # model.write('my_model.lp', io_options={'symbolic_solver_labels': True})
     model.solve(solver='gurobi', solve_kwargs={'tee': True},
-                cmdline_options={"mipgap": "0.10"})
+                cmdline_options={"mipgap": "0.075"})
 
         # %% Ergebnisse Energiesystem
 
@@ -427,7 +427,7 @@ def main():
 
     if param['LT-EC']['active']:
         data_lt_ec = views.node(results, 'LT-EC')['sequences']
-        labeldict[(('Wärmenetzwerk', 'LT-EC'), 'flow')] = 'Q_LT_EC'
+        labeldict[(('LT-Wärmenetzwerk', 'LT-EC'), 'flow')] = 'Q_LT_EC'
 
     # Transformer
     if param['EHK']['active']:
@@ -560,7 +560,7 @@ def main():
             label_id = 'TES_' + str(i)
             data_tes = views.node(results, label_id)['sequences']
 
-            cost_Anlagen += (data_tes[(('Wärmenetzwerk', label_id), 'flow')].sum()
+            cost_Anlagen += (data_tes[(('Knoten', label_id), 'flow')].sum()
                              * param['TES']['op_cost_var']
                              + (param['TES']['op_cost_fix']
                                 * param['TES']['Q']))
@@ -655,7 +655,7 @@ def main():
     df1 = pd.concat([data_wnw, data_lt_wnw, data_tes, data_enw, data_wnw_node],
                     axis=1)
     df1.to_csv(path.join(
-        dirpath, 'Ergebnisse\\Generic Model v2a\\Vor_wnw.csv'),
+        dirpath, 'Ergebnisse\\Generic Model v2a\\data_wnw.csv'),
                sep=";")
 
 
@@ -666,7 +666,7 @@ def main():
                              'total_heat_demand': [total_heat_demand],
                              'Gesamtbetrag': [Gesamtbetrag]})
     df2.to_csv(path.join(
-        dirpath, 'Ergebnisse\\Generic Model v2a\\Vor_Invest.csv'),
+        dirpath, 'Ergebnisse\\Generic Model v2a\\data_Invest.csv'),
                sep=";")
 
 
@@ -676,7 +676,7 @@ def main():
                      data_enw[['P_spot_market', 'P_source']]],
                     axis=1)
     df3.to_csv(path.join(
-        dirpath, 'Ergebnisse\\Generic Model v2a\\Vor_CO2.csv'),
+        dirpath, 'Ergebnisse\\Generic Model v2a\\data_CO2.csv'),
                sep=";")
 
 
