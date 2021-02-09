@@ -115,8 +115,9 @@ def main():
     enw = solph.Bus(label='Elektrizitätsnetzwerk')
     wnw = solph.Bus(label='Wärmenetzwerk')
     lt_wnw = solph.Bus(label='LT-Wärmenetzwerk')
+    wnw_node = solph.Bus(label='Knoten')
 
-    es_ref.add(gnw, enw, wnw, lt_wnw)
+    es_ref.add(gnw, enw, wnw, lt_wnw, wnw_node)
 
         # %% Soruces
 
@@ -171,12 +172,21 @@ def main():
 
     es_ref.add(elec_sink, heat_sink)
 
-    if param['EC']['active']:
-        ec_sink = solph.Sink(label='Emergency-cooling',
-                             inputs={wnw: solph.Flow(
-                                     variable_costs=0)})
+    if param['HT-EC']['active']:
+        ht_ec_sink = solph.Sink(label='HT-EC',
+                                inputs={
+                                    wnw: solph.Flow(variable_costs=0)}
+                                )
 
-        es_ref.add(ec_sink)
+        es_ref.add(ht_ec_sink)
+
+    if param['LT-EC']['active']:
+        lt_ec_sink = solph.Sink(label='LT-EC',
+                                inputs={
+                                    lt_wnw: solph.Flow(variable_costs=0)}
+                                )
+
+        es_ref.add(lt_ec_sink)
 
         # %% Transformer
 
@@ -290,6 +300,37 @@ def main():
 
             es_ref.add(hp)
 
+    # Low temperature heat pump
+    if param['LT-HP']['active']:
+        for i in range(1, param['LT-HP']['amount']+1):
+            lthp = solph.Transformer(
+                label="LT-HP_" + str(i),
+                inputs={lt_wnw: solph.Flow(),
+                        enw: solph.Flow(
+                            variable_costs=param['HP']['op_cost_var'])},
+                outputs={wnw: solph.Flow()},
+                conversion_factors={enw: 1/data['cop_lthp'],
+                                    lt_wnw: (data['cop_lthp']-1)/data['cop_lthp']}
+                # conversion_factors={enw: 1/cop_lt,
+                #                     lt_wnw: (cop_lt-1)/cop_lt}
+                )
+
+            es_ref.add(lthp)
+
+    ht_to_node = solph.Transformer(
+        label='HT_to_node',
+        inputs={wnw: solph.Flow()},
+        outputs={wnw_node: solph.Flow()}
+        )
+
+    lt_to_node = solph.Transformer(
+        label='LT_to_node',
+        inputs={lt_wnw: solph.Flow()},
+        outputs={wnw_node: solph.Flow()}
+        )
+
+    es_ref.add(ht_to_node, lt_to_node)
+
 
         # %% Speicher
 
@@ -299,7 +340,7 @@ def main():
             tes = solph.components.GenericStorage(
                 label='TES_' + str(i),
                 nominal_storage_capacity=param['TES']['Q'],
-                inputs={wnw: solph.Flow(
+                inputs={wnw_node: solph.Flow(
                     storageflowlimit=True,
                     nominal_value=param['TES']['Q_N_in'],
                     max=param['TES']['Q_rel_in_max'],
@@ -321,24 +362,6 @@ def main():
                 outflow_conversion_factor=param['TES']['outflow_conv'])
 
             es_ref.add(tes)
-
-    # Low temperature heat pump
-
-    if param['LT-HP']['active']:
-        for i in range(1, param['LT-HP']['amount']+1):
-            lthp = solph.Transformer(
-                label="LT-HP_" + str(i),
-                inputs={lt_wnw: solph.Flow(),
-                        enw: solph.Flow(
-                            variable_costs=param['HP']['op_cost_var'])},
-                outputs={wnw: solph.Flow()},
-                conversion_factors={enw: 1/data['cop_lthp'],
-                                    lt_wnw: (data['cop_lthp']-1)/data['cop_lthp']}
-                # conversion_factors={enw: 1/cop_lt,
-                #                     lt_wnw: (cop_lt-1)/cop_lt}
-                )
-
-            es_ref.add(lthp)
 
     # %% Processing
 
@@ -396,8 +419,8 @@ def main():
     data_heat_sink = views.node(results, 'Wärmebedarf')['sequences']
 
     if param['EC']['active']:
-        data_mr_source = views.node(results, 'Emergency-cooling')['sequences']
-        labeldict[(('Wärmenetzwerk', 'Emergency-cooling'), 'flow')] = 'Q_EC'
+        data_mr_source = views.node(results, 'HT-EC')['sequences']
+        labeldict[(('Wärmenetzwerk', 'HT-EC'), 'flow')] = 'Q_EC'
 
     # Transformer
     if param['EHK']['active']:
