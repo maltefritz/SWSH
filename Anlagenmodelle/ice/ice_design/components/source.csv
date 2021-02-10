@@ -1,4 +1,4 @@
 label;comp_type;busses;bus_param;bus_P_ref;bus_char;bus_base;design;offdesign;design_path;local_design;local_offdesign
-fuel;source;[];[];[];[];[];[];[];nan;False;False
-ambient;source;[];[];[];[];[];[];[];nan;False;False
-cooling water;source;[];[];[];[];[];[];[];nan;False;False
+fuel;Source;[];[];[];[];[];[];[];nan;False;False
+ambient;Source;[];[];[];[];[];[];[];nan;False;False
+cooling water;Source;[];[];[];[];[];[];[];nan;False;False
