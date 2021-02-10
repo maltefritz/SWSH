@@ -574,7 +574,6 @@ def main():
     # Knoten
     labeldict[(('HT_to_node', 'Knoten'), 'flow')] = 'Q_HT_node'
     labeldict[(('LT_to_node', 'Knoten'), 'flow')] = 'Q_LT_node'
-    labeldict[(('Knoten', 'Knoten'), 'flow')] = 'Q_node_TES'
 
 
         # %% Zahlungsströme Ergebnis
