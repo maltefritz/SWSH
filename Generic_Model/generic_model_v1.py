@@ -54,6 +54,13 @@ def main():
         """Get timeseries list of parameter for solph components."""
         return [parameter for p in range(0, periods)]
 
+    def result_labelling(dataframe):
+        for col in dataframe.columns:
+            if col in labeldict:
+                dataframe.rename(columns={col: labeldict[col]}, inplace=True)
+            else:
+                print(col, ' not in labeldict')
+
     # %% Preprocessing
 
         # %% Daten einlesen
@@ -577,48 +584,18 @@ def main():
         # %% Output Ergebnisse
 
     # Umbenennen der Spaltennamen der Ergebnisdataframes
+    result_dfs = [data_wnw, data_lt_wnw, data_tes, data_enw, data_gnw]
 
-    for col in data_wnw.columns:
-        if col in labeldict:
-            data_wnw.rename(columns={col: labeldict[col]}, inplace=True)
-        else:
-            print(col, ' not in labeldict')
-
-    for col in data_lt_wnw.columns:
-        if col in labeldict:
-            data_lt_wnw.rename(columns={col: labeldict[col]}, inplace=True)
-        else:
-            print(col, ' not in labeldict')
-
-    for col in data_tes.columns:
-        if col in labeldict:
-            data_tes.rename(columns={col: labeldict[col]}, inplace=True)
-        else:
-            print(col, ' not in labeldict')
-
-    for col in data_enw.columns:
-        if col in labeldict:
-            data_enw.rename(columns={col: labeldict[col]}, inplace=True)
-        else:
-            print(col, ' not in labeldict')
-
-    for col in data_gnw.columns:
-        if col in labeldict:
-            data_gnw.rename(columns={col: labeldict[col]}, inplace=True)
-        else:
-            print(col, ' not in labeldict')
-
+    for df in result_dfs:
+        result_labelling(df)
 
     # Daten zum Plotten der Wärmeversorgung
-
     df1 = pd.concat([data_wnw, data_lt_wnw, data_tes, data_enw],
                     axis=1)
     df1.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_wnw.csv'),
                sep=";")
 
-
     # Daten zum Plotten der Investitionsrechnung
-
     df2 = pd.DataFrame(data={'invest_ges': [invest_ges],
                              'Q_tes': [param['TES']['Q']],
                              'total_heat_demand': [total_heat_demand],
@@ -626,13 +603,12 @@ def main():
     df2.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_Invest.csv'),
                sep=";")
 
-
     # Daten für die ökologische Bewertung
-
     df3 = pd.concat([data_gnw[['H_source']],
                      data_enw[['P_spot_market', 'P_source']]],
                     axis=1)
-    df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'), sep=";")
+    df3.to_csv(path.join(dirpath, 'Ergebnisse\\Vorarbeit\\Vor_CO2.csv'),
+               sep=";")
 
 
 if __name__ == '__main__':
