@@ -373,7 +373,7 @@ def main():
         model, 'storageflowlimit', lower_limit=0, upper_limit=1)
     # model.write('my_model.lp', io_options={'symbolic_solver_labels': True})
     model.solve(solver='gurobi', solve_kwargs={'tee': True},
-                cmdline_options={"mipgap": "0.075"})
+                cmdline_options={"mipgap": "0.025"})
 
         # %% Ergebnisse Energiesystem
 
