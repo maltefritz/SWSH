@@ -610,7 +610,7 @@ def main():
     # Daten zum Plotten der Wärmeversorgung
     df1 = pd.concat([data_wnw, data_lt_wnw, data_tes, data_enw],
                     axis=1)
-    df1.to_csv(path.join(dirpath, 'Ergebnisse\\Generic Model v2b\\data_wnw.csv'),
+    df1.to_csv(path.join(dirpath, 'Ergebnisse\\Generic Model v2b1\\data_wnw.csv'),
                 sep=";")
 
     # Daten zum Plotten der Investitionsrechnung
@@ -618,14 +618,14 @@ def main():
                               'Q_tes': [param['TES']['Q']],
                               'total_heat_demand': [total_heat_demand],
                               'Gesamtbetrag': [Gesamtbetrag]})
-    df2.to_csv(path.join(dirpath, 'Ergebnisse\\Generic Model v2b\\data_Invest.csv'),
+    df2.to_csv(path.join(dirpath, 'Ergebnisse\\Generic Model v2b1\\data_Invest.csv'),
                 sep=";")
 
     # Daten für die ökologische Bewertung
     df3 = pd.concat([data_gnw[['H_source']],
                       data_enw[['P_spot_market', 'P_source']]],
                     axis=1)
-    df3.to_csv(path.join(dirpath, 'Ergebnisse\\Generic Model v2b\\data_CO2.csv'),
+    df3.to_csv(path.join(dirpath, 'Ergebnisse\\Generic Model v2b1\\data_CO2.csv'),
                 sep=";")
 
 
