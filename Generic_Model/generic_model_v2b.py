@@ -73,7 +73,7 @@ def main():
     # filename = path.join(dirpath, 'Eingangsdaten\\All_parameters.csv')
     # param = pd.read_csv(filename, sep=";", index_col=['plant', 'parameter'])
 
-    filepath = path.join(dirpath, 'Eingangsdaten\\parameter_v2a.json')
+    filepath = path.join(dirpath, 'Eingangsdaten\\parameter_v2b.json')
     with open(filepath, 'r') as file:
         param = json.load(file)
 
@@ -113,8 +113,8 @@ def main():
     elif (not param['LT-HP']['active']
           and (param['Sol']['active']
           or param['TES']['active'])):
-        print("WARNING: You can't use TES or solar heat without using the low ",
-              "temp heat pump.")
+        print("WARNING: You can't use TES or solar heat without using the ",
+              "low temp heat pump.")
         exit()
 
 
@@ -375,7 +375,7 @@ def main():
         model, 'storageflowlimit', lower_limit=0, upper_limit=1)
     # model.write('my_model.lp', io_options={'symbolic_solver_labels': True})
     model.solve(solver='gurobi', solve_kwargs={'tee': True},
-                cmdline_options={"mipgap": "0.025"})
+                cmdline_options={"mipgap": "0.05"})
 
         # %% Ergebnisse Energiesystem
 
@@ -640,7 +640,7 @@ def main():
     df1 = pd.concat([data_wnw, data_lt_wnw, data_tes, data_enw],
                     axis=1)
     df1.to_csv(path.join(
-        dirpath, 'Ergebnisse\\Generic Model v2a\\data_wnw.csv'),
+        dirpath, 'Ergebnisse\\Generic Model v2b\\data_wnw.csv'),
                sep=";")
 
     # Daten zum Plotten der Investitionsrechnung
@@ -649,7 +649,7 @@ def main():
                              'total_heat_demand': [total_heat_demand],
                              'Gesamtbetrag': [Gesamtbetrag]})
     df2.to_csv(path.join(
-        dirpath, 'Ergebnisse\\Generic Model v2a\\data_Invest.csv'),
+        dirpath, 'Ergebnisse\\Generic Model v2b\\data_Invest.csv'),
                sep=";")
 
     # Daten für die ökologische Bewertung
@@ -657,7 +657,7 @@ def main():
                      data_enw[['P_spot_market', 'P_source']]],
                     axis=1)
     df3.to_csv(path.join(
-        dirpath, 'Ergebnisse\\Generic Model v2a\\data_CO2.csv'),
+        dirpath, 'Ergebnisse\\Generic Model v2b\\data_CO2.csv'),
                sep=";")
 
 
