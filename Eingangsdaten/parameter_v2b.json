@@ -1,7 +1,7 @@
 {
   "TES": {
     "active": true,
-    "amount": 2,
+    "amount": 1,
     "Q": 150000.0,
     "Q_N_in": 85.0,
     "Q_rel_in_max": 1.0,
@@ -21,21 +21,19 @@
   },
   "HP": {
     "active": true,
-    "amount": 2,
+    "amount": 1,
     "Q_N": 75.0,
     "op_cost_var": 0.88,
     "op_cost_fix": 881.0,
     "inv_spez": 220350.0
   },
-  "HT-EC": {
+  "EC": {
     "active": true
   },
-  "LT-EC": {
-    "active": true
-  },
+
   "GuD": {
     "active": true,
-    "amount": 2,
+    "amount": 1,
     "Q_N": 71.0,
     "Q_in": 258.1878319,
     "P_max_woDH": 146.23847130000001,
@@ -60,7 +58,7 @@
   },
   "BPT": {
     "active": false,
-    "amount": 2
+    "amount": 1
   },
   "param": {
     "gas_price": 14.14,
@@ -102,7 +100,7 @@
     "A": 107434.0
   },
   "MR": {
-    "active": true,
+    "active": false,
     "Q_N": 25.0
   }
 }
