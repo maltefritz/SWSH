@@ -21,29 +21,25 @@
   },
   "HP": {
     "active": true,
-<<<<<<< HEAD
     "amount": 1,
-=======
-    "amount": 2,
->>>>>>> 0c3947c0bf6d92fbe2d76b8664c69380045cae03
     "Q_N": 75.0,
     "op_cost_var": 0.88,
     "op_cost_fix": 881.0,
     "inv_spez": 220350.0
   },
-<<<<<<< HEAD
+
   "EC": {
     "active": true
   },
 
-=======
+
   "HT-EC": {
     "active": true
   },
   "LT-EC": {
     "active": true
   },
->>>>>>> 0c3947c0bf6d92fbe2d76b8664c69380045cae03
+
   "GuD": {
     "active": true,
     "amount": 1,
@@ -71,11 +67,7 @@
   },
   "BPT": {
     "active": false,
-<<<<<<< HEAD
     "amount": 1
-=======
-    "amount": 2
->>>>>>> 0c3947c0bf6d92fbe2d76b8664c69380045cae03
   },
   "param": {
     "gas_price": 14.14,
@@ -101,11 +93,8 @@
   },
   "LT-HP": {
     "active": true,
-<<<<<<< HEAD
-    "amount": 2
-=======
     "amount": 1
->>>>>>> 0c3947c0bf6d92fbe2d76b8664c69380045cae03
+
   },
   "SLK": {
     "active": true,
@@ -122,10 +111,6 @@
   },
   "MR": {
     "active": false,
-<<<<<<< HEAD
     "Q_N": 25.0
-=======
-    "Q": 25.0
->>>>>>> 0c3947c0bf6d92fbe2d76b8664c69380045cae03
   }
 }
