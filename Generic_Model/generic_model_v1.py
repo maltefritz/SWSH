@@ -71,7 +71,7 @@ def main():
     # filename = path.join(dirpath, 'Eingangsdaten\\All_parameters.csv')
     # param = pd.read_csv(filename, sep=";", index_col=['plant', 'parameter'])
 
-    filepath = path.join(dirpath, 'Eingangsdaten\\parameter.json')
+    filepath = path.join(dirpath, 'Eingangsdaten\\parameter_v2b.json')
     with open(filepath, 'r') as file:
         param = json.load(file)
 
@@ -357,7 +357,7 @@ def main():
         model, 'storageflowlimit', lower_limit=0, upper_limit=1)
     # model.write('my_model.lp', io_options={'symbolic_solver_labels': True})
     model.solve(solver='gurobi', solve_kwargs={'tee': True},
-                cmdline_options={"mipgap": "0.10"})
+                cmdline_options={"mipgap": "0.05"})
 
         # %% Ergebnisse Energiesystem
 
