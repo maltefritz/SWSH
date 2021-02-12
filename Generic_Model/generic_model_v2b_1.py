@@ -304,7 +304,7 @@ def main():
 
     he = solph.Transformer(label='HNW_to_LT_HNW',
                            inputs={wnw: solph.Flow(
-                                   nominal_value=25)},
+                                   nominal_value=400)},
                            outputs={lt_wnw: solph.Flow()}
                            )
     es_ref.add(he)
