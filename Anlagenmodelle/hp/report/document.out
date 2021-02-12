@@ -1,0 +1,44 @@
+\BOOKMARK [1][-]{section.1}{Connections in offdesign mode}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{Specified connection parameters}{section.1}% 2
+\BOOKMARK [2][-]{subsection.1.2}{Equations applied}{section.1}% 3
+\BOOKMARK [2][-]{subsection.1.3}{Specified fluids}{section.1}% 4
+\BOOKMARK [2][-]{subsection.1.4}{Equations applied}{section.1}% 5
+\BOOKMARK [2][-]{subsection.1.5}{Referenced values for mass flow}{section.1}% 6
+\BOOKMARK [2][-]{subsection.1.6}{Equation applied}{section.1}% 7
+\BOOKMARK [2][-]{subsection.1.7}{Referenced values for pressure}{section.1}% 8
+\BOOKMARK [2][-]{subsection.1.8}{Equation applied}{section.1}% 9
+\BOOKMARK [2][-]{subsection.1.9}{Referenced values for enthalpy}{section.1}% 10
+\BOOKMARK [2][-]{subsection.1.10}{Equation applied}{section.1}% 11
+\BOOKMARK [1][-]{section.2}{User defined equations in offdesign mode}{}% 12
+\BOOKMARK [1][-]{section.3}{Components in offdesign mode}{}% 13
+\BOOKMARK [2][-]{subsection.3.1}{Components of type CycleCloser}{section.3}% 14
+\BOOKMARK [3][-]{subsubsection.3.1.1}{Mandatory constraints}{subsection.3.1}% 15
+\BOOKMARK [2][-]{subsection.3.2}{Components of type Condenser}{section.3}% 16
+\BOOKMARK [3][-]{subsubsection.3.2.1}{Mandatory constraints}{subsection.3.2}% 17
+\BOOKMARK [3][-]{subsubsection.3.2.2}{Inputs specified}{subsection.3.2}% 18
+\BOOKMARK [3][-]{subsubsection.3.2.3}{Equations applied}{subsection.3.2}% 19
+\BOOKMARK [2][-]{subsection.3.3}{Components of type Pump}{section.3}% 20
+\BOOKMARK [3][-]{subsubsection.3.3.1}{Mandatory constraints}{subsection.3.3}% 21
+\BOOKMARK [3][-]{subsubsection.3.3.2}{Inputs specified}{subsection.3.3}% 22
+\BOOKMARK [3][-]{subsubsection.3.3.3}{Equations applied}{subsection.3.3}% 23
+\BOOKMARK [2][-]{subsection.3.4}{Components of type HeatExchangerSimple}{section.3}% 24
+\BOOKMARK [3][-]{subsubsection.3.4.1}{Mandatory constraints}{subsection.3.4}% 25
+\BOOKMARK [3][-]{subsubsection.3.4.2}{Inputs specified}{subsection.3.4}% 26
+\BOOKMARK [3][-]{subsubsection.3.4.3}{Equations applied}{subsection.3.4}% 27
+\BOOKMARK [2][-]{subsection.3.5}{Components of type Valve}{section.3}% 28
+\BOOKMARK [3][-]{subsubsection.3.5.1}{Mandatory constraints}{subsection.3.5}% 29
+\BOOKMARK [2][-]{subsection.3.6}{Components of type Drum}{section.3}% 30
+\BOOKMARK [3][-]{subsubsection.3.6.1}{Mandatory constraints}{subsection.3.6}% 31
+\BOOKMARK [2][-]{subsection.3.7}{Components of type HeatExchanger}{section.3}% 32
+\BOOKMARK [3][-]{subsubsection.3.7.1}{Mandatory constraints}{subsection.3.7}% 33
+\BOOKMARK [3][-]{subsubsection.3.7.2}{Inputs specified}{subsection.3.7}% 34
+\BOOKMARK [3][-]{subsubsection.3.7.3}{Equations applied}{subsection.3.7}% 35
+\BOOKMARK [2][-]{subsection.3.8}{Components of type Splitter}{section.3}% 36
+\BOOKMARK [3][-]{subsubsection.3.8.1}{Mandatory constraints}{subsection.3.8}% 37
+\BOOKMARK [2][-]{subsection.3.9}{Components of type Compressor}{section.3}% 38
+\BOOKMARK [3][-]{subsubsection.3.9.1}{Mandatory constraints}{subsection.3.9}% 39
+\BOOKMARK [3][-]{subsubsection.3.9.2}{Inputs specified}{subsection.3.9}% 40
+\BOOKMARK [3][-]{subsubsection.3.9.3}{Equations applied}{subsection.3.9}% 41
+\BOOKMARK [1][-]{section.4}{Busses in offdesign mode}{}% 42
+\BOOKMARK [2][-]{subsection.4.1}{Bus ``total compressor power''}{section.4}% 43
+\BOOKMARK [2][-]{subsection.4.2}{Bus ``total delivered heat''}{section.4}% 44

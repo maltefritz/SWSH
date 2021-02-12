@@ -27,16 +27,7 @@
     "op_cost_fix": 881.0,
     "inv_spez": 220350.0
   },
-
   "EC": {
-    "active": true
-  },
-
-
-  "HT-EC": {
-    "active": true
-  },
-  "LT-EC": {
     "active": true
   },
 
@@ -93,8 +84,7 @@
   },
   "LT-HP": {
     "active": true,
-    "amount": 1
-
+    "amount": 2
   },
   "SLK": {
     "active": true,
@@ -107,7 +97,7 @@
   },
   "Sol": {
     "active": true,
-    "A": 107434.0
+    "A": 507434.0
   },
   "MR": {
     "active": false,
