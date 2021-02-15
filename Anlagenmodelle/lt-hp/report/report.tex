@@ -1,0 +1,518 @@
+\section*{Software Information}
+
+\begin{itemize}
+\item Please check, whether your inputs, the equations applied and the charactersitics are displayed correctly.
+\item You are welcome to send your feedback via \url{https://github.com/oemof/tespy/issues}.
+\item \LaTeX packages required are:
+\begin{itemize}
+\item graphicx
+\item float
+\item hyperref
+\item booktabs
+\item amsmath
+\item units
+\item cleveref
+\end{itemize}
+\item To supress these messages, call the model documentation with the keyword draft=False.
+\end{itemize}
+
+\begin{table}[H]
+\begin{tabular}{ll}
+TESPy Version:&0.4.3 - dev\\
+Commit:&788ddfdc@dev\\
+CoolProp version:&6.4.0\\
+Python version:&3.7.6 (default, Jan  8 2020, 20:23:39) [MSC v.1916 64 bit (AMD64)]\\
+\end{tabular}
+\end{table}
+\newpage\section{Connections in design mode}
+
+\subsection{Specified connection parameters}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{lrr}
+\toprule
+                                              label &  p in $\unit[]{bar}$ (\ref{eq:Connection_pressure}) &  T in $\unit[]{^\circ C}$ (\ref{eq:Connection_temperature}) \\
+\midrule
+ consumer back flow:out1\_district heating pump:in1 &                                              10.000 &                                                      50.000 \\
+                       condenser:out2\_consumer:in1 &                                                   - &                                                      90.000 \\
+                     low temp source:out1\_pump:in1 &                                              10.000 &                                                      70.000 \\
+                 evaporator:out1\_low temp sink:in1 &                                              10.000 &                                                      50.000 \\
+\bottomrule
+\end{tabular}
+\caption{Specified connection parameters}
+\end{center}\end{table}
+
+\subsection{Equations applied}
+
+\begin{equation}
+\label{eq:Connection_pressure}
+0 = p - p_\mathrm{spec}
+\end{equation}
+
+\begin{equation}
+\label{eq:Connection_temperature}
+0 = T \left(p, h \right) - T_\mathrm{spec}
+\end{equation}
+
+\subsection{Specified fluids}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+                                              label &  NH3 (\ref{eq:Connection_NH3}) &  air (\ref{eq:Connection_air}) &  water (\ref{eq:Connection_water}) \\
+\midrule
+           coolant cycle closer:out1\_condenser:in1 &                          1.000 &                          0.000 &                              0.000 \\
+ consumer back flow:out1\_district heating pump:in1 &                          0.000 &                          0.000 &                              1.000 \\
+                     low temp source:out1\_pump:in1 &                          0.000 &                          0.000 &                              1.000 \\
+\bottomrule
+\end{tabular}
+\caption{Specified fluids}
+\end{center}\end{table}
+
+\subsection{Equations applied}
+
+\begin{equation}
+\label{eq:Connection_NH3}
+0 = x_\mathrm{NH3} - x_\mathrm{NH3,spec}
+\end{equation}
+
+\begin{equation}
+\label{eq:Connection_air}
+0 = x_\mathrm{air} - x_\mathrm{air,spec}
+\end{equation}
+
+\begin{equation}
+\label{eq:Connection_water}
+0 = x_\mathrm{water} - x_\mathrm{water,spec}
+\end{equation}
+
+\subsection{Referenced values for mass flow}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{llrr}
+\toprule
+                                             label &             reference &  factor in - &  delta in $\unitfrac[]{kg}{s}$ \\
+\midrule
+ evaporator reciculation pump:out1\_evaporator:in2 &  valve:out1\_drum:in1 &        1.250 &                              0 \\
+\bottomrule
+\end{tabular}
+\caption{Referenced values for mass flow}
+\end{center}\end{table}
+
+\subsection{Equation applied}
+
+\begin{equation}
+\label{eq:Connection_ref}
+0 = \text{value} - \text{value}_\mathrm{ref} \cdot \mathrm{factor} + \text{delta}
+\end{equation}
+
+\subsection{Referenced values for pressure}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{llrr}
+\toprule
+                                 label &                                           reference &  factor in - &  delta in $\unit[]{bar}$ \\
+\midrule
+ consumer:out1\_consumer feed flow:in1 &  consumer back flow:out1\_district heating pump:in1 &            1 &                        0 \\
+\bottomrule
+\end{tabular}
+\caption{Referenced values for pressure}
+\end{center}\end{table}
+
+\subsection{Equation applied}
+
+\begin{equation}
+\label{eq:Connection_ref}
+0 = \text{value} - \text{value}_\mathrm{ref} \cdot \mathrm{factor} + \text{delta}
+\end{equation}
+
+\subsection{Referenced values for enthalpy}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{llrr}
+\toprule
+                                 label &                                           reference &  factor in - &  delta in $\unitfrac[]{kJ}{kg}$ \\
+\midrule
+ consumer:out1\_consumer feed flow:in1 &  consumer back flow:out1\_district heating pump:in1 &            1 &                               0 \\
+\bottomrule
+\end{tabular}
+\caption{Referenced values for enthalpy}
+\end{center}\end{table}
+
+\subsection{Equation applied}
+
+\begin{equation}
+\label{eq:Connection_ref}
+0 = \text{value} - \text{value}_\mathrm{ref} \cdot \mathrm{factor} + \text{delta}
+\end{equation}
+
+\section{User defined equations in design mode}
+
+\section{Components in design mode}
+
+\subsection{Components of type CycleCloser}
+
+\subsubsection{Mandatory constraints}
+
+\begin{equation}
+\label{eq:CycleCloser_pressure_equality_constraints}
+0=p_{\mathrm{in,}i}-p_{\mathrm{out,}i}\; \forall i \in [1]
+\end{equation}
+
+\begin{equation}
+\label{eq:CycleCloser_enthalpy_equality_constraints}
+0=h_{\mathrm{in,}i}-h_{\mathrm{out,}i}\; \forall i \in [1]
+\end{equation}
+
+
+\subsection{Components of type Condenser}
+
+\subsubsection{Mandatory constraints}
+
+\begin{equation}
+\label{eq:Condenser_mass_flow_constraints}
+0=\dot{m}_{\mathrm{in,}i}-\dot{m}_{\mathrm{out,}i}\; \forall i \in [1, 2]
+\end{equation}
+
+\begin{equation}
+\label{eq:Condenser_fluid_constraints}
+0=x_{fl\mathrm{,in,}i}-x_{fl\mathrm{,out,}i}\;\forall fl \in\text{network fluids,}\; \forall i \in [1, 2]
+\end{equation}
+
+\begin{equation}
+\label{eq:Condenser_energy_balance_constraints}
+0 = \dot{m}_\mathrm{in,1} \cdot \left(h_\mathrm{out,1} - h_\mathrm{in,1} \right) +\dot{m}_\mathrm{in,2} \cdot \left(h_\mathrm{out,2} - h_\mathrm{in,2} \right)
+\end{equation}
+
+
+\subsubsection{Inputs specified}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{lrrrl}
+\toprule
+     label &  ttd\_u (\ref{eq:Condenser_ttd_u}) &  pr1 (\ref{eq:Condenser_pr1}) &  pr2 (\ref{eq:Condenser_pr2}) &  subcooling (\ref{eq:Condenser_subcooling}) \\
+\midrule
+ condenser &                              5.000 &                         0.990 &                         0.990 &                                        True \\
+\bottomrule
+\end{tabular}
+\caption{Parameters of components of type Condenser}
+\end{center}\end{table}
+
+\subsubsection{Equations applied}
+
+\begin{equation}
+\label{eq:Condenser_ttd_u}
+0=ttd_\mathrm{u}-T_\mathrm{sat}\left(p_\mathrm{in,1}\right) + T_\mathrm{out,2}
+\end{equation}
+
+\begin{equation}
+\label{eq:Condenser_pr1}
+0=p_\mathrm{in,1}\cdot pr1 - p_\mathrm{out,1}
+\end{equation}
+
+\begin{equation}
+\label{eq:Condenser_pr2}
+0=p_\mathrm{in,2}\cdot pr2 - p_\mathrm{out,2}
+\end{equation}
+
+\begin{equation}
+\label{eq:Condenser_subcooling}
+0=h_\mathrm{out,1} -h\left(p_\mathrm{out,1}, x=0 \right)
+\end{equation}
+
+
+\subsection{Components of type Pump}
+
+\subsubsection{Mandatory constraints}
+
+\begin{equation}
+\label{eq:Pump_mass_flow_constraints}
+0=\dot{m}_{\mathrm{in,}i}-\dot{m}_{\mathrm{out,}i}\; \forall i \in [1]
+\end{equation}
+
+\begin{equation}
+\label{eq:Pump_fluid_constraints}
+0=x_{fl\mathrm{,in,}i}-x_{fl\mathrm{,out,}i}\;\forall fl \in\text{network fluids,}\; \forall i \in [1]
+\end{equation}
+
+
+\subsubsection{Inputs specified}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{lr}
+\toprule
+                        label &  eta\_s (\ref{eq:Pump_eta_s}) \\
+\midrule
+        district heating pump &                         0.800 \\
+ evaporator reciculation pump &                         0.800 \\
+                         pump &                         0.750 \\
+\bottomrule
+\end{tabular}
+\caption{Parameters of components of type Pump}
+\end{center}\end{table}
+
+\subsubsection{Equations applied}
+
+\begin{equation}
+\label{eq:Pump_eta_s}
+0 =-\left(h_\mathrm{out}-h_\mathrm{in}\right)\cdot\eta_\mathrm{s}+\left(h_\mathrm{out,s}-h_\mathrm{in}\right)
+\end{equation}
+
+
+\subsection{Components of type HeatExchangerSimple}
+
+\subsubsection{Mandatory constraints}
+
+\begin{equation}
+\label{eq:HeatExchangerSimple_mass_flow_constraints}
+0=\dot{m}_{\mathrm{in,}i}-\dot{m}_{\mathrm{out,}i}\; \forall i \in [1]
+\end{equation}
+
+\begin{equation}
+\label{eq:HeatExchangerSimple_fluid_constraints}
+0=x_{fl\mathrm{,in,}i}-x_{fl\mathrm{,out,}i}\;\forall fl \in\text{network fluids,}\; \forall i \in [1]
+\end{equation}
+
+
+\subsubsection{Inputs specified}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{lr}
+\toprule
+    label &  pr (\ref{eq:HeatExchangerSimple_pr}) \\
+\midrule
+ consumer &                                 0.990 \\
+\bottomrule
+\end{tabular}
+\caption{Parameters of components of type HeatExchangerSimple}
+\end{center}\end{table}
+
+\subsubsection{Equations applied}
+
+\begin{equation}
+\label{eq:HeatExchangerSimple_pr}
+0=p_\mathrm{in,1}\cdot pr - p_\mathrm{out,1}
+\end{equation}
+
+
+\subsection{Components of type Valve}
+
+\subsubsection{Mandatory constraints}
+
+\begin{equation}
+\label{eq:Valve_mass_flow_constraints}
+0=\dot{m}_{\mathrm{in,}i}-\dot{m}_{\mathrm{out,}i}\; \forall i \in [1]
+\end{equation}
+
+\begin{equation}
+\label{eq:Valve_fluid_constraints}
+0=x_{fl\mathrm{,in,}i}-x_{fl\mathrm{,out,}i}\;\forall fl \in\text{network fluids,}\; \forall i \in [1]
+\end{equation}
+
+\begin{equation}
+\label{eq:Valve_enthalpy_equality_constraints}
+0=h_{\mathrm{in,}i}-h_{\mathrm{out,}i}\; \forall i \in [1]
+\end{equation}
+
+
+\subsection{Components of type Drum}
+
+\subsubsection{Mandatory constraints}
+
+\begin{equation}
+\label{eq:Drum_mass_flow_constraints}
+0 =\sum\dot{m}_{\mathrm{in},i}-\sum\dot{m}_{\mathrm{out},j}\;\forall i \in \text{inlets}, \forall j \in \text{outlets}
+\end{equation}
+
+\begin{equation}
+\label{eq:Drum_fluid_constraints}
+0 = x_{fl\mathrm{,in,1}} - x_{fl\mathrm{,out,}j}\; \forall fl \in \text{network fluids,} \; \forall j \in\text{outlets}
+\end{equation}
+
+\begin{equation}
+\label{eq:Drum_energy_balance_constraints}
+0=\sum_i\left(\dot{m}_{\mathrm{in,}i}\cdot h_{\mathrm{in,}i}\right) - \sum_j \left(\dot{m}_{\mathrm{out,}j} \cdot h_{\mathrm{out,}j} \right) \; \forall i \in \text{inlets} \;\forall j \in \text{outlets}
+\end{equation}
+
+\begin{equation}
+\label{eq:Drum_pressure_constraints}
+\begin{split}
+0 = p_\mathrm{in,1} - p_{\mathrm{in,}i} & \; \forall i \in \text{inlets} \setminus \left\lbrace 1\right\rbrace\\
+0 = p_\mathrm{in,1} - p_{\mathrm{out,}j} & \; \forall j \in \text{outlets}\\
+\end{split}
+\end{equation}
+
+\begin{equation}
+\label{eq:Drum_outlet_constraints}
+\begin{split}
+0 =&h_\mathrm{out,1} -h\left(p_\mathrm{out,1}, x=0\right)\\0 =&h_\mathrm{out,2} -h\left(p_\mathrm{out,2}, x=1\right)\\\end{split}
+\end{equation}
+
+
+\subsection{Components of type HeatExchanger}
+
+\subsubsection{Mandatory constraints}
+
+\begin{equation}
+\label{eq:HeatExchanger_mass_flow_constraints}
+0=\dot{m}_{\mathrm{in,}i}-\dot{m}_{\mathrm{out,}i}\; \forall i \in [1, 2]
+\end{equation}
+
+\begin{equation}
+\label{eq:HeatExchanger_fluid_constraints}
+0=x_{fl\mathrm{,in,}i}-x_{fl\mathrm{,out,}i}\;\forall fl \in\text{network fluids,}\; \forall i \in [1, 2]
+\end{equation}
+
+\begin{equation}
+\label{eq:HeatExchanger_energy_balance_constraints}
+0 = \dot{m}_\mathrm{in,1} \cdot \left(h_\mathrm{out,1} - h_\mathrm{in,1} \right) +\dot{m}_\mathrm{in,2} \cdot \left(h_\mathrm{out,2} - h_\mathrm{in,2} \right)
+\end{equation}
+
+
+\subsubsection{Inputs specified}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+      label &  ttd\_l (\ref{eq:HeatExchanger_ttd_l}) &  pr1 (\ref{eq:HeatExchanger_pr1}) &  pr2 (\ref{eq:HeatExchanger_pr2}) \\
+\midrule
+ evaporator &                                  5.000 &                             0.980 &                             0.990 \\
+\bottomrule
+\end{tabular}
+\caption{Parameters of components of type HeatExchanger}
+\end{center}\end{table}
+
+\subsubsection{Equations applied}
+
+\begin{equation}
+\label{eq:HeatExchanger_ttd_l}
+0 = ttd_\mathrm{l} - T_\mathrm{out,1} + T_\mathrm{in,2}
+\end{equation}
+
+\begin{equation}
+\label{eq:HeatExchanger_pr1}
+0=p_\mathrm{in,1}\cdot pr1 - p_\mathrm{out,1}
+\end{equation}
+
+\begin{equation}
+\label{eq:HeatExchanger_pr2}
+0=p_\mathrm{in,2}\cdot pr2 - p_\mathrm{out,2}
+\end{equation}
+
+
+\subsection{Components of type Compressor}
+
+\subsubsection{Mandatory constraints}
+
+\begin{equation}
+\label{eq:Compressor_mass_flow_constraints}
+0=\dot{m}_{\mathrm{in,}i}-\dot{m}_{\mathrm{out,}i}\; \forall i \in [1]
+\end{equation}
+
+\begin{equation}
+\label{eq:Compressor_fluid_constraints}
+0=x_{fl\mathrm{,in,}i}-x_{fl\mathrm{,out,}i}\;\forall fl \in\text{network fluids,}\; \forall i \in [1]
+\end{equation}
+
+
+\subsubsection{Inputs specified}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{lr}
+\toprule
+      label &  eta\_s (\ref{eq:Compressor_eta_s}) \\
+\midrule
+ compressor &                               0.850 \\
+\bottomrule
+\end{tabular}
+\caption{Parameters of components of type Compressor}
+\end{center}\end{table}
+
+\subsubsection{Equations applied}
+
+\begin{equation}
+\label{eq:Compressor_eta_s}
+0 =-\left(h_\mathrm{out}-h_\mathrm{in}\right)\cdot\eta_\mathrm{s}+\left(h_\mathrm{out,s}-h_\mathrm{in}\right)
+\end{equation}
+
+
+\section{Busses in design mode}
+
+\subsection{Bus ``total compressor power''}
+
+This bus is used for postprocessing only.
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{llll}
+\toprule
+                        label &                                                   $\dot{E}_\mathrm{comp}$ &              $\dot{E}_\mathrm{bus}$ &                                                                         $\eta$ \\
+\midrule
+                   compressor &  $\dot{m}_\mathrm{in} \cdot \left(h_\mathrm{out} - h_\mathrm{in} \right)$ &  $\dot{E}_\mathrm{comp} \cdot \eta$ &                    $f\left(X\right)$ (\ref{fig:Bus_CharLine_compressordesign}) \\
+                         pump &  $\dot{m}_\mathrm{in} \cdot \left(h_\mathrm{out} - h_\mathrm{in} \right)$ &  $\dot{E}_\mathrm{comp} \cdot \eta$ &                          $f\left(X\right)$ (\ref{fig:Bus_CharLine_pumpdesign}) \\
+        district heating pump &  $\dot{m}_\mathrm{in} \cdot \left(h_\mathrm{out} - h_\mathrm{in} \right)$ &  $\dot{E}_\mathrm{comp} \cdot \eta$ &         $f\left(X\right)$ (\ref{fig:Bus_CharLine_district heating pumpdesign}) \\
+ evaporator reciculation pump &  $\dot{m}_\mathrm{in} \cdot \left(h_\mathrm{out} - h_\mathrm{in} \right)$ &  $\dot{E}_\mathrm{comp} \cdot \eta$ &  $f\left(X\right)$ (\ref{fig:Bus_CharLine_evaporator reciculation pumpdesign}) \\
+\bottomrule
+\end{tabular}
+\caption{total compressor power}
+\end{center}\end{table}
+
+
+
+\begin{minipage}{0.5\textwidth}
+\begin{figure}[H]\begin{center}
+\includegraphics[width=\textwidth]{figures/Bus_CharLine_compressordesign.pdf}
+\caption{Bus efficiency characteristic}
+\label{fig:Bus_CharLine_compressordesign}
+\end{center}\end{figure}
+
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\begin{figure}[H]\begin{center}
+\includegraphics[width=\textwidth]{figures/Bus_CharLine_pumpdesign.pdf}
+\caption{Bus efficiency characteristic}
+\label{fig:Bus_CharLine_pumpdesign}
+\end{center}\end{figure}
+
+\end{minipage}
+
+\begin{minipage}{0.5\textwidth}
+\begin{figure}[H]\begin{center}
+\includegraphics[width=\textwidth]{figures/Bus_CharLine_district_heating_pumpdesign.pdf}
+\caption{Bus efficiency characteristic}
+\label{fig:Bus_CharLine_district heating pumpdesign}
+\end{center}\end{figure}
+
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\begin{figure}[H]\begin{center}
+\includegraphics[width=\textwidth]{figures/Bus_CharLine_evaporator_reciculation_pumpdesign.pdf}
+\caption{Bus efficiency characteristic}
+\label{fig:Bus_CharLine_evaporator reciculation pumpdesign}
+\end{center}\end{figure}
+
+\end{minipage}
+
+
+\subsection{Bus ``total delivered heat''}
+
+Specified total value of energy flow: $\dot{E}_\mathrm{bus} = \unit[-200000000.000]{W}$
+
+\begin{equation}
+\label{eq:Bus_energy_flow_sum}
+0=\dot{E}_\mathrm{bus} -\sum_i \dot{E}_{\mathrm{bus,}i}
+\end{equation}
+
+\begin{table}[H]\begin{center}
+\begin{tabular}{llll}
+\toprule
+     label &                                                         $\dot{E}_\mathrm{comp}$ &              $\dot{E}_\mathrm{bus}$ & $\eta$ \\
+\midrule
+ condenser &  $\dot{m}_\mathrm{in,1} \cdot \left(h_\mathrm{out,1} - h_\mathrm{in,1} \right)$ &  $\dot{E}_\mathrm{comp} \cdot \eta$ &  1.000 \\
+\bottomrule
+\end{tabular}
+\caption{total delivered heat}
+\end{center}\end{table}
+
+
+
+
