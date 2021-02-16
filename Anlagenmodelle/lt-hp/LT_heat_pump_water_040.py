@@ -233,7 +233,7 @@ isolines = {
 }
 
 diagram = FluidPropertyDiagram(fluid='NH3')
-diagram.set_unit_system(p='bar', T='°C', h='kJ/kg', s='kJ/kgK')
+diagram.set_unit_system(p='bar', T='°C', h='kJ/kg', s='kJ/kgK', Q='%')
 diagram.set_isolines(p=p_values, Q=Q_values)
 diagram.calc_isolines()
 
@@ -248,13 +248,13 @@ for key, data in tespy_results.items():
     tespy_results[key]['datapoints'] = diagram.calc_individual_isoline(**data)
 
 
-diagram.set_limits(x_min=0, x_max=2000, y_min=1e-1, y_max=1e3)
+diagram.set_limits(x_min=0, x_max=2000, y_min=1e0, y_max=1e3)
 diagram.draw_isolines(diagram_type='logph', isoline_data=isolines)
 for key in tespy_results.keys():
-    if not key == 'compressor':
-        datapoints = tespy_results[key]['datapoints']
-        diagram.ax.plot(datapoints['h'], datapoints['p'], color='#ff0000')
-        diagram.ax.scatter(datapoints['h'][0], datapoints['p'][0], color='#ff0000')
+    # if not key == 'compressor':
+    datapoints = tespy_results[key]['datapoints']
+    diagram.ax.plot(datapoints['h'], datapoints['p'], color='#ff0000')
+    diagram.ax.scatter(datapoints['h'][0], datapoints['p'][0], color='#ff0000')
 diagram.save('logph_Diagramm.pdf')
 
 
