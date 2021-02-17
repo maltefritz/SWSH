@@ -44,7 +44,7 @@ T_source_vl = 70
 # %% network
 
 nw = Network(fluids=['water', 'NH3', 'air'], T_unit='C', p_unit='bar',
-             h_unit='kJ / kg', m_unit='kg / s')
+             h_unit='kJ / kg', m_unit='kg / s', s_unit='kJ / kgK')
 
 # %% components
 
@@ -219,22 +219,11 @@ T_max = 300
 T = np.arange(-75, T_max + 1, 25).round(8)
 
 # Diagramm
-
-p_values = np.array([
-    10, 20, 50, 100, 200, 500, 1000,
-    2000, 5000, 10000, 20000, 50000, 100000]) * 1e-2
 Q_values = np.linspace(0, 100, 11)
-
-isolines = {
-    'p': {
-        'values': p_values
-    },
-    'Q': {'values': Q_values}
-}
 
 diagram = FluidPropertyDiagram(fluid='NH3')
 diagram.set_unit_system(p='bar', T='°C', h='kJ/kg', s='kJ/kgK', Q='%')
-diagram.set_isolines(p=p_values, Q=Q_values)
+diagram.set_isolines(Q=Q_values)
 diagram.calc_isolines()
 
 # plot_comps = [dr, erp, ev, dr, cp, cd, va]
@@ -249,14 +238,13 @@ for key, data in tespy_results.items():
 
 
 diagram.set_limits(x_min=0, x_max=2000, y_min=1e0, y_max=1e3)
-diagram.draw_isolines(diagram_type='logph', isoline_data=isolines)
+diagram.draw_isolines(diagram_type='logph')
 for key in tespy_results.keys():
     # if not key == 'compressor':
     datapoints = tespy_results[key]['datapoints']
     diagram.ax.plot(datapoints['h'], datapoints['p'], color='#ff0000')
     diagram.ax.scatter(datapoints['h'][0], datapoints['p'][0], color='#ff0000')
 diagram.save('logph_Diagramm.pdf')
-
 
 
 # %% Auslegung Temperaturbereich District Heating
