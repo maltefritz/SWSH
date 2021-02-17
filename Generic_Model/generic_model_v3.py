@@ -342,19 +342,23 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     es_ref.add(ht_to_node, lt_to_node)
 
     # Sol node
-    sol_to_ht = solph.Transformer(
-        label='Sol_to_HT',
-        inputs={sol_node: solph.Flow()},
-        outputs={wnw: solph.Flow()}
-        )
+    if param['Sol']['type'] == 'HT':
+        sol_to_ht = solph.Transformer(
+            label='Sol_to_HT',
+            inputs={sol_node: solph.Flow()},
+            outputs={wnw: solph.Flow()}
+            )
 
-    sol_to_lt = solph.Transformer(
-        label='Sol_to_LT',
-        inputs={sol_node: solph.Flow()},
-        outputs={lt_wnw: solph.Flow()}
-        )
+        es_ref.add(sol_to_ht)
 
-    es_ref.add(sol_to_ht, sol_to_lt)
+    if param['Sol']['type'] == 'LT':
+        sol_to_lt = solph.Transformer(
+            label='Sol_to_LT',
+            inputs={sol_node: solph.Flow()},
+            outputs={lt_wnw: solph.Flow()}
+            )
+
+        es_ref.add(sol_to_lt)
 
         # %% Speicher
 
@@ -640,7 +644,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         # %% Output Ergebnisse
 
     # Umbenennen der Spaltennamen der Ergebnisdataframes
-    result_dfs = [data_wnw, data_lt_wnw, data_wnw_node,
+    result_dfs = [data_wnw, data_lt_wnw, data_wnw_node, data_sol_node,
                   data_tes, data_enw, data_gnw]
 
     for df in result_dfs:
