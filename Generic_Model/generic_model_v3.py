@@ -391,6 +391,33 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
 
             es_ref.add(tes)
 
+    # Kurzzeitspeicher
+    if param['ST-TES']['active']:
+        for i in range(1, param['ST-TES']['amount']+1):
+            st_tes = solph.components.GenericStorage(
+                label='ST-TES_' + str(i),
+                nominal_storage_capacity=param['ST-TES']['Q'],
+                inputs={wnw: solph.Flow(
+                    storageflowlimit=True,
+                    nominal_value=param['ST-TES']['Q_N_in'],
+                    max=param['ST-TES']['Q_rel_in_max'],
+                    min=param['ST-TES']['Q_rel_in_min'],
+                    variable_costs=param['ST-TES']['op_cost_var'],
+                    nonconvex=solph.NonConvex(
+                        initial_status=int(param['ST-TES']['init_status'])))},
+                outputs={wnw: solph.Flow(
+                    storageflowlimit=True,
+                    nominal_value=param['ST-TES']['Q_N_out'],
+                    max=param['ST-TES']['Q_rel_out_max'],
+                    min=param['ST-TES']['Q_rel_out_min'],
+                    nonconvex=solph.NonConvex())},
+                initial_storage_level=param['ST-TES']['init_storage'],
+                loss_rate=param['ST-TES']['Q_rel_loss'],
+                inflow_conversion_factor=param['ST-TES']['inflow_conv'],
+                outflow_conversion_factor=param['ST-TES']['outflow_conv'])
+
+            es_ref.add(st_tes)
+
     # %% Processing
 
         # %% Solve
@@ -600,6 +627,26 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
             labeldict[((label_id, 'LT-Wärmenetzwerk'), 'status')] = 'Status_ab_' + label_id
             labeldict[(('TES Knoten', label_id), 'flow')] = 'Q_zu_' + label_id
             labeldict[(('TES Knoten', label_id), 'status')] = 'Status_zu_' + label_id
+            labeldict[((label_id, 'None'), 'storage_content')] = 'Speicherstand_' + label_id
+
+    if param['ST-TES']['active']:
+        invest_ges += (param['ST-TES']['inv_spez']
+                       * param['ST-TES']['Q']
+                       * param['ST-TES']['amount'])
+
+        for i in range(1, param['ST-TES']['amount']+1):
+            label_id = 'ST-TES_' + str(i)
+            data_tes = views.node(results, label_id)['sequences']
+
+            cost_Anlagen += (data_tes[(('Wärmenetzwerk', label_id), 'flow')].sum()
+                             * param['ST-TES']['op_cost_var']
+                             + (param['ST-TES']['op_cost_fix']
+                                * param['ST-TES']['Q']))
+
+            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
+            labeldict[((label_id, 'Wärmenetzwerk'), 'status')] = 'Status_ab_' + label_id
+            labeldict[(('Wärmenetzwerk', label_id), 'flow')] = 'Q_zu_' + label_id
+            labeldict[(('Wärmenetzwerk', label_id), 'status')] = 'Status_zu_' + label_id
             labeldict[((label_id, 'None'), 'storage_content')] = 'Speicherstand_' + label_id
 
     # Knoten

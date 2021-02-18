@@ -19,6 +19,25 @@
     "inflow_conv": 1.0,
     "outflow_conv": 1.0
   },
+  "ST-TES": {
+    "active": true,
+    "amount": 1,
+    "Q": 1500.0,
+    "Q_N_in": 10.0,
+    "Q_rel_in_max": 1.0,
+    "Q_rel_in_min": 0.1,
+    "Q_N_out": 10.0,
+    "Q_rel_out_max": 1.0,
+    "Q_rel_out_min": 0.1,
+    "Q_rel_loss": 0.0001,
+    "op_cost_var": 0.66,
+    "op_cost_fix": 88.0,
+    "inv_spez": 18750.0,
+    "init_status": 0.0,
+    "init_storage": 0.1,
+    "inflow_conv": 1.0,
+    "outflow_conv": 1.0
+  },
   "HP": {
     "active": true,
     "amount": 1,
