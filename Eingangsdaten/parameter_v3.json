@@ -41,7 +41,11 @@
   "HP": {
     "active": true,
     "amount": 1,
-    "Q_N": 75.0,
+    "type": "time series",
+    "P_max": 0,
+    "P_min": 0,
+    "c_0": 0,
+    "c_1": 0,
     "op_cost_var": 0.88,
     "op_cost_fix": 881.0,
     "inv_spez": 220350.0
@@ -55,6 +59,7 @@
   "GuD": {
     "active": true,
     "amount": 1,
+    "type": "constant",
     "Q_N": 71.0,
     "Q_in": 258.1878319,
     "P_max_woDH": 146.23847130000001,
@@ -71,6 +76,7 @@
   "EHK": {
     "active": true,
     "amount": 1,
+    "type": "constant",
     "Q_N": 75.0,
     "eta": 0.99,
     "op_cost_var": 0.5,
@@ -79,7 +85,8 @@
   },
   "BPT": {
     "active": false,
-    "amount": 1
+    "amount": 1,
+    "type": "time series"
   },
   "param": {
     "gas_price": 14.14,
@@ -91,6 +98,7 @@
   "BHKW": {
     "active": true,
     "amount": 1,
+    "type": "constant",
     "Q_N": 73.5,
     "Q_in": 220.4506659,
     "P_max_woDH": 103.2900785,
@@ -105,11 +113,14 @@
   },
   "LT-HP": {
     "active": true,
-    "amount": 1
+    "amount": 1,
+    "type": "time series",
+    "cop": 3.0
   },
   "SLK": {
     "active": true,
     "amount": 1,
+    "type": "constant",
     "Q_N": 75.0,
     "eta": 0.88,
     "op_cost_var": 1.1,
@@ -118,11 +129,13 @@
   },
   "Sol": {
     "active": true,
-    "type": "LT",
+    "usage": "LT",
     "A": 507434.0
   },
   "MR": {
     "active": false,
-    "Q_N": 25.0
+    "type": "constant",
+    "Q_N": 25.0,
+    "op_cost_var": 0
   }
 }
