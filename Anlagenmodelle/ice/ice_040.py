@@ -391,7 +391,7 @@ for Tval in T_range:
     # print('_____________________________')
     # print('#############################')
 
-dir_path = abspath(join(__file__, "../.."))
+dir_path = abspath(join(__file__, "..\\..\\.."))
 save_path = join(dir_path, 'Eingangsdaten', 'ice_parameters.csv')
 
 solphparams.to_csv(save_path, sep=';')
