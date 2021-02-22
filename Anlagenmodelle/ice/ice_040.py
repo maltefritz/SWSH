@@ -13,6 +13,7 @@ from tespy.networks import Network
 from tespy.tools.characteristics import CharLine
 from tespy.tools import document_model
 
+from os.path import abspath, join
 import numpy as np
 import pandas as pd
 import matplotlib as mpl
@@ -390,17 +391,7 @@ for Tval in T_range:
     # print('_____________________________')
     # print('#############################')
 
-plant_name = 'BHKW'
+dir_path = abspath(join(__file__, "../.."))
+save_path = join(dir_path, 'Eingangsdaten', 'ice_parameters.csv')
 
-# df = pd.DataFrame({'plant': [plant_name]*8,
-#                    'parameter': ['Q_N', 'Q_in', 'P_max_woDH', 'P_min_woDH',
-#                                  'Eta_el_max_woDH', 'Eta_el_min_woDH',
-#                                  'H_L_FG_share_max', 'H_L_FG_share_min'],
-#                    'unit': ['MW', 'MW', 'MW', 'MW', '-', '-', '-', '-'],
-#                    'value': [abs(Q_N/1e6), Q_in/1e6, P_max_woDH/1e6,
-#                              P_min_woDH/1e6, eta_el_max, eta_el_min,
-#                              H_L_FG_max, H_L_FG_min]})
-
-# df.to_csv('data_' + plant_name + '.csv', index=False, sep=";")
-
-solphparams.to_csv('data_' + plant_name + '.csv', sep=";")
+solphparams.to_csv(save_path, sep=';')
