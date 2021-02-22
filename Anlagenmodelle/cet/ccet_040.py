@@ -562,7 +562,7 @@ for Tval in T_range:
 with open('ccet_QPdata.json', 'w') as file:
     json.dump(QPjson, file, indent=4)
 
-dir_path = abspath(join(__file__, "../.."))
+dir_path = abspath(join(__file__, "..\\..\\.."))
 save_path = join(dir_path, 'Eingangsdaten', 'ccet_parameters.csv')
 
 solphparams.to_csv(save_path, sep=';')
