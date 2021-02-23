@@ -276,8 +276,8 @@ for Tval in T_range:
     P_max_woDH = np.mean(P_L)
     print(P_L)
     eta_el_max_woDH = P_max_woDH / ti.P.val
-    H_L_FG_max_tr = 1 - P_L[0] + Q_L[0] / ti.P.val
-    H_L_FG_min_tl = 1 - P_L[-1] + Q_L[-1] / ti.P.val
+    H_L_FG_max_tr = 1 - (P_L[0] + Q_L[0]) / ti.P.val
+    H_L_FG_min_tl = 1 - (P_L[-1] + Q_L[-1]) / ti.P.val
 
     ##############################
     # min Q (Opened Bypass), from P_max to P_min
@@ -298,7 +298,7 @@ for Tval in T_range:
         P_L += [abs(power.P.val)]
         Q_L += [abs(heat.P.val)]
 
-    H_L_FG_min_bl = 1 - P_L[-1] + Q_L[-1] / ti.P.val
+    H_L_FG_min_bl = 1 - (P_L[-1] + Q_L[-1]) / ti.P.val
 
     ##############################
     # Bei P_min: Q_min to Q_max
@@ -306,9 +306,8 @@ for Tval in T_range:
     print('Open bypass, shut down flue gas cooler at minimum power output')
 
     ice.set_attr(P=ice_P_design * 0.5)  # Pmin als 0.5*Pmax hardcodet?
-    m_bypass = np.linspace(0, fg_chbp.m.val_SI, 7,
-                            endpoint=False)[::-1]
-    # m_bypass = [0, 1/3, 1, 3, 6, 10]
+    m_bypass = np.linspace(0, fg_chbp.m.val_SI, 7, endpoint=False)[::-1]
+
     fg_chbp.set_attr(m=np.nan)
     fgc_ch.set_attr(m=np.nan)
 
@@ -320,19 +319,9 @@ for Tval in T_range:
         P_L += [abs(power.P.val)]
         Q_L += [abs(heat.P.val)]
 
-    # # close main chimney
-    # fg_chbp.set_attr(m=np.nan)
-    # fgc_ch.set_attr(m=np.nan)
-    # fgc_ch.set_attr(m=0.01)
-    # nw.solve(mode=mode, design_path='ice_design')
-    # print(power.P.val, heat.P.val,
-    #       -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
-    # P_L += [abs(power.P.val)]
-    # Q_L += [abs(heat.P.val)]
-
     P_min_woDH = np.mean(P_L[-7:])
     eta_el_min_woDH = P_min_woDH / ti.P.val
-    H_L_FG_max_br = 1 - P_L[-1] + Q_L[-1] / ti.P.val
+    H_L_FG_max_br = 1 - (P_L[-1] + Q_L[-1]) / ti.P.val
 
     ##############################
     # max Q (Closed Bypass), from min P to max P
@@ -351,6 +340,7 @@ for Tval in T_range:
         P_L += [abs(power.P.val)]
         Q_L += [abs(heat.P.val)]
 
+    # skip simulation necessary for numeric stability
     if Tval < 65:
         continue
 
@@ -366,7 +356,6 @@ for Tval in T_range:
     solphparams.loc[Tval, 'H_L_FG_share_min'] = H_L_FG_min
 
     # P_Q_Diagramm
-
     fig, ax = plt.subplots()
 
     ax.plot(Q_L, P_L, 'x')
@@ -376,23 +365,6 @@ for Tval in T_range:
     ax.set_ylabel('El. Leistung P')
     ax.set_title(r'Betriebsfeld bei $T_{VL}$ = ' + str(Tval) + ' °C')
     plt.show()
-
-    # print('_____________________________')
-    # print('#############################')
-    # print()
-    # print('Ergebnisse:')
-    # print()
-    # print('Q_N: ' + "%.2f" % abs(Q_N/1e6) + " MW")
-    # print('Q_in_BHKW: ' + "%.2f" % (Q_in/1e6) + " MW")
-    # print('P_max_woDH: ' + "%.2f" % (P_max_woDH/1e6) + " MW")
-    # print('P_min_woDH: ' + "%.2f" % (P_min_woDH/1e6) + " MW")
-    # print('eta_el_max: ' + "%.4f" % eta_el_max)
-    # print('eta_el_min: ' + "%.4f" % eta_el_min)
-    # print('H_L_FG_max: ' + "%.4f" % H_L_FG_max)
-    # print('H_L_FG_min: ' + "%.4f" % H_L_FG_min)
-    # print()
-    # print('_____________________________')
-    # print('#############################')
 
 dir_path = abspath(join(__file__, "..\\..\\.."))
 save_path = join(dir_path, 'Eingangsdaten', 'ice_parameters.csv')
