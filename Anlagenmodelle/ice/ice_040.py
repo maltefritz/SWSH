@@ -233,8 +233,8 @@ nw.print_results()
 # P_L += [abs(power.P.val)]
 # Q_L += [abs(heat.P.val)]
 
-# T_range = [*range(65, 67)]
-T_range = [*range(65, 125)]
+# T_range = [*range(64, 67)]
+T_range = [*range(64, 125)]
 solphparams = pd.DataFrame(columns=['P_max_woDH', 'eta_el_max',
                                     'P_min_woDH', 'eta_el_min',
                                     'H_L_FG_share_max', 'H_L_FG_share_min'])
@@ -246,7 +246,7 @@ for Tval in T_range:
     fgc_cons.set_attr(T=Tval)
 
 #############################
-    # 1 max P über Bypass
+    # Bei P_max: Q_max zu Q_min
 
     print('Open bypass, shut down flue gas cooler at maximum power output')
 
@@ -263,22 +263,24 @@ for Tval in T_range:
         Q_L += [abs(heat.P.val)]
         print(fg_chbp.T.val)
 
-    # close main chimney
-    fg_chbp.set_attr(m=np.nan)
-    fgc_ch.set_attr(m=np.nan)
-    fgc_ch.set_attr(m=0.01)
-    nw.solve(mode=mode, design_path='ice_design')
-    print(power.P.val, heat.P.val,
-          -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
-    P_L += [abs(power.P.val)]
-    Q_L += [abs(heat.P.val)]
+    # # close main chimney
+    # fg_chbp.set_attr(m=np.nan)
+    # fgc_ch.set_attr(m=np.nan)
+    # fgc_ch.set_attr(m=0.01)
+    # nw.solve(mode=mode, design_path='ice_design')
+    # print(power.P.val, heat.P.val,
+    #       -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
+    # P_L += [abs(power.P.val)]
+    # Q_L += [abs(heat.P.val)]
 
-    P_max_woDH = abs(power.P.val)
-    eta_el_max_tl = abs(power.P.val) / ti.P.val
-    H_L_FG_min1 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
+    P_max_woDH = np.mean(P_L)
+    print(P_L)
+    eta_el_max_woDH = P_max_woDH / ti.P.val
+    H_L_FG_max_tr = 1 - P_L[0] + Q_L[0] / ti.P.val
+    H_L_FG_min_tl = 1 - P_L[-1] + Q_L[-1] / ti.P.val
 
     ##############################
-    # min Q (Opened Bypass), from min P to max P
+    # min Q (Opened Bypass), from P_max to P_min
     print('Opened bypass, go from minimum to maximum power')
 
     ice_power_range = np.linspace(ice_P_design * 0.5, ice_P_design, 7,
@@ -296,8 +298,10 @@ for Tval in T_range:
         P_L += [abs(power.P.val)]
         Q_L += [abs(heat.P.val)]
 
+    H_L_FG_min_bl = 1 - P_L[-1] + Q_L[-1] / ti.P.val
+
     ##############################
-    # min P über Bypass
+    # Bei P_min: Q_min to Q_max
     print(fg_chbp.m.val_SI/fgc_ch.m.val_SI)
     print('Open bypass, shut down flue gas cooler at minimum power output')
 
@@ -326,11 +330,9 @@ for Tval in T_range:
     # P_L += [abs(power.P.val)]
     # Q_L += [abs(heat.P.val)]
 
-    P_min_woDH = abs(power.P.val)
-    eta_el_min_bl = abs(power.P.val) / ti.P.val
-    H_L_FG_min2 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
-
-    H_L_FG_min = (H_L_FG_min1 + H_L_FG_min2)/2
+    P_min_woDH = np.mean(P_L[-7:])
+    eta_el_min_woDH = P_min_woDH / ti.P.val
+    H_L_FG_max_br = 1 - P_L[-1] + Q_L[-1] / ti.P.val
 
     ##############################
     # max Q (Closed Bypass), from min P to max P
@@ -348,24 +350,20 @@ for Tval in T_range:
               -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
         P_L += [abs(power.P.val)]
         Q_L += [abs(heat.P.val)]
-        if P == ice_power_range[0]:
-            H_L_FG_max1 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
-            eta_el_min_br = abs(power.P.val) / ti.P.val
-        elif P == ice_power_range[-1]:
-            H_L_FG_max2 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
-            eta_el_max_tr = abs(power.P.val) / ti.P.val
 
-    # H_L_FG_max = (H_L_FG_max1 + H_L_FG_max2)/2
-    # eta_el_max = (eta_el_max_tr + eta_el_max_tl)/2
-    # eta_el_min = (eta_el_min_br + eta_el_min_bl)/2
+    if Tval < 65:
+        continue
 
-    # solphparams.loc[Tval, 'Q_in'] = Q_in/1e6
-    # solphparams.loc[Tval, 'P_max_woDH'] = P_max_woDH/1e6
-    # solphparams.loc[Tval, 'eta_el_max'] = eta_el_max
-    # solphparams.loc[Tval, 'P_min_woDH'] = P_min_woDH/1e6
-    # solphparams.loc[Tval, 'eta_el_min'] = eta_el_min
-    # solphparams.loc[Tval, 'H_L_FG_share_max'] = H_L_FG_max
-    # solphparams.loc[Tval, 'H_L_FG_share_min'] = H_L_FG_min
+    H_L_FG_max = np.mean([H_L_FG_max_tr, H_L_FG_max_br])
+    H_L_FG_min = np.mean([H_L_FG_min_tl, H_L_FG_min_bl])
+
+    solphparams.loc[Tval, 'Q_in'] = Q_in/1e6
+    solphparams.loc[Tval, 'P_max_woDH'] = P_max_woDH/1e6
+    solphparams.loc[Tval, 'eta_el_max'] = eta_el_max_woDH
+    solphparams.loc[Tval, 'P_min_woDH'] = P_min_woDH/1e6
+    solphparams.loc[Tval, 'eta_el_min'] = eta_el_min_woDH
+    solphparams.loc[Tval, 'H_L_FG_share_max'] = H_L_FG_max
+    solphparams.loc[Tval, 'H_L_FG_share_min'] = H_L_FG_min
 
     # P_Q_Diagramm
 
