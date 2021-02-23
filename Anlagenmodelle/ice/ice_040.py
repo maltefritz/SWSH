@@ -233,6 +233,7 @@ nw.print_results()
 # P_L += [abs(power.P.val)]
 # Q_L += [abs(heat.P.val)]
 
+# T_range = [*range(65, 67)]
 T_range = [*range(65, 125)]
 solphparams = pd.DataFrame(columns=['P_max_woDH', 'eta_el_max',
                                     'P_min_woDH', 'eta_el_min',
@@ -249,7 +250,7 @@ for Tval in T_range:
 
     print('Open bypass, shut down flue gas cooler at maximum power output')
 
-    m_bypass = [0, 1/3, 1, 3, 10]
+    m_bypass = [0, 1/3, 1, 3, 10, 30]
     fg_chbp.set_attr(m=np.nan)
     fgc_ch.set_attr(m=np.nan)
 
@@ -260,7 +261,7 @@ for Tval in T_range:
               -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
         P_L += [abs(power.P.val)]
         Q_L += [abs(heat.P.val)]
-        print(fg_chbp.m.val)
+        print(fg_chbp.T.val)
 
     # close main chimney
     fg_chbp.set_attr(m=np.nan)
@@ -277,55 +278,59 @@ for Tval in T_range:
     H_L_FG_min1 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
 
     ##############################
-    # min P über Bypass
-    print('Open bypass, shut down flue gas cooler at minimum power output')
-
-    ice.set_attr(P=ice_P_design * 0.5)  # Pmin als 0.5*Pmax hardcodet?
-    m_bypass = [0, 1/3, 1, 3, 6, 10]
-    fg_chbp.set_attr(m=np.nan)
-    fgc_ch.set_attr(m=np.nan)
-
-    for m in m_bypass:
-        fg_chbp.set_attr(m=Ref(fgc_ch, m, 0))
-        nw.solve(mode=mode, design_path='ice_design')
-        print(power.P.val, heat.P.val,
-              -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
-        P_L += [abs(power.P.val)]
-        Q_L += [abs(heat.P.val)]
-
-    # close main chimney
-    fg_chbp.set_attr(m=np.nan)
-    fgc_ch.set_attr(m=np.nan)
-    fgc_ch.set_attr(m=0.01)
-    nw.solve(mode=mode, design_path='ice_design')
-    print(power.P.val, heat.P.val,
-          -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
-    P_L += [abs(power.P.val)]
-    Q_L += [abs(heat.P.val)]
-
-    P_min_woDH = abs(power.P.val)
-    eta_el_min_bl = abs(power.P.val) / ti.P.val
-    H_L_FG_min2 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
-
-    H_L_FG_min = (H_L_FG_min1 + H_L_FG_min2)/2
-
-    ##############################
     # min Q (Opened Bypass), from min P to max P
     print('Opened bypass, go from minimum to maximum power')
 
-    ice_power_range = np.linspace(ice_P_design * 0.5, ice_P_design, 5)
+    ice_power_range = np.linspace(ice_P_design * 0.5, ice_P_design, 7,
+                                  endpoint=False)
     fg_chbp.set_attr(m=np.nan)
     fgc_ch.set_attr(m=np.nan)
 
     fgc_ch.set_attr(m=0.01)
 
-    for P in ice_power_range:
+    for P in ice_power_range[::-1]:
         ice.set_attr(P=P)
         nw.solve(mode=mode, design_path='ice_design')
         print(power.P.val, heat.P.val,
               -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
         P_L += [abs(power.P.val)]
         Q_L += [abs(heat.P.val)]
+
+    ##############################
+    # min P über Bypass
+    print(fg_chbp.m.val_SI/fgc_ch.m.val_SI)
+    print('Open bypass, shut down flue gas cooler at minimum power output')
+
+    ice.set_attr(P=ice_P_design * 0.5)  # Pmin als 0.5*Pmax hardcodet?
+    m_bypass = np.linspace(0, fg_chbp.m.val_SI, 7,
+                            endpoint=False)[::-1]
+    # m_bypass = [0, 1/3, 1, 3, 6, 10]
+    fg_chbp.set_attr(m=np.nan)
+    fgc_ch.set_attr(m=np.nan)
+
+    for m in m_bypass:
+        fg_chbp.set_attr(m=m)
+        nw.solve(mode=mode, design_path='ice_design')
+        print(power.P.val, heat.P.val,
+              -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
+        P_L += [abs(power.P.val)]
+        Q_L += [abs(heat.P.val)]
+
+    # # close main chimney
+    # fg_chbp.set_attr(m=np.nan)
+    # fgc_ch.set_attr(m=np.nan)
+    # fgc_ch.set_attr(m=0.01)
+    # nw.solve(mode=mode, design_path='ice_design')
+    # print(power.P.val, heat.P.val,
+    #       -power.P.val / ti.P.val, -heat.P.val / ti.P.val)
+    # P_L += [abs(power.P.val)]
+    # Q_L += [abs(heat.P.val)]
+
+    P_min_woDH = abs(power.P.val)
+    eta_el_min_bl = abs(power.P.val) / ti.P.val
+    H_L_FG_min2 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
+
+    H_L_FG_min = (H_L_FG_min1 + H_L_FG_min2)/2
 
     ##############################
     # max Q (Closed Bypass), from min P to max P
@@ -336,7 +341,7 @@ for Tval in T_range:
 
     fg_chbp.set_attr(m=0)
 
-    for P in ice_power_range:
+    for P in ice_power_range[1:]:
         ice.set_attr(P=P)
         nw.solve(mode=mode, design_path='ice_design')
         print(power.P.val, heat.P.val,
@@ -350,17 +355,17 @@ for Tval in T_range:
             H_L_FG_max2 = 1 - abs(power.P.val + heat.P.val) / ti.P.val
             eta_el_max_tr = abs(power.P.val) / ti.P.val
 
-    H_L_FG_max = (H_L_FG_max1 + H_L_FG_max2)/2
-    eta_el_max = (eta_el_max_tr + eta_el_max_tl)/2
-    eta_el_min = (eta_el_min_br + eta_el_min_bl)/2
+    # H_L_FG_max = (H_L_FG_max1 + H_L_FG_max2)/2
+    # eta_el_max = (eta_el_max_tr + eta_el_max_tl)/2
+    # eta_el_min = (eta_el_min_br + eta_el_min_bl)/2
 
-    solphparams.loc[Tval, 'Q_in'] = Q_in/1e6
-    solphparams.loc[Tval, 'P_max_woDH'] = P_max_woDH/1e6
-    solphparams.loc[Tval, 'eta_el_max'] = eta_el_max
-    solphparams.loc[Tval, 'P_min_woDH'] = P_min_woDH/1e6
-    solphparams.loc[Tval, 'eta_el_min'] = eta_el_min
-    solphparams.loc[Tval, 'H_L_FG_share_max'] = H_L_FG_max
-    solphparams.loc[Tval, 'H_L_FG_share_min'] = H_L_FG_min
+    # solphparams.loc[Tval, 'Q_in'] = Q_in/1e6
+    # solphparams.loc[Tval, 'P_max_woDH'] = P_max_woDH/1e6
+    # solphparams.loc[Tval, 'eta_el_max'] = eta_el_max
+    # solphparams.loc[Tval, 'P_min_woDH'] = P_min_woDH/1e6
+    # solphparams.loc[Tval, 'eta_el_min'] = eta_el_min
+    # solphparams.loc[Tval, 'H_L_FG_share_max'] = H_L_FG_max
+    # solphparams.loc[Tval, 'H_L_FG_share_min'] = H_L_FG_min
 
     # P_Q_Diagramm
 
