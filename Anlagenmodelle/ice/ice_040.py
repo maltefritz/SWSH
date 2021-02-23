@@ -14,6 +14,8 @@ from tespy.tools.characteristics import CharLine
 from tespy.tools import document_model
 
 from os.path import abspath, join
+import json
+from time import time
 import numpy as np
 import pandas as pd
 import matplotlib as mpl
@@ -238,8 +240,10 @@ T_range = [*range(64, 125)]
 solphparams = pd.DataFrame(columns=['P_max_woDH', 'eta_el_max',
                                     'P_min_woDH', 'eta_el_min',
                                     'H_L_FG_share_max', 'H_L_FG_share_min'])
+QPjson = dict()
 
 for Tval in T_range:
+    start_time = time()
     P_L = []
     Q_L = []
 
@@ -344,6 +348,12 @@ for Tval in T_range:
     if Tval < 65:
         continue
 
+    end_time = time()
+    elapsed_time = end_time - start_time
+
+    QPjson[Tval] = {'Q': Q_L, 'P': P_L,
+                    'Laufzeit': elapsed_time}
+
     H_L_FG_max = np.mean([H_L_FG_max_tr, H_L_FG_max_br])
     H_L_FG_min = np.mean([H_L_FG_min_tl, H_L_FG_min_bl])
 
@@ -365,6 +375,9 @@ for Tval in T_range:
     ax.set_ylabel('El. Leistung P')
     ax.set_title(r'Betriebsfeld bei $T_{VL}$ = ' + str(Tval) + ' °C')
     plt.show()
+
+with open('ice_QPdata.json', 'w') as file:
+    json.dump(QPjson, file, indent=4)
 
 dir_path = abspath(join(__file__, "..\\..\\.."))
 save_path = join(dir_path, 'Eingangsdaten', 'ice_parameters.csv')
