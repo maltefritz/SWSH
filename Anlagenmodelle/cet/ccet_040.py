@@ -504,10 +504,10 @@ for Tval in T_range:
     print('{:.3f}'.format(H_L), '{:.1f}'.format(Q_CW/1e6),
           '{:.3f}'.format(ratio))
 
-    solphparams.loc[Tval, 'Q_in'] = Q_in_t_l_linreg
-    solphparams.loc[Tval, 'P_max_woDH'] = P_t_l
+    solphparams.loc[Tval, 'Q_in'] = Q_in_t_l_linreg/1e6
+    solphparams.loc[Tval, 'P_max_woDH'] = P_t_l/1e6
     solphparams.loc[Tval, 'eta_el_max'] = P_t_l/Q_in_t_l_linreg
-    solphparams.loc[Tval, 'P_min_woDH'] = P_b_l
+    solphparams.loc[Tval, 'P_min_woDH'] = P_b_l/1e6
     solphparams.loc[Tval, 'eta_el_min'] = P_b_l/Q_in_b_l_linreg
     beta_unten = abs((P_b_r - P_b_l) / Q_b_r)
     beta_oben = abs((P_t_r - P_t_l) / Q_t_r)
