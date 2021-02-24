@@ -21,7 +21,9 @@ import matplotlib.pyplot as plt
 
 from time import time
 
-Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: '))) * -1e6
+# Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: '))) * -1e6
+Q_N = 2.24 * -1e6
+
 # T_amb and T_amb_out kommen von der Drammen District Heating Wärmepumpe aus
 # Norwegen. T_amb ist die Außentemperatur in einem Fluß und T_amb_out die
 # Differenz vom Austritt zum Eintritt
@@ -361,19 +363,19 @@ for T in T_range:
 
     df2 = pd.DataFrame({'Power P': np.array(P_list)/1e6,
                         'Heat Q': [abs(Q/1e6) for Q in Q_range]})
-    df2.index = df2['Power P']
-    del df2['Power P']
+    df2.set_index('Power P', inplace=True)
 
-    plt.plot(df2, '-x', Color=colors[0],
-             markersize=7, linewidth=2)
-    ax.set_ylabel('Wärmestrom Q in MW')
+    ax.plot(df2, '-x', Color=colors[0], markersize=7, linewidth=2)
+
+    ax.set_ylabel(r'Wärmestrom $\dot{Q}$ in MW')
     ax.set_xlabel('Leistung P in MW')
     ax.grid(linestyle='--')
-    plt.title('PQ-Diagramm für T= ' + str(T))
+    plt.title('Betriebsfeld bei T= ' + str(T) + ' °C')
 
     plt.show()
     print(time() - tmp)
 
 dirpath = path.abspath(path.join(__file__, "../../.."))
-writepath = path.join(dirpath, 'Eingangsdaten', 'Wärmepumpe_Wasser.csv')
+writepath = path.join(dirpath, 'Eingangsdaten',
+                      'hp_parameters_' + str(Q_N/-1e6) + '.csv')
 df3.to_csv(writepath, sep=';', na_rep='#N/A', index=False)

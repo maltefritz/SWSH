@@ -19,9 +19,10 @@
 \begin{table}[H]
 \begin{tabular}{ll}
 TESPy Version:&0.4.3 - dev\\
-Commit:&788ddfdc@dev\\
+Commit:&b8e11e11@dev\\
 CoolProp version:&6.4.0\\
 Python version:&3.7.6 (default, Jan  8 2020, 20:23:39) [MSC v.1916 64 bit (AMD64)]\\
+Documentation generated:&Februar 24, 2021\\
 \end{tabular}
 \end{table}
 \newpage\section{Connections in offdesign mode}
@@ -35,8 +36,8 @@ Python version:&3.7.6 (default, Jan  8 2020, 20:23:39) [MSC v.1916 64 bit (AMD64
 \midrule
  consumer back flow:out1\_district heating pump:in1 &                                              10.000 &                                                      50.000 &                                                                - \\
                        condenser:out2\_consumer:in1 &                                                   - &                                                      90.000 &                                                                - \\
-                         ambient air:out1\_pump:in1 &                                               1.000 &                                                       8.000 &                                                            5.577 \\
-                     splitter:out1\_superheater:in1 &                                                   - &                                                           - &                                                            3.520 \\
+                         ambient air:out1\_pump:in1 &                                               1.000 &                                                       8.000 &                                                            0.167 \\
+                     splitter:out1\_superheater:in1 &                                                   - &                                                           - &                                                            0.105 \\
                 evaporator:out1\_sink ambient 1:in1 &                                               1.000 &                                                           - &                                                                - \\
 \bottomrule
 \end{tabular}
@@ -198,7 +199,7 @@ Python version:&3.7.6 (default, Jan  8 2020, 20:23:39) [MSC v.1916 64 bit (AMD64
 \toprule
      label &  pr1 (\ref{eq:Condenser_pr1}) &  zeta2 (\ref{eq:Condenser_zeta2}) &  kA\_char (\ref{eq:Condenser_kA_char}) &  subcooling (\ref{eq:Condenser_subcooling}) \\
 \midrule
- condenser &                         0.990 &                            61.371 &                                   True &                                        True \\
+ condenser &                         0.990 &                         68800.601 &                                   True &                                        True \\
 \bottomrule
 \end{tabular}
 \caption{Parameters of components of type Condenser}
@@ -336,7 +337,7 @@ f_\mathrm{kA}=&\frac{2}{\frac{1}{f\left(X_2\right)}+\frac{1}{f\left(X_2\right)}}
 \toprule
     label &  zeta (\ref{eq:HeatExchangerSimple_zeta}) \\
 \midrule
- consumer &                                    60.757 \\
+ consumer &                                 68112.323 \\
 \bottomrule
 \end{tabular}
 \caption{Parameters of components of type HeatExchangerSimple}
@@ -434,9 +435,9 @@ p_\mathrm{in,1}- p_\mathrm{out,1} & |\dot{m}_\mathrm{in,1}| < \unitfrac[0.0001]{
 \toprule
        label &  kA (\ref{eq:HeatExchanger_kA}) &  pr2 (\ref{eq:HeatExchanger_pr2}) &  zeta1 (\ref{eq:HeatExchanger_zeta1}) &  zeta2 (\ref{eq:HeatExchanger_zeta2}) & kA\_char (\ref{eq:HeatExchanger_kA_char}) \\
 \midrule
-  evaporator &                               - &                             0.990 &                                 0.203 &                                     - &                                      True \\
- superheater &                      303554.478 &                                 - &                                 0.207 &                                 2.988 &                                         - \\
- intercooler &                               - &                                 - &                                50.415 &                                 0.607 &                                      True \\
+  evaporator &                               - &                             0.990 &                               227.824 &                                     - &                                      True \\
+ superheater &                        9066.160 &                                 - &                               232.460 &                              3350.244 &                                         - \\
+ intercooler &                               - &                                 - &                             56517.828 &                               680.633 &                                      True \\
 \bottomrule
 \end{tabular}
 \caption{Parameters of components of type HeatExchanger}
@@ -669,7 +670,7 @@ This bus is used for postprocessing only.
 
 \subsection{Bus ``total delivered heat''}
 
-Specified total value of energy flow: $\dot{E}_\mathrm{bus} = \unit[-75000000.000]{W}$
+Specified total value of energy flow: $\dot{E}_\mathrm{bus} = \unit[-2240000.000]{W}$
 
 \begin{equation}
 \label{eq:Bus_energy_flow_sum}
