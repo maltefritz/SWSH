@@ -27,7 +27,7 @@ shplt.init_params()
 # Für das BHKW unseres Referenzsystem Land ist P_N=15MW
 # Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: ')))*-1e6
 # Q_N = 4.19908125* -1e6
-Q_N = 2.26* -1e6
+Q_N = 2.26 * -1e6
 # %% network
 
 # define full fluid list for the network's variable space
@@ -216,7 +216,7 @@ heat.set_attr(P=Q_N)
 # ice.set_attr(P=-1e6)
 
 mode = 'design'
-nw.solve(mode=mode)  # , init_path='ice_design')
+nw.solve(mode=mode, init_path='ice_design_stable')
 nw.print_results()
 nw.save('ice_design')
 print(power.P.val, heat.P.val,
@@ -368,10 +368,12 @@ for Tval in T_range:
     # P_Q_Diagramm
     fig, ax = plt.subplots(figsize=[8, 5.5])
 
+    colors = list(shplt.znes_colors().values())
+
     ax.plot([Q/1e6 for Q in Q_L],
             [P/1e6 for P in P_L],
             'x',
-            color=shplt.znes_colors(1).value)
+            color=colors[0])
 
     ax.grid(linestyle='--')
     ax.set_xlabel(r'Wärmestrom $\dotQ$ in MW')

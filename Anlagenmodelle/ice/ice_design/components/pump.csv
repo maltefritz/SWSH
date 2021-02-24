@@ -1,2 +1,2 @@
 label;comp_type;busses;bus_param;bus_P_ref;bus_char;bus_base;design;offdesign;design_path;local_design;local_offdesign;P;P_set;P_var;eta_s;eta_s_set;eta_s_var;pr;pr_set;pr_var;eta_s_char;eta_s_char_set;eta_s_char_param;flow_char;flow_char_set;flow_char_param
-cooling water pump;Pump;['power'];[None];[nan];['0x000001BD4B1B5D88'];['component'];['eta_s'];['eta_s_char'];nan;False;False;1;False;False;0.8;True;False;1;False;False;0x000001BD49EEF488;False;m;0x000001BD48E1F848;False;v
+cooling water pump;Pump;['power'];[None];[701.652842095293];['0x000001C04C6D85C8'];['component'];['eta_s'];['eta_s_char'];nan;False;False;701.652842095293;False;False;0.8000000001424703;True;False;1.0411265822521234;False;False;0x000001C04C6F06C8;False;m;0x000001C04C720588;False;v

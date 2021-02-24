@@ -1,6 +1,6 @@
 label;P;P_set
-power;nan;False
+power;3206462.4017212037;False
 heat;-2260000.0;True
-ti;nan;False
-ice_power;nan;False
-heat_cond;nan;False
+ti;6841516.261564089;False
+ice_power;3205739.0482757445;False
+heat_cond;0.0;False
