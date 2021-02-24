@@ -18,16 +18,16 @@ import json
 from time import time
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
 from matplotlib import pyplot as plt
+import SWSHplotting as shplt
 
 
-plt.rcParams['pdf.fonttype'] = 42
-mpl.rcParams['savefig.bbox'] = 'tight'
+shplt.init_params()
 
 # Für das BHKW unseres Referenzsystem Land ist P_N=15MW
 # Q_N = abs(float(input('Gib die Nennwärmeleistung in MW ein: ')))*-1e6
-Q_N = 75 * -1e6
+# Q_N = 4.19908125* -1e6
+Q_N = 2.26* -1e6
 # %% network
 
 # define full fluid list for the network's variable space
@@ -366,20 +366,24 @@ for Tval in T_range:
     solphparams.loc[Tval, 'H_L_FG_share_min'] = H_L_FG_min
 
     # P_Q_Diagramm
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=[8, 5.5])
 
-    ax.plot(Q_L, P_L, 'x')
+    ax.plot([Q/1e6 for Q in Q_L],
+            [P/1e6 for P in P_L],
+            'x',
+            color=shplt.znes_colors(1).value)
 
     ax.grid(linestyle='--')
-    ax.set_xlabel(r'Wärmestrom $\dotQ$')
-    ax.set_ylabel('El. Leistung P')
+    ax.set_xlabel(r'Wärmestrom $\dotQ$ in MW')
+    ax.set_ylabel('El. Leistung P in MW')
     ax.set_title(r'Betriebsfeld bei $T_{VL}$ = ' + str(Tval) + ' °C')
     plt.show()
 
-with open('ice_QPdata.json', 'w') as file:
+with open('ice_QPdata_' + str(Q_N/-1e6) + '.json', 'w') as file:
     json.dump(QPjson, file, indent=4)
 
 dir_path = abspath(join(__file__, "..\\..\\.."))
-save_path = join(dir_path, 'Eingangsdaten', 'ice_parameters.csv')
+save_path = join(dir_path, 'Eingangsdaten',
+                 'ice_parameters_' + str(Q_N/-1e6) + '.csv')
 
 solphparams.to_csv(save_path, sep=';')
