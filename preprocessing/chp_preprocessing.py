@@ -58,7 +58,7 @@ def interpolate_missing_values(data, index):
 # %% Input data and parameters
 # Define output mode
 output_ccet = False
-output_ice = False
+output_ice = True
 
 # Define interpolation mode
 interpolate_ccet = True
@@ -72,7 +72,7 @@ read_path = join(dir_path, 'Eingangsdaten', 'ccet_parameters.csv')
 params_ccet = pd.read_csv(read_path, sep=';', index_col=0)
 
 # ICE data
-read_path = join(dir_path, 'Eingangsdaten', 'ice_parameters.csv')
+read_path = join(dir_path, 'Eingangsdaten', 'ice_parameters_4.28.csv')
 params_ice = pd.read_csv(read_path, sep=';', index_col=0)
 
 # Feed flow temperature time series

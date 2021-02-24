@@ -52,7 +52,7 @@ plt.show()
 read_path = join(dirpath, "Eingangsdaten")
 
 # DH-Wärmepumpe
-hpdata = pd.read_csv(join(read_path, "Wärmepumpe_Wasser.csv"), sep=";")
+hpdata = pd.read_csv(join(read_path, "hp_parameters_2.24.csv"), sep=";")
 hpdata.set_index('T_DH_VL / C', inplace=True, drop=True)
 
 # LT-Wärmepumpe
