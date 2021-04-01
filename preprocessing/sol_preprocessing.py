@@ -90,8 +90,8 @@ read_path = path.join(dirpath, "Eingangsdaten\\TempTimeseries2016.csv")
 TempData = pd.read_csv(read_path, sep=";", parse_dates=True, index_col='Date')
 
 # Berechnung der Temperaturdifferenz zur Umgebung
-# T_Kol = (TempData['T_VL'] + TempData['T_RL'])/2
-T_Kol = (70 + 50)/2
+T_Kol = (TempData['T_VL'] + TempData['T_RL'])/2
+# T_Kol = (70 + 50)/2
 dT = T_Kol - TempData['T_U']
 
 # Berechnung des Kollektorwirkungsgrads und Kollektorwärmestroms
@@ -115,7 +115,7 @@ simdata_path = path.join(dirpath, "Eingangsdaten\\simulation_data.csv")
 simdata = pd.read_csv(simdata_path, sep=";")
 
 # Berechneten Kollektorwärmestrom einfügen
-simdata['solar_data'] = Q_Kol_MW
+simdata['solar_data_HT'] = Q_Kol_MW
 
 # Export der simulation_data.csv
 simdata.to_csv(simdata_path, sep=";", index=False)
