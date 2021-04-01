@@ -705,22 +705,32 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                                         * param['BHKW']['inv_spez']
                                         * param['BHKW']['amount'])
             invest_ges += invest_df.loc[0, 'BHKW']
+
+            for i in range(1, param['BHKW']['amount']+1):
+                label_id = 'BHKW_' + str(i)
+
+                cost_Anlagen += (
+                    data_enw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
+                    * param['BHKW']['op_cost_var']
+                    + (param['BHKW']['op_cost_fix']
+                       * param['BHKW']['P_max_woDH'])
+                    )
+
         elif param['BHKW']['type'] == 'time series':
             invest_df.loc[0, 'BHKW'] = (data['ICE_P_max_woDH'].mean()
                                         * param['BHKW']['inv_spez']
                                         * param['BHKW']['amount'])
             invest_ges += invest_df.loc[0, 'BHKW']
 
-        for i in range(1, param['BHKW']['amount']+1):
-            label_id = 'BHKW_' + str(i)
-            data_bhkw = views.node(results, label_id)['sequences']
+            for i in range(1, param['BHKW']['amount']+1):
+                label_id = 'BHKW_' + str(i)
 
-            cost_Anlagen += (
-                data_bhkw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
-                * param['BHKW']['op_cost_var']
-                + (param['BHKW']['op_cost_fix']
-                   * param['BHKW']['P_max_woDH'])
-                )
+                cost_Anlagen += (
+                    data_enw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
+                    * param['BHKW']['op_cost_var']
+                    + (param['BHKW']['op_cost_fix']
+                       * data['ICE_P_max_woDH'].mean())
+                    )
 
             labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_' + label_id
             labeldict[((label_id, 'Elektrizitätsnetzwerk'), 'flow')] = 'P_' + label_id
