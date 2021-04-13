@@ -16,6 +16,7 @@
     "min_uptime": 3.0,
     "init_status": 0.0,
     "init_storage": 0.1,
+    "balanced": true,
     "inflow_conv": 1.0,
     "outflow_conv": 1.0
   },
@@ -35,6 +36,7 @@
     "inv_spez": 18750.0,
     "init_status": 0.0,
     "init_storage": 0.1,
+    "balanced": false,
     "inflow_conv": 1.0,
     "outflow_conv": 1.0
   },

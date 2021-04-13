@@ -15,7 +15,7 @@ Komponenten:
 Wärmebedarf Flensburgs aus dem Jahr 2016
 
 """
-# import os
+import os
 import json
 from sys import exit
 
@@ -580,6 +580,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                     min=param['ST-TES']['Q_rel_out_min'],
                     nonconvex=solph.NonConvex())},
                 initial_storage_level=param['ST-TES']['init_storage'],
+                balanced=param['ST-TES']['balanced'],
                 loss_rate=param['ST-TES']['Q_rel_loss'],
                 inflow_conversion_factor=param['ST-TES']['inflow_conv'],
                 outflow_conversion_factor=param['ST-TES']['outflow_conv'])
@@ -718,9 +719,9 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                        * data['ICE_P_max_woDH'].mean())
                     )
 
-            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_' + label_id
-            labeldict[((label_id, 'Elektrizitätsnetzwerk'), 'flow')] = 'P_' + label_id
-            labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_' + label_id
+        labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_' + label_id
+        labeldict[((label_id, 'Elektrizitätsnetzwerk'), 'flow')] = 'P_' + label_id
+        labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_' + label_id
 
     if param['GuD']['active']:
         invest_df.loc[0, 'GuD'] = (param['GuD']['P_max_woDH']
@@ -924,4 +925,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
 
 
 if __name__ == '__main__':
-    main()
+    dirpath = os.path.abspath(os.path.join(__file__, "../..", 'Eingangsdaten'))
+    ts_file = os.path.join(dirpath, 'simulation_data.csv')
+    param_file = os.path.join(dirpath, 'parameter_v3.json')
+    main(ts_file=ts_file, param_file=param_file, mipgap='0.2')
