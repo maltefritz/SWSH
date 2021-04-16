@@ -100,11 +100,11 @@ def emission_calc(data_emission):
     return dfEm
 
 
-def invest_stes(Q, sponsorship=0.3):
+def invest_stes(Q):
     """Investment calculation for seasonal thermal energy storages.
 
     Q:              Kapazität des Speichers in MWh
-    sponsorship:    rel. Förderung des Speichers (durch Bundesamt für
+    sponsorship:    Förderung des Speichers (durch Bundesamt für
                     Wirtschaft und Ausfuhrkontrolle [10])
     q_V:            spez. volumetrische Energie
     """
@@ -124,7 +124,15 @@ def invest_stes(Q, sponsorship=0.3):
     q_V = 0.07    # MWh/m³, unsere Annahme (siehe Whiteboardbild)
     V_stes = Q / q_V
     Q_specific_costs = params[0] * V_stes ** params[1]
-    stes_invest = V_stes * Q_specific_costs * (1 - sponsorship)
+    stes_invest = V_stes * Q_specific_costs
+
+    if V_stes > 50:
+        sponsorship = 250 * V_stes
+        if sponsorship > 10e6:
+            sponsorship = 10e6
+        if sponsorship > 0.3 * stes_invest:
+            sponsorship = 0.3 * stes_invest
+        stes_invest -= sponsorship
 
     return stes_invest
 
