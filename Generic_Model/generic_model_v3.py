@@ -610,7 +610,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
 
     invest_ges = 0
     invest_df = pd.DataFrame()
-    cost_Anlagen = 0
+    cost_units_df = pd.DataFrame()
     labeldict = {}
 
     # Busses
@@ -631,8 +631,10 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     if param['Sol']['active']:
         invest_ges += invest_solar
         invest_df.loc[0, 'Sol'] = invest_solar
-        cost_Anlagen += (data_sol_node[(('Solarthermie', 'Sol Knoten'), 'flow')].sum()
-                         * (0.01 * invest_solar)/(A*data['solar_data'].sum()))
+        cost_units_df.loc[0, 'Sol'] = (
+            data_sol_node[(('Solarthermie', 'Sol Knoten'), 'flow')].sum()
+            * (0.01 * invest_solar)/(A*data['solar_data'].sum())
+            )
         labeldict[(('Solarthermie', 'Sol Knoten'), 'flow')] = 'Q_Sol_zu'
         labeldict[(('Sol Knoten', 'Sol_to_LT'), 'flow')] = 'Q_Sol_node_LT'
         labeldict[(('Sol Knoten', 'Sol_to_HT'), 'flow')] = 'Q_Sol_node_HT'
@@ -656,7 +658,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         for i in range(1, param['EHK']['amount']+1):
             label_id = 'Elektroheizkessel_' + str(i)
 
-            cost_Anlagen += (
+            cost_units_df.loc[0, 'EHK'] = (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['EHK']['op_cost_var']
                 + (param['EHK']['op_cost_fix']
@@ -675,7 +677,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         for i in range(1, param['SLK']['amount']+1):
             label_id = 'Spitzenlastkessel_' + str(i)
 
-            cost_Anlagen += (
+            cost_units_df.loc[0, 'EHK'] = (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * (param['SLK']['op_cost_var']
                    + param['param']['energy_tax'])
@@ -700,7 +702,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         for i in range(1, param['BHKW']['amount']+1):
             label_id = 'BHKW_' + str(i)
 
-            cost_Anlagen += (
+            cost_units_df.loc[0, 'BHKW'] = (
                 data_enw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
                 * param['BHKW']['op_cost_var']
                 + (param['BHKW']['op_cost_fix']
@@ -725,7 +727,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         for i in range(1, param['GuD']['amount']+1):
             label_id = 'GuD_' + str(i)
 
-            cost_Anlagen += (
+            cost_units_df.loc[0, 'GuD'] = (
                 data_enw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
                 * param['GuD']['op_cost_var']
                 + (param['GuD']['op_cost_fix']
@@ -753,7 +755,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         for i in range(1, param['HP']['amount']+1):
             label_id = 'HP_' + str(i)
 
-            cost_Anlagen += (
+            cost_units_df.loc[0, 'HP'] = (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['HP']['op_cost_var']
                 + param['HP']['op_cost_fix'] * HP_Q_N
@@ -772,7 +774,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
             invest_df.loc[0, 'LT-HP'] = param['HP']['inv_spez'] * LT_HP_Q_N
             invest_ges += invest_df.loc[0, 'LT-HP']
 
-            cost_Anlagen += (
+            cost_units_df.loc[0, 'LT-HP'] = (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['HP']['op_cost_var']
                 + param['HP']['op_cost_fix'] * LT_HP_Q_N
@@ -795,10 +797,12 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                                   views.node(results, label_id)['sequences']],
                                  axis=1)
 
-            cost_Anlagen += (data_tes[(('TES Knoten', label_id), 'flow')].sum()
-                             * param['TES']['op_cost_var']
-                             + (param['TES']['op_cost_fix']
-                                * param['TES']['Q']))
+            cost_units_df.loc[0, 'TES'] = (
+                data_tes[(('TES Knoten', label_id), 'flow')].sum()
+                * param['TES']['op_cost_var']
+                + (param['TES']['op_cost_fix']
+                   * param['TES']['Q'])
+                )
 
             labeldict[((label_id, 'LT-Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
             labeldict[((label_id, 'LT-Wärmenetzwerk'), 'status')] = 'Status_ab_' + label_id
@@ -817,10 +821,12 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                                   views.node(results, label_id)['sequences']],
                                  axis=1)
 
-            cost_Anlagen += (data_tes[(('Wärmenetzwerk', label_id), 'flow')].sum()
-                             * param['ST-TES']['op_cost_var']
-                             + (param['ST-TES']['op_cost_fix']
-                                * param['ST-TES']['Q']))
+            cost_units_df.loc[0, 'ST-TES'] = (
+                data_tes[(('Wärmenetzwerk', label_id), 'flow')].sum()
+                * param['ST-TES']['op_cost_var']
+                + (param['ST-TES']['op_cost_fix']
+                   * param['ST-TES']['Q'])
+                )
 
             labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
             labeldict[((label_id, 'Wärmenetzwerk'), 'status')] = 'Status_ab_' + label_id
@@ -863,6 +869,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                                      'flow')].sum()
                            * param['param']['heat_price'])
     # Summe der Geldströme
+    cost_Anlagen = cost_units_df.loc[0].sum()
     Gesamtbetrag = (revenues_spotmarkt + revenues_heatdemand
                     - cost_Anlagen - cost_gas - cost_el)
 
@@ -914,7 +921,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     #     dirpath, 'Ergebnisse', modelname, 'data_CO2.csv'),
     #            sep=";")
 
-    return df1, df2, df3, invest_df
+    return df1, df2, df3, invest_df, cost_units_df
 
 
 if __name__ == '__main__':
