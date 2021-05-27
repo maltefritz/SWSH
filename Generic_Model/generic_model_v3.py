@@ -738,23 +738,25 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
 
     if param['HP']['active']:
         if param['HP']['type'] == 'constant':
-            HP_P_max = param['HP']['P_max']
+            HP_Q_N = (param['HP']['c_1']
+                      * param['HP']['P_max']
+                      + param['HP']['c_0'])
         elif param['HP']['type'] == 'time series':
-            HP_P_max = data['P_max_hp'].max()
-
+            HP_Q_N = (data['c_1_hp'].mean()
+                      * data['P_max_hp'].mean()
+                      + data['c_0_hp'].mean())
         invest_df.loc[0, 'HP'] = (param['HP']['inv_spez']
-                                  * HP_P_max
+                                  * data['P_max_hp'].max()
+                                  * HP_Q_N
                                   * param['HP']['amount'])
         invest_ges += invest_df.loc[0, 'HP']
-
         for i in range(1, param['HP']['amount']+1):
             label_id = 'HP_' + str(i)
 
             cost_Anlagen += (
-                data_enw[(('Elektrizitätsnetzwerk', label_id), 'flow')].sum()
+                data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['HP']['op_cost_var']
-                + (param['HP']['op_cost_fix']
-                   * HP_P_max)
+                + param['HP']['op_cost_fix'] * HP_Q_N
                 )
 
             labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
@@ -762,23 +764,18 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
             labeldict[(('Elektrizitätsnetzwerk', label_id), 'status')] = 'Status_' + label_id
 
     if param['LT-HP']['active']:
-        if param['LT-HP']['type'] == 'constant':
-            LT_HP_P_max = (data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].max()
-                           / param['LT-HP']['cop'])
-        elif param['LT-HP']['type'] == 'time series':
-            LT_HP_P_max = (data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].max()
-                           / data['cop_lthp'].mean())
+        LT_HP_Q_N = data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].mean()
 
         for i in range(1, param['LT-HP']['amount']+1):
             label_id = 'LT-HP_' + str(i)
 
-            invest_df.loc[0, 'LT-HP'] = param['HP']['inv_spez'] * LT_HP_P_max
+            invest_df.loc[0, 'LT-HP'] = param['HP']['inv_spez'] * LT_HP_Q_N
             invest_ges += invest_df.loc[0, 'LT-HP']
 
             cost_Anlagen += (
-                data_enw[(('Elektrizitätsnetzwerk', label_id), 'flow')].sum()
+                data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['HP']['op_cost_var']
-                + param['HP']['op_cost_fix'] * LT_HP_P_max
+                + param['HP']['op_cost_fix'] * LT_HP_Q_N
                 )
 
             labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
