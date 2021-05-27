@@ -912,7 +912,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     #     dirpath, 'Ergebnisse', modelname, 'data_CO2.csv'),
     #            sep=";")
 
-    return df1, df2, df3, invest_df, cost_units_df
+    return df1, df2, df3, invest_df, cost_units_df, es_ref.results['meta']
 
 
 if __name__ == '__main__':
