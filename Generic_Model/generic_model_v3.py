@@ -608,7 +608,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     es_ref.results['main'] = solph.processing.results(model)
     es_ref.results['meta'] = solph.processing.meta_results(model)
 
-    invest_ges = 0
     invest_df = pd.DataFrame()
     cost_units_df = pd.DataFrame()
     labeldict = {}
@@ -629,7 +628,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     labeldict[(('LT-Wärmenetzwerk', 'LT_to_node'), 'flow')] = 'Q_LT_TES'
 
     if param['Sol']['active']:
-        invest_ges += invest_solar
         invest_df.loc[0, 'Sol'] = invest_solar
         cost_units_df.loc[0, 'Sol'] = (
             data_sol_node[(('Solarthermie', 'Sol Knoten'), 'flow')].sum()
@@ -653,7 +651,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         invest_df.loc[0, 'EHK'] = (param['EHK']['inv_spez']
                                    * param['EHK']['Q_N']
                                    * param['EHK']['amount'])
-        invest_ges += invest_df.loc[0, 'EHK']
 
         for i in range(1, param['EHK']['amount']+1):
             label_id = 'Elektroheizkessel_' + str(i)
@@ -672,7 +669,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         invest_df.loc[0, 'SLK'] = (param['SLK']['inv_spez']
                                    * param['SLK']['Q_N']
                                    * param['SLK']['amount'])
-        invest_ges += invest_df.loc[0, 'SLK']
 
         for i in range(1, param['SLK']['amount']+1):
             label_id = 'Spitzenlastkessel_' + str(i)
@@ -697,7 +693,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         invest_df.loc[0, 'BHKW'] = (ICE_P_max_woDH
                                     * param['BHKW']['inv_spez']
                                     * param['BHKW']['amount'])
-        invest_ges += invest_df.loc[0, 'BHKW']
 
         for i in range(1, param['BHKW']['amount']+1):
             label_id = 'BHKW_' + str(i)
@@ -722,7 +717,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         invest_df.loc[0, 'GuD'] = (CCET_P_max_woDH
                                    * param['GuD']['inv_spez']
                                    * param['GuD']['amount'])
-        invest_ges += invest_df.loc[0, 'GuD']
 
         for i in range(1, param['GuD']['amount']+1):
             label_id = 'GuD_' + str(i)
@@ -751,7 +745,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                                   * data['P_max_hp'].max()
                                   * HP_Q_N
                                   * param['HP']['amount'])
-        invest_ges += invest_df.loc[0, 'HP']
         for i in range(1, param['HP']['amount']+1):
             label_id = 'HP_' + str(i)
 
@@ -772,7 +765,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
             label_id = 'LT-HP_' + str(i)
 
             invest_df.loc[0, 'LT-HP'] = param['HP']['inv_spez'] * LT_HP_Q_N
-            invest_ges += invest_df.loc[0, 'LT-HP']
 
             cost_units_df.loc[0, 'LT-HP'] = (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
@@ -789,7 +781,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     if param['TES']['active']:
         invest_df.loc[0, 'TES'] = (invest_stes(param['TES']['Q'])
                                    * param['TES']['amount'])
-        invest_ges += invest_df.loc[0, 'TES']
 
         for i in range(1, param['TES']['amount']+1):
             label_id = 'TES_' + str(i)
@@ -813,7 +804,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     if param['ST-TES']['active']:
         invest_df.loc[0, 'ST-TES'] = (invest_stes(param['ST-TES']['Q'])
                                       * param['ST-TES']['amount'])
-        invest_ges += invest_df.loc[0, 'ST-TES']
 
         for i in range(1, param['ST-TES']['amount']+1):
             label_id = 'ST-TES_' + str(i)
@@ -848,6 +838,8 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
 
         # %% Geldflüsse
 
+    cost_Anlagen = cost_units_df.loc[0].sum()
+    invest_ges = invest_df.loc[0].sum()
     # # Primärenergiebezugskoste
     cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
                 * (param['param']['gas_price']
@@ -869,7 +861,6 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                                      'flow')].sum()
                            * param['param']['heat_price'])
     # Summe der Geldströme
-    cost_Anlagen = cost_units_df.loc[0].sum()
     Gesamtbetrag = (revenues_spotmarkt + revenues_heatdemand
                     - cost_Anlagen - cost_gas - cost_el)
 
