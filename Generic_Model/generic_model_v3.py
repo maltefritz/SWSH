@@ -232,8 +232,8 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                     inputs={enw: solph.Flow()},
                     outputs={wnw: solph.Flow(
                         nominal_value=param['EHK']['Q_N'],
-                        max=1,
-                        min=0,
+                        max=param['EHK']['Q_rel_max'],
+                        min=param['EHK']['Q_rel_min'],
                         variable_costs=param['EHK']['op_cost_var'])},
                     conversion_factors={wnw: param['EHK']['eta']})
 
@@ -260,8 +260,8 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                     inputs={gnw: solph.Flow()},
                     outputs={wnw: solph.Flow(
                         nominal_value=param['SLK']['Q_N'],
-                        max=1,
-                        min=0,
+                        max=param['SLK']['Q_rel_max'],
+                        min=param['SLK']['Q_rel_min'],
                         variable_costs=(param['SLK']['op_cost_var']
                                         + param['param']['energy_tax']))},
                     conversion_factors={wnw: param['SLK']['eta']})
