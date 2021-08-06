@@ -24,7 +24,8 @@ import numpy as np
 
 import oemof.solph as solph
 from oemof.solph import views
-from eco_funcs import invest_stes, chp_bonus
+from eco_funcs import invest_sol, invest_stes, chp_bonus
+from help_funcs import liste, result_labelling
 
 
 def main(data, param, mipgap='0.1', rel_demand=1):
@@ -36,37 +37,6 @@ def main(data, param, mipgap='0.1', rel_demand=1):
     data: (DataFrame) time series data for simulation
     param: (JSON dict) scalar simulation parameters
     """
-    def invest_sol(A, col_type=''):
-        """Pehnt et al. 2017, Markus [38].
-
-        A:                Kollektorfläche der Solarthermie
-        col_type:         Kollektortyp der Solarthermie
-        specific_coasts:  Spezifische Kosten
-        invest:           Investitionskosten
-        """
-        if col_type == 'flat':
-            specific_costs = -34.06 * np.log(A) + 592.48
-            invest = A * specific_costs
-            return invest
-        elif col_type == 'vacuum':
-            specific_costs = -40.63 * np.log(A) + 726.64
-            invest = A * specific_costs
-            return invest
-        else:
-            raise ValueError(
-                "Choose a valid collector type: 'flat' or 'vacuum'"
-                )
-
-    def liste(parameter):
-        """Get timeseries list of parameter for solph components."""
-        return [parameter for p in range(0, periods)]
-
-    def result_labelling(dataframe):
-        for col in dataframe.columns:
-            if col in labeldict:
-                dataframe.rename(columns={col: labeldict[col]}, inplace=True)
-            else:
-                print(col, ' not in labeldict')
 
     # %% Preprocessing
 
@@ -308,18 +278,18 @@ def main(data, param, mipgap='0.1', rel_demand=1):
                 bhkw = solph.components.GenericCHP(
                     label='BHKW_' + str(i),
                     fuel_input={gnw: solph.Flow(
-                        H_L_FG_share_max=liste(param['BHKW']['H_L_FG_share_max']),
-                        H_L_FG_share_min=liste(param['BHKW']['H_L_FG_share_min']),
+                        H_L_FG_share_max=liste(param['BHKW']['H_L_FG_share_max'], periods),
+                        H_L_FG_share_min=liste(param['BHKW']['H_L_FG_share_min'], periods),
                         nominal_value=param['BHKW']['Q_in'])},
                     electrical_output={ice_node: solph.Flow(
                         variable_costs=param['BHKW']['op_cost_var'],
-                        P_max_woDH=liste(param['BHKW']['P_max_woDH']),
-                        P_min_woDH=liste(param['BHKW']['P_min_woDH']),
-                        Eta_el_max_woDH=liste(param['BHKW']['Eta_el_max_woDH']),
-                        Eta_el_min_woDH=liste(param['BHKW']['Eta_el_min_woDH']))},
+                        P_max_woDH=liste(param['BHKW']['P_max_woDH'], periods),
+                        P_min_woDH=liste(param['BHKW']['P_min_woDH'], periods),
+                        Eta_el_max_woDH=liste(param['BHKW']['Eta_el_max_woDH'], periods),
+                        Eta_el_min_woDH=liste(param['BHKW']['Eta_el_min_woDH'], periods))},
                     heat_output={wnw: solph.Flow(
-                        Q_CW_min=liste(0))},
-                    Beta=liste(0),
+                        Q_CW_min=liste(0, periods))},
+                    Beta=liste(0, periods),
                     back_pressure=False)
 
                 es_ref.add(bhkw)
@@ -339,8 +309,8 @@ def main(data, param, mipgap='0.1', rel_demand=1):
                         Eta_el_max_woDH=data['ICE_eta_el_max'].tolist(),
                         Eta_el_min_woDH=data['ICE_eta_el_min'].tolist())},
                     heat_output={wnw: solph.Flow(
-                        Q_CW_min=liste(0))},
-                    Beta=liste(0),
+                        Q_CW_min=liste(0, periods))},
+                    Beta=liste(0, periods),
                     back_pressure=False)
 
                 es_ref.add(bhkw)
@@ -351,17 +321,17 @@ def main(data, param, mipgap='0.1', rel_demand=1):
                 gud = solph.components.GenericCHP(
                     label='GuD_' + str(i),
                     fuel_input={gnw: solph.Flow(
-                        H_L_FG_share_max=liste(param['GuD']['H_L_FG_share_max']),
+                        H_L_FG_share_max=liste(param['GuD']['H_L_FG_share_max'], periods),
                         nominal_value=param['GuD']['Q_in'])},
                     electrical_output={ccet_node: solph.Flow(
                         variable_costs=param['GuD']['op_cost_var'],
-                        P_max_woDH=liste(param['GuD']['P_max_woDH']),
-                        P_min_woDH=liste(param['GuD']['P_min_woDH']),
-                        Eta_el_max_woDH=liste(param['GuD']['Eta_el_max_woDH']),
-                        Eta_el_min_woDH=liste(param['GuD']['Eta_el_min_woDH']))},
+                        P_max_woDH=liste(param['GuD']['P_max_woDH'], periods),
+                        P_min_woDH=liste(param['GuD']['P_min_woDH'], periods),
+                        Eta_el_max_woDH=liste(param['GuD']['Eta_el_max_woDH'], periods),
+                        Eta_el_min_woDH=liste(param['GuD']['Eta_el_min_woDH'], periods))},
                     heat_output={wnw: solph.Flow(
-                        Q_CW_min=liste(param['GuD']['Q_CW_min']))},
-                    Beta=liste(param['GuD']['beta']),
+                        Q_CW_min=liste(param['GuD']['Q_CW_min'], periods))},
+                    Beta=liste(param['GuD']['beta'], periods),
                     back_pressure=False)
 
                 es_ref.add(gud)
@@ -392,17 +362,17 @@ def main(data, param, mipgap='0.1', rel_demand=1):
                 bpt = solph.components.GenericCHP(
                     label='bpt' + str(i),
                     fuel_input={gnw: solph.Flow(
-                        H_L_FG_share_max=liste(param['bpt']['H_L_FG_share_max']),
+                        H_L_FG_share_max=liste(param['bpt']['H_L_FG_share_max'], periods),
                         nominal_value=param['bpt']['Q_in'])},
                     electrical_output={enw: solph.Flow(
                         variable_costs=param['bpt']['op_cost_var'],
-                        P_max_woDH=liste(param['bpt']['P_max_woDH']),
-                        P_min_woDH=liste(param['bpt']['P_min_woDH']),
-                        Eta_el_max_woDH=liste(param['bpt']['Eta_el_max_woDH']),
-                        Eta_el_min_woDH=liste(param['bpt']['Eta_el_min_woDH']))},
+                        P_max_woDH=liste(param['bpt']['P_max_woDH'], periods),
+                        P_min_woDH=liste(param['bpt']['P_min_woDH'], periods),
+                        Eta_el_max_woDH=liste(param['bpt']['Eta_el_max_woDH'], periods),
+                        Eta_el_min_woDH=liste(param['bpt']['Eta_el_min_woDH'], periods))},
                     heat_output={wnw: solph.Flow(
-                        Q_CW_min=liste(0))},
-                    Beta=liste(0),
+                        Q_CW_min=liste(0, periods))},
+                    Beta=liste(0, periods),
                     back_pressure=True)
 
                 es_ref.add(bpt)
@@ -421,8 +391,8 @@ def main(data, param, mipgap='0.1', rel_demand=1):
                         Eta_el_max_woDH=data['BPT_Eta_el_max_woDH'].tolist(),
                         Eta_el_min_woDH=data['BPT_Eta_el_min_woDH'].tolist())},
                     heat_output={wnw: solph.Flow(
-                        Q_CW_min=liste(0))},
-                    Beta=liste(0),
+                        Q_CW_min=liste(0, periods))},
+                    Beta=liste(0, periods),
                     back_pressure=True)
 
                 es_ref.add(bpt)
@@ -1037,7 +1007,7 @@ def main(data, param, mipgap='0.1', rel_demand=1):
         result_dfs += [data_ccet_node]
 
     for df in result_dfs:
-        result_labelling(df)
+        result_labelling(df, labeldict)
 
     # Name des Modells
     # modelname = os.path.basename(__file__)[:-3]
