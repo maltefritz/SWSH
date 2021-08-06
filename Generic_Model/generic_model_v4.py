@@ -79,8 +79,7 @@ def main(data, param, mipgap='0.1', rel_demand=1):
         # %% Zeitreihe
 
     periods = len(data)
-    date_time_index = pd.date_range('1/1/2016 00:00:00', periods=periods,
-                                    freq='h')
+    date_time_index = pd.date_range(data.index[0], periods=periods, freq='h')
 
         # %% Energiesystem erstellen
 
@@ -155,8 +154,9 @@ def main(data, param, mipgap='0.1', rel_demand=1):
                     variable_costs=((0.01 * invest_solar)
                                     / (A*data['solar_data'].sum())),
                     nominal_value=(max(data['solar_data'])*A),
-                    fix=(data['solar_data']
-                         / max(data['solar_data'])))})
+                    actual_value=(data['solar_data']
+                                  / max(data['solar_data'])),
+                    fixed=True)})
         elif param['Sol']['usage'] == 'HT':
             solar_source = solph.Source(
                 label='Solarthermie',
@@ -164,8 +164,9 @@ def main(data, param, mipgap='0.1', rel_demand=1):
                     variable_costs=((0.01 * invest_solar)
                                     / (A*data['solar_data_HT'].sum())),
                     nominal_value=(max(data['solar_data_HT'])*A),
-                    fix=(data['solar_data_HT']
-                         / max(data['solar_data_HT'])))})
+                    actual_value=(data['solar_data_HT']
+                                  / max(data['solar_data_HT'])),
+                    fixed=True)})
 
         es_ref.add(solar_source)
 
@@ -218,7 +219,8 @@ def main(data, param, mipgap='0.1', rel_demand=1):
         inputs={wnw: solph.Flow(
             variable_costs=-param['param']['heat_price'],
             nominal_value=max(heat_demand_local),
-            fix=heat_demand_local/max(heat_demand_local))})
+            actual_value=heat_demand_local/max(heat_demand_local),
+            fixed=True)})
 
     es_ref.add(elec_sink, heat_sink)
 
@@ -536,7 +538,8 @@ def main(data, param, mipgap='0.1', rel_demand=1):
             outputs={wnw: solph.Flow(
                 nominal_value=9999,
                 max=1.0,
-                min=0.0)},
+                min=0.0,
+                variable_costs=-param['param']['Solarbonus'])},
             conversion_factors={wnw: 1}
             )
 
@@ -549,7 +552,8 @@ def main(data, param, mipgap='0.1', rel_demand=1):
             outputs={lt_wnw: solph.Flow(
                 nominal_value=9999,
                 max=1.0,
-                min=0.0)},
+                min=0.0,
+                variable_costs=-param['param']['Solarbonus'])},
             conversion_factors={lt_wnw: 1}
             )
 
@@ -1008,12 +1012,20 @@ def main(data, param, mipgap='0.1', rel_demand=1):
             * (ccet_chp_bonus + param['param']['TEHG_bonus'])
             )
 
+    revenues_solarbonus = (
+        data_lt_wnw[(('Sol_to_LT', 'LT-Wärmenetzwerk'), 'flow')].sum()
+        * param['param']['Solarbonus']
+        )
+
     revenues_heatdemand = (data_wnw[(('Wärmenetzwerk', 'Wärmebedarf'),
                                      'flow')].sum()
                            * param['param']['heat_price'])
     # Summe der Geldströme
-    Gesamtbetrag = (revenues_spotmarkt + revenues_heatdemand + revenues_chpbonus
-                    - cost_Anlagen - cost_gas - cost_el)
+    Gesamtbetrag = (
+        revenues_spotmarkt + revenues_heatdemand + revenues_chpbonus
+        + revenues_solarbonus
+        - cost_Anlagen - cost_gas - cost_el
+        )
 
 
         # %% Output Ergebnisse
@@ -1029,7 +1041,6 @@ def main(data, param, mipgap='0.1', rel_demand=1):
     if param['GuD']['active']:
         result_dfs += [data_ccet_node]
 
-
     for df in result_dfs:
         result_labelling(df)
 
@@ -1039,7 +1050,6 @@ def main(data, param, mipgap='0.1', rel_demand=1):
     # Verzeichnes erzeugen, falls nicht vorhanden
     # if not os.path.exists(os.path.join(dirpath, 'Ergebnisse', modelname)):
     #     os.mkdir(os.path.join(dirpath, 'Ergebnisse', modelname))
-
 
     # Daten zum Plotten der Wärmeversorgung
     df1 = pd.concat(result_dfs, axis=1)
@@ -1055,9 +1065,12 @@ def main(data, param, mipgap='0.1', rel_demand=1):
                              'revenues_spotmarkt': [revenues_spotmarkt],
                              'revenues_heatdemand': [revenues_heatdemand],
                              'revenues_chpbonus': [revenues_chpbonus],
+                             'revenues_solarbonus': [revenues_solarbonus],
                              'cost_Anlagen': [cost_Anlagen],
                              'cost_gas': [cost_gas],
-                             'cost_el': [cost_el]})
+                             'cost_el': [cost_el],
+                             'ice_chpbonus': [ice_chp_bonus],
+                             'ccet_chpbonus': [ccet_chp_bonus]})
     # df2.to_csv(os.path.join(
     #     dirpath, 'Ergebnisse', modelname, 'data_Invest.csv'),
     #            sep=";")
