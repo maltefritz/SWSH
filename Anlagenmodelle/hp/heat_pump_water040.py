@@ -221,12 +221,13 @@ heat.set_attr(P=Q_N)
 nw.solve('design')
 nw.print_results()
 nw.save('hp_water')
+document_model(nw, 'report_design', draft=False)
 
 cp1.eta_s_char.char_func.extrapolate = True
 cp2.eta_s_char.char_func.extrapolate = True
 
 nw.solve('offdesign', design_path='hp_water')
-document_model(nw)
+# document_model(nw)
 nw.set_attr(iterinfo=False)
 
 T_db = []

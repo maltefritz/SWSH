@@ -232,8 +232,8 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                     inputs={enw: solph.Flow()},
                     outputs={wnw: solph.Flow(
                         nominal_value=param['EHK']['Q_N'],
-                        max=1,
-                        min=0,
+                        max=param['EHK']['Q_rel_max'],
+                        min=param['EHK']['Q_rel_min'],
                         variable_costs=param['EHK']['op_cost_var'])},
                     conversion_factors={wnw: param['EHK']['eta']})
 
@@ -260,8 +260,8 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                     inputs={gnw: solph.Flow()},
                     outputs={wnw: solph.Flow(
                         nominal_value=param['SLK']['Q_N'],
-                        max=1,
-                        min=0,
+                        max=param['SLK']['Q_rel_max'],
+                        min=param['SLK']['Q_rel_min'],
                         variable_costs=(param['SLK']['op_cost_var']
                                         + param['param']['energy_tax']))},
                     conversion_factors={wnw: param['SLK']['eta']})
@@ -608,9 +608,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     es_ref.results['main'] = solph.processing.results(model)
     es_ref.results['meta'] = solph.processing.meta_results(model)
 
-    invest_ges = 0
-    invest_df = pd.DataFrame()
-    cost_Anlagen = 0
+    cost_df = pd.DataFrame()
     labeldict = {}
 
     # Busses
@@ -629,10 +627,11 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     labeldict[(('LT-Wärmenetzwerk', 'LT_to_node'), 'flow')] = 'Q_LT_TES'
 
     if param['Sol']['active']:
-        invest_ges += invest_solar
-        invest_df.loc[0, 'Sol'] = invest_solar
-        cost_Anlagen += (data_sol_node[(('Solarthermie', 'Sol Knoten'), 'flow')].sum()
-                         * (0.01 * invest_solar)/(A*data['solar_data'].sum()))
+        cost_df.loc['invest', 'Sol'] = invest_solar
+        cost_df.loc['op_cost', 'Sol'] = (
+            data_sol_node[(('Solarthermie', 'Sol Knoten'), 'flow')].sum()
+            * (0.01 * invest_solar)/(A*data['solar_data'].sum())
+            )
         labeldict[(('Solarthermie', 'Sol Knoten'), 'flow')] = 'Q_Sol_zu'
         labeldict[(('Sol Knoten', 'Sol_to_LT'), 'flow')] = 'Q_Sol_node_LT'
         labeldict[(('Sol Knoten', 'Sol_to_HT'), 'flow')] = 'Q_Sol_node_HT'
@@ -648,15 +647,14 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
 
     # Transformer
     if param['EHK']['active']:
-        invest_df.loc[0, 'EHK'] = (param['EHK']['inv_spez']
+        cost_df.loc['invest', 'EHK'] = (param['EHK']['inv_spez']
                                    * param['EHK']['Q_N']
                                    * param['EHK']['amount'])
-        invest_ges += invest_df.loc[0, 'EHK']
 
         for i in range(1, param['EHK']['amount']+1):
             label_id = 'Elektroheizkessel_' + str(i)
 
-            cost_Anlagen += (
+            cost_df.loc['op_cost', 'EHK'] = (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['EHK']['op_cost_var']
                 + (param['EHK']['op_cost_fix']
@@ -667,15 +665,14 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
             labeldict[(('Elektrizitätsnetzwerk', label_id), 'flow')] = 'P_zu_EHK_' + str(i)
 
     if param['SLK']['active']:
-        invest_df.loc[0, 'SLK'] = (param['SLK']['inv_spez']
+        cost_df.loc['invest', 'SLK'] = (param['SLK']['inv_spez']
                                    * param['SLK']['Q_N']
                                    * param['SLK']['amount'])
-        invest_ges += invest_df.loc[0, 'SLK']
 
         for i in range(1, param['SLK']['amount']+1):
             label_id = 'Spitzenlastkessel_' + str(i)
 
-            cost_Anlagen += (
+            cost_df.loc['op_cost', 'EHK'] = (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * (param['SLK']['op_cost_var']
                    + param['param']['energy_tax'])
@@ -692,15 +689,14 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         elif param['BHKW']['type'] == 'time series':
             ICE_P_max_woDH = data['ICE_P_max_woDH'].mean()
 
-        invest_df.loc[0, 'BHKW'] = (ICE_P_max_woDH
+        cost_df.loc['invest', 'BHKW'] = (ICE_P_max_woDH
                                     * param['BHKW']['inv_spez']
                                     * param['BHKW']['amount'])
-        invest_ges += invest_df.loc[0, 'BHKW']
 
         for i in range(1, param['BHKW']['amount']+1):
             label_id = 'BHKW_' + str(i)
 
-            cost_Anlagen += (
+            cost_df.loc['op_cost', 'BHKW'] = (
                 data_enw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
                 * param['BHKW']['op_cost_var']
                 + (param['BHKW']['op_cost_fix']
@@ -717,15 +713,14 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
         elif param['GuD']['type'] == 'time series':
             CCET_P_max_woDH = data['CCET_P_max_woDH'].mean()
 
-        invest_df.loc[0, 'GuD'] = (CCET_P_max_woDH
+        cost_df.loc['invest', 'GuD'] = (CCET_P_max_woDH
                                    * param['GuD']['inv_spez']
                                    * param['GuD']['amount'])
-        invest_ges += invest_df.loc[0, 'GuD']
 
         for i in range(1, param['GuD']['amount']+1):
             label_id = 'GuD_' + str(i)
 
-            cost_Anlagen += (
+            cost_df.loc['op_cost', 'GuD'] = (
                 data_enw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
                 * param['GuD']['op_cost_var']
                 + (param['GuD']['op_cost_fix']
@@ -738,23 +733,24 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
 
     if param['HP']['active']:
         if param['HP']['type'] == 'constant':
-            HP_P_max = param['HP']['P_max']
+            HP_Q_N = (param['HP']['c_1']
+                      * param['HP']['P_max']
+                      + param['HP']['c_0'])
         elif param['HP']['type'] == 'time series':
-            HP_P_max = data['P_max_hp'].max()
-
-        invest_df.loc[0, 'HP'] = (param['HP']['inv_spez']
-                                  * HP_P_max
+            HP_Q_N = (data['c_1_hp'].mean()
+                      * data['P_max_hp'].mean()
+                      + data['c_0_hp'].mean())
+        cost_df.loc['invest', 'HP'] = (param['HP']['inv_spez']
+                                  * data['P_max_hp'].max()
+                                  * HP_Q_N
                                   * param['HP']['amount'])
-        invest_ges += invest_df.loc[0, 'HP']
-
         for i in range(1, param['HP']['amount']+1):
             label_id = 'HP_' + str(i)
 
-            cost_Anlagen += (
-                data_enw[(('Elektrizitätsnetzwerk', label_id), 'flow')].sum()
+            cost_df.loc['op_cost', 'HP'] = (
+                data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['HP']['op_cost_var']
-                + (param['HP']['op_cost_fix']
-                   * HP_P_max)
+                + param['HP']['op_cost_fix'] * HP_Q_N
                 )
 
             labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
@@ -762,23 +758,17 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
             labeldict[(('Elektrizitätsnetzwerk', label_id), 'status')] = 'Status_' + label_id
 
     if param['LT-HP']['active']:
-        if param['LT-HP']['type'] == 'constant':
-            LT_HP_P_max = (data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].max()
-                           / param['LT-HP']['cop'])
-        elif param['LT-HP']['type'] == 'time series':
-            LT_HP_P_max = (data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].max()
-                           / data['cop_lthp'].mean())
+        LT_HP_Q_N = data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].mean()
 
         for i in range(1, param['LT-HP']['amount']+1):
             label_id = 'LT-HP_' + str(i)
 
-            invest_df.loc[0, 'LT-HP'] = param['HP']['inv_spez'] * LT_HP_P_max
-            invest_ges += invest_df.loc[0, 'LT-HP']
+            cost_df.loc['invest', 'LT-HP'] = param['HP']['inv_spez'] * LT_HP_Q_N
 
-            cost_Anlagen += (
-                data_enw[(('Elektrizitätsnetzwerk', label_id), 'flow')].sum()
+            cost_df.loc['op_cost', 'LT-HP'] = (
+                data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['HP']['op_cost_var']
-                + param['HP']['op_cost_fix'] * LT_HP_P_max
+                + param['HP']['op_cost_fix'] * LT_HP_Q_N
                 )
 
             labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
@@ -788,9 +778,8 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     # Speicher
     data_tes = pd.DataFrame()
     if param['TES']['active']:
-        invest_df.loc[0, 'TES'] = (invest_stes(param['TES']['Q'])
+        cost_df.loc['invest', 'TES'] = (invest_stes(param['TES']['Q'])
                                    * param['TES']['amount'])
-        invest_ges += invest_df.loc[0, 'TES']
 
         for i in range(1, param['TES']['amount']+1):
             label_id = 'TES_' + str(i)
@@ -798,10 +787,12 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                                   views.node(results, label_id)['sequences']],
                                  axis=1)
 
-            cost_Anlagen += (data_tes[(('TES Knoten', label_id), 'flow')].sum()
-                             * param['TES']['op_cost_var']
-                             + (param['TES']['op_cost_fix']
-                                * param['TES']['Q']))
+            cost_df.loc['op_cost', 'TES'] = (
+                data_tes[(('TES Knoten', label_id), 'flow')].sum()
+                * param['TES']['op_cost_var']
+                + (param['TES']['op_cost_fix']
+                   * param['TES']['Q'])
+                )
 
             labeldict[((label_id, 'LT-Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
             labeldict[((label_id, 'LT-Wärmenetzwerk'), 'status')] = 'Status_ab_' + label_id
@@ -810,9 +801,8 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
             labeldict[((label_id, 'None'), 'storage_content')] = 'Speicherstand_' + label_id
 
     if param['ST-TES']['active']:
-        invest_df.loc[0, 'ST-TES'] = (invest_stes(param['ST-TES']['Q'])
+        cost_df.loc['invest', 'ST-TES'] = (invest_stes(param['ST-TES']['Q'])
                                       * param['ST-TES']['amount'])
-        invest_ges += invest_df.loc[0, 'ST-TES']
 
         for i in range(1, param['ST-TES']['amount']+1):
             label_id = 'ST-TES_' + str(i)
@@ -820,10 +810,12 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
                                   views.node(results, label_id)['sequences']],
                                  axis=1)
 
-            cost_Anlagen += (data_tes[(('Wärmenetzwerk', label_id), 'flow')].sum()
-                             * param['ST-TES']['op_cost_var']
-                             + (param['ST-TES']['op_cost_fix']
-                                * param['ST-TES']['Q']))
+            cost_df.loc['op_cost', 'ST-TES'] = (
+                data_tes[(('Wärmenetzwerk', label_id), 'flow')].sum()
+                * param['ST-TES']['op_cost_var']
+                + (param['ST-TES']['op_cost_fix']
+                   * param['ST-TES']['Q'])
+                )
 
             labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
             labeldict[((label_id, 'Wärmenetzwerk'), 'status')] = 'Status_ab_' + label_id
@@ -845,6 +837,8 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
 
         # %% Geldflüsse
 
+    cost_Anlagen = cost_df.loc['op_cost'].sum()
+    invest_ges = cost_df.loc['invest'].sum()
     # # Primärenergiebezugskoste
     cost_gas = (data_gnw[(('Gasquelle', 'Gasnetzwerk'), 'flow')].sum()
                 * (param['param']['gas_price']
@@ -917,7 +911,7 @@ def main(ts_file='simulation_data.csv', param_file='parameter_v3.json',
     #     dirpath, 'Ergebnisse', modelname, 'data_CO2.csv'),
     #            sep=";")
 
-    return df1, df2, df3, invest_df
+    return df1, df2, df3, cost_df, es_ref.results['meta']
 
 
 if __name__ == '__main__':
