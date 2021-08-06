@@ -154,9 +154,7 @@ def main(data, param, mipgap='0.1', rel_demand=1):
                     variable_costs=((0.01 * invest_solar)
                                     / (A*data['solar_data'].sum())),
                     nominal_value=(max(data['solar_data'])*A),
-                    actual_value=(data['solar_data']
-                                  / max(data['solar_data'])),
-                    fixed=True)})
+                    fix=(data['solar_data'] / max(data['solar_data'])))})
         elif param['Sol']['usage'] == 'HT':
             solar_source = solph.Source(
                 label='Solarthermie',
@@ -164,9 +162,7 @@ def main(data, param, mipgap='0.1', rel_demand=1):
                     variable_costs=((0.01 * invest_solar)
                                     / (A*data['solar_data_HT'].sum())),
                     nominal_value=(max(data['solar_data_HT'])*A),
-                    actual_value=(data['solar_data_HT']
-                                  / max(data['solar_data_HT'])),
-                    fixed=True)})
+                    fix=(data['solar_data_HT'] / max(data['solar_data_HT'])))})
 
         es_ref.add(solar_source)
 
@@ -219,8 +215,7 @@ def main(data, param, mipgap='0.1', rel_demand=1):
         inputs={wnw: solph.Flow(
             variable_costs=-param['param']['heat_price'],
             nominal_value=max(heat_demand_local),
-            actual_value=heat_demand_local/max(heat_demand_local),
-            fixed=True)})
+            fix=heat_demand_local/max(heat_demand_local))})
 
     es_ref.add(elec_sink, heat_sink)
 
