@@ -95,7 +95,8 @@
     "co2_certificate": 1.07,
     "elec_consumer_charges": 85.51,
     "heat_price": 68.59,
-    "energy_tax": 5.5
+    "energy_tax": 5.5,
+    "rel_demand": 1
   },
   "BHKW": {
     "active": true,

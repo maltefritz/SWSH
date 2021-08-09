@@ -17,18 +17,17 @@ Wärmebedarf Flensburgs aus dem Jahr 2016
 """
 import os
 import json
-from sys import exit
 
 import pandas as pd
 import numpy as np
 
 import oemof.solph as solph
 from oemof.solph import views
+from help_funcs import liste, topology_check, result_labelling
 from eco_funcs import invest_sol, invest_stes, chp_bonus
-from help_funcs import liste, result_labelling
 
 
-def main(data, param, mipgap='0.1', rel_demand=1):
+def main(data, param, mipgap='0.1'):
     """Execute main script.
 
     __________
@@ -38,33 +37,16 @@ def main(data, param, mipgap='0.1', rel_demand=1):
     param: (JSON dict) scalar simulation parameters
     """
 
-    # %% Preprocessing
-
-        # %% Zeitreihe
+    # %% Initialize energy system
 
     periods = len(data)
     date_time_index = pd.date_range(data.index[0], periods=periods, freq='h')
 
-        # %% Energiesystem erstellen
-
     es_ref = solph.EnergySystem(timeindex=date_time_index)
 
+    topology_check(param)
+
     # %% Energiesystem
-
-        # %% LT-WNW Plausibilität prüfen
-    if (param['LT-HP']['active']
-        and not param['Sol']['active']
-        and not param['TES']['active']):
-        print("WARNING: You can't have the low temp heat pump active without ",
-              "using either the TES or solar heat.")
-        exit()
-    elif (not param['LT-HP']['active']
-          and (param['Sol']['active']
-          or param['TES']['active'])):
-        print("WARNING: You can't use TES or solar heat without using the low ",
-              "temp heat pump.")
-        exit()
-
 
         # %% Busses
 
@@ -170,10 +152,12 @@ def main(data, param, mipgap='0.1', rel_demand=1):
         label='Wärmebedarf',
         inputs={wnw: solph.Flow(
             variable_costs=-param['param']['heat_price'],
-            nominal_value=max(data['heat_demand'] * rel_demand),
+            nominal_value=(
+                max(data['heat_demand'] * param['param']['rel_demand'])
+                ),
             fix=(
-                data['heat_demand'] * rel_demand
-                / max(data['heat_demand'] * rel_demand)
+                data['heat_demand'] * param['param']['rel_demand']
+                / max(data['heat_demand'] * param['param']['rel_demand'])
                 )
             )})
 
@@ -1016,7 +1000,8 @@ def main(data, param, mipgap='0.1', rel_demand=1):
     df2 = pd.DataFrame(data={'invest_ges': [invest_ges],
                              'Q_tes': [param['TES']['Q']],
                              'total_heat_demand': [
-                                 data['heat_demand'].sum() * rel_demand
+                                 data['heat_demand'].sum()
+                                 * param['param']['rel_demand']
                                  ],
                              'Gesamtbetrag': [Gesamtbetrag],
                              'revenues_spotmarkt': [revenues_spotmarkt],
