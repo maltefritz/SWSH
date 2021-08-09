@@ -40,12 +40,6 @@ def main(data, param, mipgap='0.1', rel_demand=1):
 
     # %% Preprocessing
 
-    # TODO
-    A = param['Sol']['A']
-
-    if A:
-        invest_solar = invest_sol(A, col_type="flat")
-
         # %% Zeitreihe
 
     periods = len(data)
@@ -54,15 +48,6 @@ def main(data, param, mipgap='0.1', rel_demand=1):
         # %% Energiesystem erstellen
 
     es_ref = solph.EnergySystem(timeindex=date_time_index)
-
-        # %% Wärmebedarf
-    # rel_demand ist die Variable, die den Wärmebedarf der Region
-    # prozentual von FL angibt.
-
-    heat_demand_FL = data['heat_demand']
-    rel_heat_demand = rel_demand
-    heat_demand_local = heat_demand_FL * rel_heat_demand
-    total_heat_demand = float(heat_demand_local.sum())
 
     # %% Energiesystem
 
@@ -117,21 +102,22 @@ def main(data, param, mipgap='0.1', rel_demand=1):
     es_ref.add(gas_source, elec_source)
 
     if param['Sol']['active']:
+        invest_solar = invest_sol(param['Sol']['A'], col_type="flat")
         if param['Sol']['usage'] == 'LT':
             solar_source = solph.Source(
                 label='Solarthermie',
                 outputs={sol_node: solph.Flow(
                     variable_costs=((0.01 * invest_solar)
-                                    / (A*data['solar_data'].sum())),
-                    nominal_value=(max(data['solar_data'])*A),
+                                    / (param['Sol']['A']*data['solar_data'].sum())),
+                    nominal_value=(max(data['solar_data'])*param['Sol']['A']),
                     fix=(data['solar_data'] / max(data['solar_data'])))})
         elif param['Sol']['usage'] == 'HT':
             solar_source = solph.Source(
                 label='Solarthermie',
                 outputs={sol_node: solph.Flow(
                     variable_costs=((0.01 * invest_solar)
-                                    / (A*data['solar_data_HT'].sum())),
-                    nominal_value=(max(data['solar_data_HT'])*A),
+                                    / (param['Sol']['A']*data['solar_data_HT'].sum())),
+                    nominal_value=(max(data['solar_data_HT'])*param['Sol']['A']),
                     fix=(data['solar_data_HT'] / max(data['solar_data_HT'])))})
 
         es_ref.add(solar_source)
@@ -184,8 +170,12 @@ def main(data, param, mipgap='0.1', rel_demand=1):
         label='Wärmebedarf',
         inputs={wnw: solph.Flow(
             variable_costs=-param['param']['heat_price'],
-            nominal_value=max(heat_demand_local),
-            fix=heat_demand_local/max(heat_demand_local))})
+            nominal_value=max(data['heat_demand'] * rel_demand),
+            fix=(
+                data['heat_demand'] * rel_demand
+                / max(data['heat_demand'] * rel_demand)
+                )
+            )})
 
     es_ref.add(elec_sink, heat_sink)
 
@@ -693,7 +683,7 @@ def main(data, param, mipgap='0.1', rel_demand=1):
         cost_df.loc['invest', 'Sol'] = invest_solar
         cost_df.loc['op_cost', 'Sol'] = (
             data_solar_source[(('Solarthermie', 'Sol Knoten'), 'flow')].sum()
-            * (0.01 * invest_solar)/(A*data['solar_data'].sum())
+            * (0.01 * invest_solar)/(param['Sol']['A']*data['solar_data'].sum())
             )
         labeldict[(('Solarthermie', 'Sol Knoten'), 'flow')] = 'Q_Sol_zu'
         labeldict[(('Sol Knoten', 'Sol_to_LT'), 'flow')] = 'Q_Sol_node_LT'
@@ -1025,7 +1015,9 @@ def main(data, param, mipgap='0.1', rel_demand=1):
     # Daten zum Plotten der Investitionsrechnung
     df2 = pd.DataFrame(data={'invest_ges': [invest_ges],
                              'Q_tes': [param['TES']['Q']],
-                             'total_heat_demand': [total_heat_demand],
+                             'total_heat_demand': [
+                                 data['heat_demand'].sum() * rel_demand
+                                 ],
                              'Gesamtbetrag': [Gesamtbetrag],
                              'revenues_spotmarkt': [revenues_spotmarkt],
                              'revenues_heatdemand': [revenues_heatdemand],
