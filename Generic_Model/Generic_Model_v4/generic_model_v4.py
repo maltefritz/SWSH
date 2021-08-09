@@ -56,12 +56,8 @@ def main(data, param, mipgap='0.1'):
     lt_wnw = solph.Bus(label='LT-Wärmenetzwerk')
     wnw_node = solph.Bus(label='TES Knoten')
     sol_node = solph.Bus(label='Sol Knoten')
-    ice_node = solph.Bus(label='BHKW Knoten')
-    ccet_node = solph.Bus(label='GuD Knoten')
-    spotmarket_node = solph.Bus(label='Spotmarkt Knoten')
 
-    es_ref.add(gnw, enw, wnw, lt_wnw, wnw_node,
-               sol_node, ice_node, ccet_node, spotmarket_node)
+    es_ref.add(gnw, enw, wnw, lt_wnw, wnw_node, sol_node)
 
         # %% Soruces
 
@@ -144,7 +140,7 @@ def main(data, param, mipgap='0.1'):
 
     elec_sink = solph.Sink(
         label='Spotmarkt',
-        inputs={spotmarket_node: solph.Flow(
+        inputs={enw: solph.Flow(
             variable_costs=(-data['el_spot_price']
                             - param['param']['vNNE']))})
 
@@ -255,7 +251,7 @@ def main(data, param, mipgap='0.1'):
                         H_L_FG_share_max=liste(param['BHKW']['H_L_FG_share_max'], periods),
                         H_L_FG_share_min=liste(param['BHKW']['H_L_FG_share_min'], periods),
                         nominal_value=param['BHKW']['Q_in'])},
-                    electrical_output={ice_node: solph.Flow(
+                    electrical_output={enw: solph.Flow(
                         variable_costs=param['BHKW']['op_cost_var'],
                         P_max_woDH=liste(param['BHKW']['P_max_woDH'], periods),
                         P_min_woDH=liste(param['BHKW']['P_min_woDH'], periods),
@@ -276,7 +272,7 @@ def main(data, param, mipgap='0.1'):
                         H_L_FG_share_max=data['ICE_H_L_FG_share_max'].tolist(),
                         H_L_FG_share_min=data['ICE_H_L_FG_share_min'].tolist(),
                         nominal_value=data['ICE_Q_in'].mean())},
-                    electrical_output={ice_node: solph.Flow(
+                    electrical_output={enw: solph.Flow(
                         variable_costs=param['BHKW']['op_cost_var'],
                         P_max_woDH=data['ICE_P_max_woDH'].tolist(),
                         P_min_woDH=data['ICE_P_min_woDH'].tolist(),
@@ -297,7 +293,7 @@ def main(data, param, mipgap='0.1'):
                     fuel_input={gnw: solph.Flow(
                         H_L_FG_share_max=liste(param['GuD']['H_L_FG_share_max'], periods),
                         nominal_value=param['GuD']['Q_in'])},
-                    electrical_output={ccet_node: solph.Flow(
+                    electrical_output={enw: solph.Flow(
                         variable_costs=param['GuD']['op_cost_var'],
                         P_max_woDH=liste(param['GuD']['P_max_woDH'], periods),
                         P_min_woDH=liste(param['GuD']['P_min_woDH'], periods),
@@ -317,7 +313,7 @@ def main(data, param, mipgap='0.1'):
                     fuel_input={gnw: solph.Flow(
                         H_L_FG_share_max=data['CCET_H_L_FG_share_max'].tolist(),
                         nominal_value=data['CCET_Q_in'].mean())},
-                    electrical_output={ccet_node: solph.Flow(
+                    electrical_output={enw: solph.Flow(
                         variable_costs=param['GuD']['op_cost_var'],
                         P_max_woDH=data['CCET_P_max_woDH'].tolist(),
                         P_min_woDH=data['CCET_P_min_woDH'].tolist(),
@@ -498,71 +494,6 @@ def main(data, param, mipgap='0.1'):
 
         es_ref.add(sol_to_lt)
 
-    # ICE node
-    ice_with_chp_bonus = solph.Transformer(
-        label='BHKW_mit_Bonus',
-        inputs={ice_node: solph.Flow()},
-        outputs={spotmarket_node: solph.Flow(
-            nominal_value=ice_P_N,
-            max=1.0,
-            min=0.0,
-            summed_max=param['param']['h_max_chp_bonus'],
-            variable_costs=(-ice_chp_bonus
-                            - param['param']['TEHG_bonus']))},
-        conversion_factors={enw: 1}
-        )
-
-    ice_no_chp_bonus = solph.Transformer(
-        label='BHKW_ohne_Bonus',
-        inputs={ice_node: solph.Flow()},
-        outputs={enw: solph.Flow(
-            nominal_value=9999,
-            max=1.0,
-            min=0.0)},
-        conversion_factors={enw: 1}
-        )
-
-    # CCET node
-    ccet_with_chp_bonus = solph.Transformer(
-        label='GuD_mit_Bonus',
-        inputs={ccet_node: solph.Flow()},
-        outputs={spotmarket_node: solph.Flow(
-            nominal_value=ccet_P_N,
-            max=1.0,
-            min=0.0,
-            summed_max=param['param']['h_max_chp_bonus'],
-            variable_costs=(-ccet_chp_bonus
-                            - param['param']['TEHG_bonus']))},
-        conversion_factors={enw: 1}
-        )
-
-    ccet_no_chp_bonus = solph.Transformer(
-        label='GuD_ohne_Bonus',
-        inputs={ccet_node: solph.Flow()},
-        outputs={enw: solph.Flow(
-            nominal_value=9999,
-            max=1.0,
-            min=0.0)},
-        conversion_factors={enw: 1}
-        )
-
-    enw_to_spotmarket = solph.Transformer(
-        label='ENW_zu_Spotmarkt',
-        inputs={enw: solph.Flow()},
-        outputs={spotmarket_node: solph.Flow(
-            nominal_value=9999,
-            max=1.0,
-            min=0.0)},
-        conversion_factors={spotmarket_node: 1}
-        )
-
-    es_ref.add(
-        ice_with_chp_bonus, ice_no_chp_bonus,
-        ccet_with_chp_bonus, ccet_no_chp_bonus,
-        enw_to_spotmarket
-        )
-
-
         # %% Speicher
 
     # Saisonaler Speicher
@@ -653,7 +584,6 @@ def main(data, param, mipgap='0.1'):
     data_lt_wnw = views.node(results, 'LT-Wärmenetzwerk')['sequences']
     data_wnw_node = views.node(results, 'TES Knoten')['sequences']
     data_sol_node = views.node(results, 'Sol Knoten')['sequences']
-    data_spotmarket_node = views.node(results, 'Spotmarkt Knoten')['sequences']
 
     labeldict[(('Gasquelle', 'Gasnetzwerk'), 'flow')] = 'H_source'
     labeldict[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')] = 'P_spot_market'
@@ -725,7 +655,6 @@ def main(data, param, mipgap='0.1'):
             labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_SLK_' + str(i)
 
     if param['BHKW']['active']:
-        data_ice_node = views.node(results, 'BHKW Knoten')['sequences']
         if param['BHKW']['type'] == 'constant':
             ICE_P_max_woDH = param['BHKW']['P_max_woDH']
         elif param['BHKW']['type'] == 'time series':
@@ -741,20 +670,17 @@ def main(data, param, mipgap='0.1'):
             label_id = 'BHKW_' + str(i)
 
             cost_df.loc['op_cost', 'BHKW'] = (
-                data_ice_node[((label_id, 'BHKW Knoten'), 'flow')].sum()
+                data_enw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
                 * param['BHKW']['op_cost_var']
                 + (param['BHKW']['op_cost_fix']
                    * ICE_P_max_woDH)
                 )
 
             labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_' + label_id
-            labeldict[((label_id, 'BHKW Knoten'), 'flow')] = 'P_' + label_id
+            labeldict[((label_id, 'Elektrizitätsnetzwerk'), 'flow')] = 'P_' + label_id
             labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_' + label_id
-            labeldict[(('BHKW Knoten', 'BHKW_mit_Bonus'), 'flow')] = 'P_BHKW_mit_Bonus'
-            labeldict[(('BHKW Knoten', 'BHKW_ohne_Bonus'), 'flow')] = 'P_BHKW_ohne_Bonus'
 
     if param['GuD']['active']:
-        data_ccet_node = views.node(results, 'GuD Knoten')['sequences']
         if param['GuD']['type'] == 'constant':
             CCET_P_max_woDH = param['GuD']['P_max_woDH']
         elif param['GuD']['type'] == 'time series':
@@ -770,17 +696,15 @@ def main(data, param, mipgap='0.1'):
             label_id = 'GuD_' + str(i)
 
             cost_df.loc['op_cost', 'GuD'] = (
-                data_ccet_node[((label_id, 'GuD Knoten'), 'flow')].sum()
+                data_enw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
                 * param['GuD']['op_cost_var']
                 + (param['GuD']['op_cost_fix']
                    * CCET_P_max_woDH)
                 )
 
             labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_' + label_id
-            labeldict[((label_id, 'GuD Knoten'), 'flow')] = 'P_' + label_id
+            labeldict[((label_id, 'Elektrizitätsnetzwerk'), 'flow')] = 'P_' + label_id
             labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_' + label_id
-            labeldict[(('GuD Knoten', 'GuD_mit_Bonus'), 'flow')] = 'P_GuD_mit_Bonus'
-            labeldict[(('GuD Knoten', 'GuD_ohne_Bonus'), 'flow')] = 'P_GuD_ohne_Bonus'
 
     if param['HP']['active']:
         if param['HP']['type'] == 'constant':
@@ -887,14 +811,7 @@ def main(data, param, mipgap='0.1'):
     labeldict[(('LT_to_node', 'TES Knoten'), 'flow')] = 'Q_LT_node'
     labeldict[(('Sol_to_HT', 'Wärmenetzwerk'), 'flow')] = 'Q_Sol_HT'
     labeldict[(('Sol_to_LT', 'LT-Wärmenetzwerk'), 'flow')] = 'Q_Sol_LT'
-    labeldict[(('Spotmarkt Knoten', 'Spotmarkt'), 'flow')] = 'P_spot_market'
-    labeldict[(('Elektrizitätsnetzwerk', 'ENW_zu_Spotmarkt'), 'flow')] = 'ENW_zu_Spotmarkt'
-    labeldict[(('ENW_zu_Spotmarkt', 'Spotmarkt Knoten'), 'flow')] = 'ENW_zu_Spotmarkt_node'
-    labeldict[(('BHKW_ohne_Bonus', 'Elektrizitätsnetzwerk'), 'flow')] = 'P_BHKW_ohen_Bonus_node'
-    labeldict[(('BHKW_mit_Bonus', 'Spotmarkt Knoten'), 'flow')] = 'P_BHKW_mit_Bonus_node'
-    labeldict[(('GuD_ohne_Bonus', 'Elektrizitätsnetzwerk'), 'flow')] = 'P_GuD_ohen_Bonus_node'
-    labeldict[(('GuD_mit_Bonus', 'Spotmarkt Knoten'), 'flow')] = 'P_GuD_mit_Bonus_node'
-
+    labeldict[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')] = 'P_spot_market'
 
         # %% Zahlungsströme Ergebnis
 
@@ -913,7 +830,6 @@ def main(data, param, mipgap='0.1'):
 
     specific_costs_el_grid = (
         param['param']['elec_consumer_charges_grid']
-        - param['param']['elec_consumer_charges_self']
         + data['el_spot_price']
         + (param['param']['co2_price']
            * data['ef_om'])
@@ -924,10 +840,9 @@ def main(data, param, mipgap='0.1'):
     cost_el_grid = cost_el_grid.sum()
 
     cost_el_internal = ((
-        data_enw[(('Stromquelle', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-        + data_enw[(('BHKW_ohne_Bonus', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-        + data_enw[(('GuD_ohne_Bonus', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-        - data_enw[(('Elektrizitätsnetzwerk', 'ENW_zu_Spotmarkt'), 'flow')].sum()
+        data_enw.loc[:, ['BHKW' in col for col in data_enw.columns]].to_numpy().sum()
+        + data_enw.loc[:, ['GuD' in col for col in data_enw.columns]].to_numpy().sum()
+        - data_enw[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')].sum()
         ) * param['param']['elec_consumer_charges_self'])
 
     cost_el = cost_el_grid + cost_el_internal
