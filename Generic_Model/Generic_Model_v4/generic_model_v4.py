@@ -887,13 +887,8 @@ def main(data, param, mipgap='0.1'):
     # Umbenennen der Spaltennamen der Ergebnisdataframes
     result_dfs = [
         data_wnw, data_lt_wnw, data_wnw_node, data_sol_node, data_tes,
-        data_enw, data_gnw, data_spotmarket_node
+        data_enw, data_gnw
         ]
-
-    if param['BHKW']['active']:
-        result_dfs += [data_ice_node]
-    if param['GuD']['active']:
-        result_dfs += [data_ccet_node]
 
     for df in result_dfs:
         result_labelling(df, labeldict)
@@ -933,9 +928,8 @@ def main(data, param, mipgap='0.1'):
     #            sep=";")
 
     # Daten für die ökologische Bewertung
-    df3 = pd.concat([data_gnw[['H_source']],
-                     data_spotmarket_node[['P_spot_market']],
-                     data_enw[['P_source']]],
+    df3 = pd.concat([data_gnw['H_source'],
+                     data_enw[['P_spot_market', 'P_source']]],
                     axis=1)
     # df3.to_csv(os.path.join(
     #     dirpath, 'Ergebnisse', modelname, 'data_CO2.csv'),
