@@ -59,7 +59,13 @@ def main(data, param, mipgap='0.1'):
 
     es_ref.add(gnw, enw, wnw, lt_wnw, wnw_node, sol_node)
 
+    busses = {
+        'gnw': gnw, 'enw': enw, 'wnw': wnw, 'lt_wnw': lt_wnw,
+        'wnw_node': wnw_node, 'sol_node': sol_node
+        }
+
         # %% Soruces
+
 
     gas_source = solph.Source(
         label='Gasquelle',
