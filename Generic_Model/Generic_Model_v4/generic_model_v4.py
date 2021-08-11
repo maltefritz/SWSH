@@ -118,26 +118,6 @@ def main(data, param, mipgap='0.1'):
 
         # %% Sinks
 
-    # TODO
-    # Dirty Lösung
-    ice_P_N = 0
-    ice_chp_bonus = 0
-    ccet_P_N = 0
-    ccet_chp_bonus = 0
-    if param['param']['chp_bonus']:
-        if param['BHKW']['active']:
-            if param['BHKW']['type'] == 'constant':
-                ice_P_N = param['BHKW']['P_max_woDH']
-            elif param['BHKW']['type'] == 'time series':
-                ice_P_N = data['ICE_P_max_woDH'].mean()
-            ice_chp_bonus = chp_bonus(ice_P_N * 1e3, 'grid') * 10
-        if param['GuD']['active']:
-            if param['GuD']['type'] == 'constant':
-                ccet_P_N = param['GuD']['P_max_woDH']
-            elif param['GuD']['type'] == 'time series':
-                ccet_P_N = data['CCET_P_max_woDH'].mean()
-            ccet_chp_bonus = chp_bonus(ccet_P_N * 1e3, 'grid') * 10
-
     elec_sink = solph.Sink(
         label='Spotmarkt',
         inputs={enw: solph.Flow(
@@ -252,7 +232,10 @@ def main(data, param, mipgap='0.1'):
                         H_L_FG_share_min=liste(param['BHKW']['H_L_FG_share_min'], periods),
                         nominal_value=param['BHKW']['Q_in'])},
                     electrical_output={enw: solph.Flow(
-                        variable_costs=param['BHKW']['op_cost_var'],
+                        variable_costs=(
+                            param['BHKW']['op_cost_var']
+                            - param['BHKW']['chp_bonus']
+                            - param['BHKW']['TEHG_bonus']),
                         P_max_woDH=liste(param['BHKW']['P_max_woDH'], periods),
                         P_min_woDH=liste(param['BHKW']['P_min_woDH'], periods),
                         Eta_el_max_woDH=liste(param['BHKW']['Eta_el_max_woDH'], periods),
@@ -273,7 +256,10 @@ def main(data, param, mipgap='0.1'):
                         H_L_FG_share_min=data['ICE_H_L_FG_share_min'].tolist(),
                         nominal_value=data['ICE_Q_in'].mean())},
                     electrical_output={enw: solph.Flow(
-                        variable_costs=param['BHKW']['op_cost_var'],
+                        variable_costs=(
+                            param['BHKW']['op_cost_var']
+                            - param['BHKW']['chp_bonus']
+                            - param['BHKW']['TEHG_bonus']),
                         P_max_woDH=data['ICE_P_max_woDH'].tolist(),
                         P_min_woDH=data['ICE_P_min_woDH'].tolist(),
                         Eta_el_max_woDH=data['ICE_eta_el_max'].tolist(),
@@ -294,7 +280,10 @@ def main(data, param, mipgap='0.1'):
                         H_L_FG_share_max=liste(param['GuD']['H_L_FG_share_max'], periods),
                         nominal_value=param['GuD']['Q_in'])},
                     electrical_output={enw: solph.Flow(
-                        variable_costs=param['GuD']['op_cost_var'],
+                        variable_costs=(
+                            param['GuD']['op_cost_var']
+                            - param['GuD']['chp_bonus']
+                            - param['GuD']['TEHG_bonus']),
                         P_max_woDH=liste(param['GuD']['P_max_woDH'], periods),
                         P_min_woDH=liste(param['GuD']['P_min_woDH'], periods),
                         Eta_el_max_woDH=liste(param['GuD']['Eta_el_max_woDH'], periods),
@@ -314,7 +303,10 @@ def main(data, param, mipgap='0.1'):
                         H_L_FG_share_max=data['CCET_H_L_FG_share_max'].tolist(),
                         nominal_value=data['CCET_Q_in'].mean())},
                     electrical_output={enw: solph.Flow(
-                        variable_costs=param['GuD']['op_cost_var'],
+                        variable_costs=(
+                            param['GuD']['op_cost_var']
+                            - param['GuD']['chp_bonus']
+                            - param['GuD']['TEHG_bonus']),
                         P_max_woDH=data['CCET_P_max_woDH'].tolist(),
                         P_min_woDH=data['CCET_P_min_woDH'].tolist(),
                         Eta_el_max_woDH=data['CCET_eta_el_max'].tolist(),
@@ -335,7 +327,10 @@ def main(data, param, mipgap='0.1'):
                         H_L_FG_share_max=liste(param['bpt']['H_L_FG_share_max'], periods),
                         nominal_value=param['bpt']['Q_in'])},
                     electrical_output={enw: solph.Flow(
-                        variable_costs=param['bpt']['op_cost_var'],
+                        variable_costs=(
+                            param['bpt']['op_cost_var']
+                            - param['bpt']['chp_bonus']
+                            - param['bpt']['TEHG_bonus']),
                         P_max_woDH=liste(param['bpt']['P_max_woDH'], periods),
                         P_min_woDH=liste(param['bpt']['P_min_woDH'], periods),
                         Eta_el_max_woDH=liste(param['bpt']['Eta_el_max_woDH'], periods),
@@ -355,7 +350,10 @@ def main(data, param, mipgap='0.1'):
                         H_L_FG_share_max=data['BPT_H_L_FG_share_max'].tolist(),
                         nominal_value=data['BPT_Q_in'].mean())},
                     electrical_output={enw: solph.Flow(
-                        variable_costs=param['bpt']['op_cost_var'],
+                        variable_costs=(
+                            param['bpt']['op_cost_var']
+                            - param['bpt']['chp_bonus']
+                            - param['bpt']['TEHG_bonus']),
                         P_max_woDH=data['BPT_P_max_woDH'].tolist(),
                         P_min_woDH=data['BPT_P_min_woDH'].tolist(),
                         Eta_el_max_woDH=data['BPT_Eta_el_max_woDH'].tolist(),
@@ -473,8 +471,7 @@ def main(data, param, mipgap='0.1'):
             outputs={wnw: solph.Flow(
                 nominal_value=9999,
                 max=1.0,
-                min=0.0,
-                variable_costs=-param['param']['Solarbonus'])},
+                min=0.0)},
             conversion_factors={wnw: 1}
             )
 
@@ -487,8 +484,7 @@ def main(data, param, mipgap='0.1'):
             outputs={lt_wnw: solph.Flow(
                 nominal_value=9999,
                 max=1.0,
-                min=0.0,
-                variable_costs=-param['param']['Solarbonus'])},
+                min=0.0)},
             conversion_factors={lt_wnw: 1}
             )
 
@@ -849,7 +845,7 @@ def main(data, param, mipgap='0.1'):
 
     # Erlöse
     revenues_spotmarkt_timeseries = (np.array(
-        data_spotmarket_node[(('Spotmarkt Knoten', 'Spotmarkt'), 'flow')])
+        data_enw[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')])
                                      * (data['el_spot_price']
                                         + param['param']['vNNE']))
     revenues_spotmarkt = revenues_spotmarkt_timeseries.sum()
@@ -857,19 +853,19 @@ def main(data, param, mipgap='0.1'):
     revenues_chpbonus = 0
     if param['BHKW']['active']:
         revenues_chpbonus += (
-            data_ice_node[(('BHKW Knoten', 'BHKW_mit_Bonus'), 'flow')].sum()
-            * (ice_chp_bonus + param['param']['TEHG_bonus'])
+            data_enw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+            * (param['BHKW']['chp_bonus'] + param['BHKW']['TEHG_bonus'])
             )
     if param['GuD']['active']:
         revenues_chpbonus += (
-            data_ccet_node[(('GuD Knoten', 'GuD_mit_Bonus'), 'flow')].sum()
-            * (ccet_chp_bonus + param['param']['TEHG_bonus'])
+            data_enw[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+            * (param['GuD']['chp_bonus'] + param['GuD']['TEHG_bonus'])
             )
-
-    revenues_solarbonus = (
-        data_lt_wnw[(('Sol_to_LT', 'LT-Wärmenetzwerk'), 'flow')].sum()
-        * param['param']['Solarbonus']
-        )
+    if param['bpt']['active']:
+        revenues_chpbonus += (
+            data_enw[(('BPT', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+            * (param['bpt']['chp_bonus'] + param['bpt']['TEHG_bonus'])
+            )
 
     revenues_heatdemand = (data_wnw[(('Wärmenetzwerk', 'Wärmebedarf'),
                                      'flow')].sum()
@@ -877,7 +873,6 @@ def main(data, param, mipgap='0.1'):
     # Summe der Geldströme
     Gesamtbetrag = (
         revenues_spotmarkt + revenues_heatdemand + revenues_chpbonus
-        + revenues_solarbonus
         - cost_Anlagen - cost_gas - cost_el
         )
 
@@ -917,12 +912,9 @@ def main(data, param, mipgap='0.1'):
                              'revenues_spotmarkt': [revenues_spotmarkt],
                              'revenues_heatdemand': [revenues_heatdemand],
                              'revenues_chpbonus': [revenues_chpbonus],
-                             'revenues_solarbonus': [revenues_solarbonus],
                              'cost_Anlagen': [cost_Anlagen],
                              'cost_gas': [cost_gas],
-                             'cost_el': [cost_el],
-                             'ice_chpbonus': [ice_chp_bonus],
-                             'ccet_chpbonus': [ccet_chp_bonus]})
+                             'cost_el': [cost_el]})
     # df2.to_csv(os.path.join(
     #     dirpath, 'Ergebnisse', modelname, 'data_Invest.csv'),
     #            sep=";")
