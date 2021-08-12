@@ -25,7 +25,9 @@ import oemof.solph as solph
 from oemof.solph import views
 from help_funcs import liste, topology_check, result_labelling
 from eco_funcs import invest_sol, invest_stes, chp_bonus
-
+from components import (
+    gas_source, elec_source, solar_thermal_source, must_run_source
+    )
 
 def main(data, param, mipgap='0.1'):
     """Execute main script.
@@ -66,61 +68,12 @@ def main(data, param, mipgap='0.1'):
 
         # %% Soruces
 
-
-    gas_source = solph.Source(
-        label='Gasquelle',
-        outputs={gnw: solph.Flow(
-            variable_costs=(param['param']['gas_price']
-                            + (param['param']['co2_price']
-                               * param['param']['ef_gas'])))})
-
-    elec_source = solph.Source(
-        label='Stromquelle',
-        outputs={enw: solph.Flow(
-            variable_costs=(param['param']['elec_consumer_charges_grid']
-                            - param['param']['elec_consumer_charges_self']
-                            + data['el_spot_price']
-                            + (param['param']['co2_price']
-                               * data['ef_om'])))})
-
-    es_ref.add(gas_source, elec_source)
-
-    if param['Sol']['active']:
-        invest_solar = invest_sol(param['Sol']['A'], col_type="flat")
-        if param['Sol']['usage'] == 'LT':
-            solar_source = solph.Source(
-                label='Solarthermie',
-                outputs={sol_node: solph.Flow(
-                    variable_costs=((0.01 * invest_solar)
-                                    / (param['Sol']['A']*data['solar_data'].sum())),
-                    nominal_value=(max(data['solar_data'])*param['Sol']['A']),
-                    fix=(data['solar_data'] / max(data['solar_data'])))})
-        elif param['Sol']['usage'] == 'HT':
-            solar_source = solph.Source(
-                label='Solarthermie',
-                outputs={sol_node: solph.Flow(
-                    variable_costs=((0.01 * invest_solar)
-                                    / (param['Sol']['A']*data['solar_data_HT'].sum())),
-                    nominal_value=(max(data['solar_data_HT'])*param['Sol']['A']),
-                    fix=(data['solar_data_HT'] / max(data['solar_data_HT'])))})
-
-        es_ref.add(solar_source)
-
-    if param['MR']['active']:
-        if param['MR']['type'] == 'constant':
-            mr_source = solph.Source(label='Mustrun',
-                                     outputs={wnw: solph.Flow(
-                                        variable_costs=param['MR']['op_cost_var'],
-                                        nominal_value=float(param['MR']['Q_N']),
-                                        actual_value=1)})
-        elif param['MR']['type'] == 'time series':
-            mr_source = solph.Source(label='Mustrun',
-                                     outputs={wnw: solph.Flow(
-                                        variable_costs=param['MR']['op_cost_var'],
-                                        nominal_value=1,
-                                        actual_value=data['Q_MR'])})
-
-        es_ref.add(mr_source)
+    es_ref.add(
+        gas_source(param, busses),
+        elec_source(param, data, busses),
+        solar_thermal_source(param, data, busses),
+        must_run_source(param, data, busses)
+        )
 
         # %% Sinks
 
