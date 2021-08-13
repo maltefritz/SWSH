@@ -23,7 +23,7 @@ import numpy as np
 
 import oemof.solph as solph
 from oemof.solph import views
-from help_funcs import liste, topology_check, result_labelling
+from help_funcs import topology_check, result_labelling
 from eco_funcs import invest_sol, invest_stes, chp_bonus
 from components import (
     gas_source, electricity_source, solar_thermal_source, must_run_source,
@@ -91,188 +91,13 @@ def main(data, param, mipgap='0.1'):
 
         # %% Transformer
 
-
     es_ref.add(
         electric_boiler(param, data, busses),
         peak_load_boiler(param, data, busses),
-        internal_combustion_engine(param, data, busses),
-        combined_cycle_extraction_turbine(param, data, busses),
-        back_pressure_turbine(param, data, busses),
+        internal_combustion_engine(param, data, busses, periods),
+        combined_cycle_extraction_turbine(param, data, busses, periods),
+        back_pressure_turbine(param, data, busses, periods),
         )
-
-    if param['SLK']['active']:
-        if param['SLK']['type'] == 'constant':
-            for i in range(1, param['SLK']['amount']+1):
-                slk = solph.Transformer(
-                    label='Spitzenlastkessel_' + str(i),
-                    inputs={gnw: solph.Flow()},
-                    outputs={wnw: solph.Flow(
-                        nominal_value=param['SLK']['Q_N'],
-                        max=1,
-                        min=0,
-                        variable_costs=(param['SLK']['op_cost_var']
-                                        + param['param']['energy_tax']))},
-                    conversion_factors={wnw: param['SLK']['eta']})
-
-                es_ref.add(slk)
-
-        elif param['SLK']['type'] == 'time series':
-            for i in range(1, param['SLK']['amount']+1):
-                slk = solph.Transformer(
-                    label='Spitzenlastkessel_' + str(i),
-                    inputs={gnw: solph.Flow()},
-                    outputs={wnw: solph.Flow(
-                        nominal_value=1,
-                        max=data['Q_SLK'],
-                        min=0,
-                        variable_costs=(param['SLK']['op_cost_var']
-                                        + param['param']['energy_tax']))},
-                    conversion_factors={wnw: param['SLK']['eta']})
-
-                es_ref.add(slk)
-
-    if param['BHKW']['active']:
-        if param['BHKW']['type'] == 'constant':
-            for i in range(1, param['BHKW']['amount']+1):
-                bhkw = solph.components.GenericCHP(
-                    label='BHKW_' + str(i),
-                    fuel_input={gnw: solph.Flow(
-                        H_L_FG_share_max=liste(param['BHKW']['H_L_FG_share_max'], periods),
-                        H_L_FG_share_min=liste(param['BHKW']['H_L_FG_share_min'], periods),
-                        nominal_value=param['BHKW']['Q_in'])},
-                    electrical_output={enw: solph.Flow(
-                        variable_costs=(
-                            param['BHKW']['op_cost_var']
-                            - param['BHKW']['chp_bonus']
-                            - param['BHKW']['TEHG_bonus']),
-                        P_max_woDH=liste(param['BHKW']['P_max_woDH'], periods),
-                        P_min_woDH=liste(param['BHKW']['P_min_woDH'], periods),
-                        Eta_el_max_woDH=liste(param['BHKW']['Eta_el_max_woDH'], periods),
-                        Eta_el_min_woDH=liste(param['BHKW']['Eta_el_min_woDH'], periods))},
-                    heat_output={wnw: solph.Flow(
-                        Q_CW_min=liste(0, periods))},
-                    Beta=liste(0, periods),
-                    back_pressure=False)
-
-                es_ref.add(bhkw)
-
-        elif param['BHKW']['type'] == 'time series':
-            for i in range(1, param['BHKW']['amount']+1):
-                bhkw = solph.components.GenericCHP(
-                    label='BHKW_' + str(i),
-                    fuel_input={gnw: solph.Flow(
-                        H_L_FG_share_max=data['ICE_H_L_FG_share_max'].tolist(),
-                        H_L_FG_share_min=data['ICE_H_L_FG_share_min'].tolist(),
-                        nominal_value=data['ICE_Q_in'].mean())},
-                    electrical_output={enw: solph.Flow(
-                        variable_costs=(
-                            param['BHKW']['op_cost_var']
-                            - param['BHKW']['chp_bonus']
-                            - param['BHKW']['TEHG_bonus']),
-                        P_max_woDH=data['ICE_P_max_woDH'].tolist(),
-                        P_min_woDH=data['ICE_P_min_woDH'].tolist(),
-                        Eta_el_max_woDH=data['ICE_eta_el_max'].tolist(),
-                        Eta_el_min_woDH=data['ICE_eta_el_min'].tolist())},
-                    heat_output={wnw: solph.Flow(
-                        Q_CW_min=liste(0, periods))},
-                    Beta=liste(0, periods),
-                    back_pressure=False)
-
-                es_ref.add(bhkw)
-
-    if param['GuD']['active']:
-        if param['GuD']['type'] == 'constant':
-            for i in range(1, param['GuD']['amount']+1):
-                gud = solph.components.GenericCHP(
-                    label='GuD_' + str(i),
-                    fuel_input={gnw: solph.Flow(
-                        H_L_FG_share_max=liste(param['GuD']['H_L_FG_share_max'], periods),
-                        nominal_value=param['GuD']['Q_in'])},
-                    electrical_output={enw: solph.Flow(
-                        variable_costs=(
-                            param['GuD']['op_cost_var']
-                            - param['GuD']['chp_bonus']
-                            - param['GuD']['TEHG_bonus']),
-                        P_max_woDH=liste(param['GuD']['P_max_woDH'], periods),
-                        P_min_woDH=liste(param['GuD']['P_min_woDH'], periods),
-                        Eta_el_max_woDH=liste(param['GuD']['Eta_el_max_woDH'], periods),
-                        Eta_el_min_woDH=liste(param['GuD']['Eta_el_min_woDH'], periods))},
-                    heat_output={wnw: solph.Flow(
-                        Q_CW_min=liste(param['GuD']['Q_CW_min'], periods))},
-                    Beta=liste(param['GuD']['beta'], periods),
-                    back_pressure=False)
-
-                es_ref.add(gud)
-
-        elif param['GuD']['type'] == 'time series':
-            for i in range(1, param['GuD']['amount']+1):
-                gud = solph.components.GenericCHP(
-                    label='GuD_' + str(i),
-                    fuel_input={gnw: solph.Flow(
-                        H_L_FG_share_max=data['CCET_H_L_FG_share_max'].tolist(),
-                        nominal_value=data['CCET_Q_in'].mean())},
-                    electrical_output={enw: solph.Flow(
-                        variable_costs=(
-                            param['GuD']['op_cost_var']
-                            - param['GuD']['chp_bonus']
-                            - param['GuD']['TEHG_bonus']),
-                        P_max_woDH=data['CCET_P_max_woDH'].tolist(),
-                        P_min_woDH=data['CCET_P_min_woDH'].tolist(),
-                        Eta_el_max_woDH=data['CCET_eta_el_max'].tolist(),
-                        Eta_el_min_woDH=data['CCET_eta_el_min'].tolist())},
-                    heat_output={wnw: solph.Flow(
-                        Q_CW_min=data['CCET_Q_CW_min'].tolist())},
-                    Beta=data['CCET_beta'].tolist(),
-                    back_pressure=False)
-
-                es_ref.add(gud)
-
-    if param['BPT']['active']:
-        if param['BPT']['type'] == 'constant':
-            for i in range(1, param['BPT']['amount']+1):
-                bpt = solph.components.GenericCHP(
-                    label='bpt' + str(i),
-                    fuel_input={gnw: solph.Flow(
-                        H_L_FG_share_max=liste(param['bpt']['H_L_FG_share_max'], periods),
-                        nominal_value=param['bpt']['Q_in'])},
-                    electrical_output={enw: solph.Flow(
-                        variable_costs=(
-                            param['bpt']['op_cost_var']
-                            - param['bpt']['chp_bonus']
-                            - param['bpt']['TEHG_bonus']),
-                        P_max_woDH=liste(param['bpt']['P_max_woDH'], periods),
-                        P_min_woDH=liste(param['bpt']['P_min_woDH'], periods),
-                        Eta_el_max_woDH=liste(param['bpt']['Eta_el_max_woDH'], periods),
-                        Eta_el_min_woDH=liste(param['bpt']['Eta_el_min_woDH'], periods))},
-                    heat_output={wnw: solph.Flow(
-                        Q_CW_min=liste(0, periods))},
-                    Beta=liste(0, periods),
-                    back_pressure=True)
-
-                es_ref.add(bpt)
-
-        elif param['BPT']['type'] == 'time series':
-            for i in range(1, param['BPT']['amount']+1):
-                bpt = solph.components.GenericCHP(
-                    label='bpt' + str(i),
-                    fuel_input={gnw: solph.Flow(
-                        H_L_FG_share_max=data['BPT_H_L_FG_share_max'].tolist(),
-                        nominal_value=data['BPT_Q_in'].mean())},
-                    electrical_output={enw: solph.Flow(
-                        variable_costs=(
-                            param['bpt']['op_cost_var']
-                            - param['bpt']['chp_bonus']
-                            - param['bpt']['TEHG_bonus']),
-                        P_max_woDH=data['BPT_P_max_woDH'].tolist(),
-                        P_min_woDH=data['BPT_P_min_woDH'].tolist(),
-                        Eta_el_max_woDH=data['BPT_Eta_el_max_woDH'].tolist(),
-                        Eta_el_min_woDH=data['BPT_Eta_el_min_woDH'].tolist())},
-                    heat_output={wnw: solph.Flow(
-                        Q_CW_min=liste(0, periods))},
-                    Beta=liste(0, periods),
-                    back_pressure=True)
-
-                es_ref.add(bpt)
 
     # 30% m-Teillast bei 65-114°C und 50% m-Teillast bei 115-124°C
     if param['HP']['active']:

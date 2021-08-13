@@ -6,6 +6,7 @@ Created on Wed Aug 11 11:04:43 2021
 """
 
 import oemof.solph as solph
+from help_funcs import liste
 
 
 def gas_source(param, busses):
@@ -405,3 +406,331 @@ def electric_boiler(param, data, busses):
                             + param['param']['elec_consumer_charges_self']))},
                     conversion_factors={busses['wnw']: param['EHK']['eta']})
                 return ehk
+
+
+def peak_load_boiler(param, data, busses):
+    r"""
+    Get peak load boiler for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict
+        Busses of the energy system.
+
+    Note
+    ----
+    Peak load boiler uses the following parameters:
+    - 'active' is a binary parameter wether is used or not
+    - 'type' defines wether it is used constant or time dependent
+    - 'amount' is the amount of this components installed
+    - 'Q_N' is the constant nominal value in MWh
+    - 'op_cost_var' are the variable operational costs in €/MWh
+    - 'Q_min_rel' is a scaling factor for minimal heat output
+    - 'energy_tax' is the tax for the primary energy uses in €/MWh
+    - 'eta' is the conversion factor for energy transformation
+    - 'Q_EHK' is the time series of nominal value in MWh
+
+    Topology
+    --------
+    Input: Gas network (gnw)
+
+    Output: High temperature heat network (wnw)
+    """
+    if param['SLK']['active']:
+        if param['SLK']['type'] == 'constant':
+            for i in range(1, param['SLK']['amount']+1):
+                slk = solph.Transformer(
+                    label='Spitzenlastkessel_' + str(i),
+                    inputs={busses['gnw']: solph.Flow()},
+                    outputs={busses['wnw']: solph.Flow(
+                        nominal_value=param['SLK']['Q_N'],
+                        max=1,
+                        min=param['SLK']['Q_min_rel'],
+                        variable_costs=(
+                            param['SLK']['op_cost_var']
+                            + param['param']['energy_tax']))},
+                    conversion_factors={busses['wnw']: param['SLK']['eta']})
+        elif param['SLK']['type'] == 'time series':
+            for i in range(1, param['SLK']['amount']+1):
+                slk = solph.Transformer(
+                    label='Spitzenlastkessel_' + str(i),
+                    inputs={busses['gnw']: solph.Flow()},
+                    outputs={busses['wnw']: solph.Flow(
+                        nominal_value=1,
+                        max=data['Q_SLK'],
+                        min=0,
+                        variable_costs=(
+                            param['SLK']['op_cost_var']
+                            + param['param']['energy_tax']))},
+                    conversion_factors={busses['wnw']: param['SLK']['eta']})
+                return slk
+
+
+def internal_combustion_engine(param, data, busses, periods):
+    r"""
+    Get internal combustion engine for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict
+        Busses of the energy system.
+
+    periods: int
+        Number of time steps of the optimization.
+
+    Note
+    ----
+    Internal combustion engine uses the following parameters:
+    - 'active' is a binary parameter wether is used or not
+    - 'type' defines wether it is used constant or time dependent
+    - 'amount' is the amount of this components installed
+    - 'op_cost_var' are the variable operational costs in €/MWh
+    - 'chp_bonus' is the revenue for the electricity sold by chp
+    - 'TEHG_bonus' is the revenue for participation in the Emmisions Trading
+      Act
+
+    - For specific parameter see documentation of the GenericCHP component in
+      oemof solph. Depending on the selected type, the specific parameters are
+      used as a constant value or as a time series.
+
+    Topology
+    --------
+    Input: Gas network (gnw)
+
+    Output: High temperature heat network (wnw) and electricity network (enw)
+    """
+    if param['BHKW']['active']:
+        if param['BHKW']['type'] == 'constant':
+            for i in range(1, param['BHKW']['amount']+1):
+                bhkw = solph.components.GenericCHP(
+                    label='BHKW_' + str(i),
+                    fuel_input={busses['gnw']: solph.Flow(
+                        H_L_FG_share_max=liste(
+                            param['BHKW']['H_L_FG_share_max'], periods),
+                        H_L_FG_share_min=liste(
+                            param['BHKW']['H_L_FG_share_min'], periods),
+                        nominal_value=param['BHKW']['Q_in'])},
+                    electrical_output={busses['enw']: solph.Flow(
+                        variable_costs=(
+                            param['BHKW']['op_cost_var']
+                            - param['BHKW']['chp_bonus']
+                            - param['BHKW']['TEHG_bonus']),
+                        P_max_woDH=liste(param['BHKW']['P_max_woDH'], periods),
+                        P_min_woDH=liste(param['BHKW']['P_min_woDH'], periods),
+                        Eta_el_max_woDH=liste(
+                            param['BHKW']['Eta_el_max_woDH'], periods),
+                        Eta_el_min_woDH=liste(
+                            param['BHKW']['Eta_el_min_woDH'], periods))},
+                    heat_output={busses['wnw']: solph.Flow(
+                        Q_CW_min=liste(0, periods))},
+                    Beta=liste(0, periods),
+                    back_pressure=False)
+        elif param['BHKW']['type'] == 'time series':
+            for i in range(1, param['BHKW']['amount']+1):
+                bhkw = solph.components.GenericCHP(
+                    label='BHKW_' + str(i),
+                    fuel_input={busses['gnw']: solph.Flow(
+                        H_L_FG_share_max=data['ICE_H_L_FG_share_max'].tolist(),
+                        H_L_FG_share_min=data['ICE_H_L_FG_share_min'].tolist(),
+                        nominal_value=data['ICE_Q_in'].mean())},
+                    electrical_output={busses['enw']: solph.Flow(
+                        variable_costs=(
+                            param['BHKW']['op_cost_var']
+                            - param['BHKW']['chp_bonus']
+                            - param['BHKW']['TEHG_bonus']),
+                        P_max_woDH=data['ICE_P_max_woDH'].tolist(),
+                        P_min_woDH=data['ICE_P_min_woDH'].tolist(),
+                        Eta_el_max_woDH=data['ICE_eta_el_max'].tolist(),
+                        Eta_el_min_woDH=data['ICE_eta_el_min'].tolist())},
+                    heat_output={busses['wnw']: solph.Flow(
+                        Q_CW_min=liste(0, periods))},
+                    Beta=liste(0, periods),
+                    back_pressure=False)
+                return bhkw
+
+
+def combined_cycle_extraction_turbine(param, data, busses, periods):
+    r"""
+    Get combined cycle extraction turbine for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict
+        Busses of the energy system.
+
+    periods: int
+        Number of time steps of the optimization.
+
+    Note
+    ----
+    Combined cycle extraction turbine uses the following parameters:
+    - 'active' is a binary parameter wether is used or not
+    - 'type' defines wether it is used constant or time dependent
+    - 'amount' is the amount of this components installed
+    - 'op_cost_var' are the variable operational costs in €/MWh
+    - 'chp_bonus' is the revenue for the electricity sold by chp
+    - 'TEHG_bonus' is the revenue for participation in the Emmisions Trading
+      Act
+
+    - For specific parameter see documentation of the GenericCHP component in
+      oemof solph. Depending on the selected type, the specific parameters are
+      used as a constant value or as a time series.
+
+    Topology
+    --------
+    Input: Gas network (gnw)
+
+    Output: High temperature heat network (wnw) electricity network (enw)
+    """
+    if param['GuD']['active']:
+        if param['GuD']['type'] == 'constant':
+            for i in range(1, param['GuD']['amount']+1):
+                gud = solph.components.GenericCHP(
+                    label='GuD_' + str(i),
+                    fuel_input={busses['gnw']: solph.Flow(
+                        H_L_FG_share_max=liste(
+                            param['GuD']['H_L_FG_share_max'], periods),
+                        nominal_value=param['GuD']['Q_in'])},
+                    electrical_output={busses['enw']: solph.Flow(
+                        variable_costs=(
+                            param['GuD']['op_cost_var']
+                            - param['GuD']['chp_bonus']
+                            - param['GuD']['TEHG_bonus']),
+                        P_max_woDH=liste(
+                            param['GuD']['P_max_woDH'], periods),
+                        P_min_woDH=liste(
+                            param['GuD']['P_min_woDH'], periods),
+                        Eta_el_max_woDH=liste(
+                            param['GuD']['Eta_el_max_woDH'], periods),
+                        Eta_el_min_woDH=liste(
+                            param['GuD']['Eta_el_min_woDH'], periods))},
+                    heat_output={busses['wnw']: solph.Flow(
+                        Q_CW_min=liste(param['GuD']['Q_CW_min'], periods))},
+                    Beta=liste(param['GuD']['beta'], periods),
+                    back_pressure=False)
+        elif param['GuD']['type'] == 'time series':
+            for i in range(1, param['GuD']['amount']+1):
+                gud = solph.components.GenericCHP(
+                    label='GuD_' + str(i),
+                    fuel_input={busses['gnw']: solph.Flow(
+                        H_L_FG_share_max=(
+                            data['CCET_H_L_FG_share_max'].tolist()),
+                        nominal_value=data['CCET_Q_in'].mean())},
+                    electrical_output={busses['enw']: solph.Flow(
+                        variable_costs=(
+                            param['GuD']['op_cost_var']
+                            - param['GuD']['chp_bonus']
+                            - param['GuD']['TEHG_bonus']),
+                        P_max_woDH=data['CCET_P_max_woDH'].tolist(),
+                        P_min_woDH=data['CCET_P_min_woDH'].tolist(),
+                        Eta_el_max_woDH=data['CCET_eta_el_max'].tolist(),
+                        Eta_el_min_woDH=data['CCET_eta_el_min'].tolist())},
+                    heat_output={busses['wnw']: solph.Flow(
+                        Q_CW_min=data['CCET_Q_CW_min'].tolist())},
+                    Beta=data['CCET_beta'].tolist(),
+                    back_pressure=False)
+                return gud
+
+
+def back_pressure_turbine(param, data, busses, periods):
+    r"""
+    Get back pressure turbine for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict
+        Busses of the energy system.
+
+    periods: int
+        Number of time steps of the optimization.
+
+    Note
+    ----
+    Back pressure turbine uses the following parameters:
+    - 'active' is a binary parameter wether is used or not
+    - 'type' defines wether it is used constant or time dependent
+    - 'amount' is the amount of this components installed
+    - 'op_cost_var' are the variable operational costs in €/MWh
+    - 'chp_bonus' is the revenue for the electricity sold by chp
+    - 'TEHG_bonus' is the revenue for participation in the Emmisions Trading
+      Act
+
+    - For specific parameter see documentation of the GenericCHP component in
+      oemof solph. Depending on the selected type, the specific parameters are
+      used as a constant value or as a time series.
+
+    Topology
+    --------
+    Input: Gas network (gnw)
+
+    Output: High temperature heat network (wnw) electricity network (enw)
+    """
+    if param['BPT']['active']:
+        if param['BPT']['type'] == 'constant':
+            for i in range(1, param['BPT']['amount']+1):
+                bpt = solph.components.GenericCHP(
+                    label='bpt' + str(i),
+                    fuel_input={busses['gnw']: solph.Flow(
+                        H_L_FG_share_max=liste(
+                            param['bpt']['H_L_FG_share_max'], periods),
+                        nominal_value=param['bpt']['Q_in'])},
+                    electrical_output={busses['enw']: solph.Flow(
+                        variable_costs=(
+                            param['bpt']['op_cost_var']
+                            - param['bpt']['chp_bonus']
+                            - param['bpt']['TEHG_bonus']),
+                        P_max_woDH=liste(param['bpt']['P_max_woDH'], periods),
+                        P_min_woDH=liste(param['bpt']['P_min_woDH'], periods),
+                        Eta_el_max_woDH=liste(
+                            param['bpt']['Eta_el_max_woDH'], periods),
+                        Eta_el_min_woDH=liste(
+                            param['bpt']['Eta_el_min_woDH'], periods))},
+                    heat_output={busses['wnw']: solph.Flow(
+                        Q_CW_min=liste(0, periods))},
+                    Beta=liste(0, periods),
+                    back_pressure=True)
+        elif param['BPT']['type'] == 'time series':
+            for i in range(1, param['BPT']['amount']+1):
+                bpt = solph.components.GenericCHP(
+                    label='bpt' + str(i),
+                    fuel_input={busses['gnw']: solph.Flow(
+                        H_L_FG_share_max=data['BPT_H_L_FG_share_max'].tolist(),
+                        nominal_value=data['BPT_Q_in'].mean())},
+                    electrical_output={busses['enw']: solph.Flow(
+                        variable_costs=(
+                            param['bpt']['op_cost_var']
+                            - param['bpt']['chp_bonus']
+                            - param['bpt']['TEHG_bonus']),
+                        P_max_woDH=data['BPT_P_max_woDH'].tolist(),
+                        P_min_woDH=data['BPT_P_min_woDH'].tolist(),
+                        Eta_el_max_woDH=data['BPT_Eta_el_max_woDH'].tolist(),
+                        Eta_el_min_woDH=data['BPT_Eta_el_min_woDH'].tolist())},
+                    heat_output={busses['wnw']: solph.Flow(
+                        Q_CW_min=liste(0, periods))},
+                    Beta=liste(0, periods),
+                    back_pressure=True)
+                return bpt
