@@ -43,7 +43,7 @@ def gas_source(param, busses):
     return gas_source
 
 
-def elec_source(param, data, busses):
+def electricity_source(param, data, busses):
     r"""
     Get electricity source for Generic Model energy system.
 
@@ -79,11 +79,12 @@ def elec_source(param, data, busses):
     elec_source = solph.Source(
         label='Stromquelle',
         outputs={busses['enw']: solph.Flow(
-            variable_costs=(param['param']['elec_consumer_charges_grid']
-                            - param['param']['elec_consumer_charges_self']
-                            + data['el_spot_price']
-                            + (param['param']['co2_price']
-                               * data['ef_om'])))}
+            variable_costs=(
+                param['param']['elec_consumer_charges_grid']
+                - param['param']['elec_consumer_charges_self']
+                + data['el_spot_price']
+                + (param['param']['co2_price']
+                   * data['ef_om'])))}
         )
     return elec_source
 
@@ -193,7 +194,7 @@ def must_run_source(param, data, busses):
     return must_run_source
 
 
-def elec_sink(param, data, busses):
+def electricity_sink(param, data, busses):
     r"""
     Get electricity sink for Generic Model energy system.
 
@@ -228,7 +229,7 @@ def elec_sink(param, data, busses):
     return elec_sink
 
 
-def heat_sink(param, data, busses):
+def ht_emergency_cooling_sink(param, data, busses):
     r"""
     Get heat sink for Generic Model energy system.
 
@@ -270,7 +271,7 @@ def heat_sink(param, data, busses):
     return heat_sink
 
 
-def ht_ec_sink(param, busses):
+def sol_emergency_cooling_sink(param, busses):
     r"""
     Get high temperature emergency cooling sink for Generic Model energy
     system.
@@ -339,3 +340,68 @@ def sol_ec_sink(param, data, busses):
                 variable_costs=param['TES']['op_cost_var'])}
             )
     return sol_ec_sink
+
+
+def electric_boiler(param, data, busses):
+    r"""
+    Get electric boiler for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict
+        Busses of the energy system.
+
+    Note
+    ----
+    Electric boiler uses the following parameters:
+    - 'active' is a binary parameter wether is used or not
+    - 'type' defines wether it is used constant or time dependent
+    - 'amount' is the amount of this components installed
+    - 'Q_N' is the constant nominal value in MWh
+    - 'op_cost_var' are the variable operational costs in €/MWh
+    - 'Q_min_rel' is a scaling factor for minimal heat output
+    - 'elec_consumer_charges_self' are the constant consumer charges for
+       internal electricity usage in €/MWh
+    - 'eta' is the conversion factor for energy transformation
+    - 'Q_EHK' is the time series of nominal value in MWh
+
+    Topology
+    --------
+    Input: Electricity network (enw)
+
+    Output: High temperature heat network (wnw)
+    """
+    if param['EHK']['active']:
+        if param['EHK']['type'] == 'constant':
+            for i in range(1, param['EHK']['amount']+1):
+                ehk = solph.Transformer(
+                    label='Elektroheizkessel_' + str(i),
+                    inputs={busses['enw']: solph.Flow()},
+                    outputs={busses['wnw']: solph.Flow(
+                        nominal_value=param['EHK']['Q_N'],
+                        max=1,
+                        min=param['EHK']['Q_min_rel'],
+                        variable_costs=(
+                            param['EHK']['op_cost_var']
+                            + param['param']['elec_consumer_charges_self']))},
+                    conversion_factors={busses['wnw']: param['EHK']['eta']})
+        elif param['EHK']['type'] == 'time series':
+            for i in range(1, param['EHK']['amount']+1):
+                ehk = solph.Transformer(
+                    label='Elektroheizkessel_' + str(i),
+                    inputs={busses['enw']: solph.Flow()},
+                    outputs={busses['wnw']: solph.Flow(
+                        nominal_value=1,
+                        max=data['Q_EHK'],
+                        min=data['Q_EHK'] * param['EHK']['Q_min_rel'],
+                        variable_costs=(
+                            param['EHK']['op_cost_var']
+                            + param['param']['elec_consumer_charges_self']))},
+                    conversion_factors={busses['wnw']: param['EHK']['eta']})
+                return ehk

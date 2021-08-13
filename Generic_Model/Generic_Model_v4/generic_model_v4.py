@@ -26,8 +26,11 @@ from oemof.solph import views
 from help_funcs import liste, topology_check, result_labelling
 from eco_funcs import invest_sol, invest_stes, chp_bonus
 from components import (
-    gas_source, elec_source, solar_thermal_source, must_run_source, elec_sink,
-    heat_sink, ht_ec_sink, sol_ec_sink
+    gas_source, electricity_source, solar_thermal_source, must_run_source,
+    electricity_sink, heat_sink, ht_emergency_cooling_sink,
+    sol_emergency_cooling_sink, electric_boiler, peak_load_boiler,
+        internal_combustion_engine, combined_cycle_extraction_turbine,
+        back_pressure_turbine
     )
 
 
@@ -72,7 +75,7 @@ def main(data, param, mipgap='0.1'):
 
     es_ref.add(
         gas_source(param, busses),
-        elec_source(param, data, busses),
+        electricity_source(param, data, busses),
         solar_thermal_source(param, data, busses),
         must_run_source(param, data, busses)
         )
@@ -80,45 +83,22 @@ def main(data, param, mipgap='0.1'):
         # %% Sinks
 
     es_ref.add(
-        elec_sink(param, busses),
+        electricity_sink(param, busses),
         heat_sink(param, data, busses),
-        ht_ec_sink(param, busses),
-        sol_ec_sink(param, busses)
+        ht_emergency_cooling_sink(param, busses),
+        sol_emergency_cooling_sink(param, busses)
         )
 
         # %% Transformer
 
-    if param['EHK']['active']:
-        if param['EHK']['type'] == 'constant':
-            for i in range(1, param['EHK']['amount']+1):
-                ehk = solph.Transformer(
-                    label='Elektroheizkessel_' + str(i),
-                    inputs={enw: solph.Flow()},
-                    outputs={wnw: solph.Flow(
-                        nominal_value=param['EHK']['Q_N'],
-                        max=1,
-                        min=0,
-                        variable_costs=(
-                            param['EHK']['op_cost_var']
-                            + param['param']['elec_consumer_charges_self']))},
-                    conversion_factors={wnw: param['EHK']['eta']})
 
-                es_ref.add(ehk)
-        elif param['EHK']['type'] == 'time series':
-            for i in range(1, param['EHK']['amount']+1):
-                ehk = solph.Transformer(
-                    label='Elektroheizkessel_' + str(i),
-                    inputs={enw: solph.Flow()},
-                    outputs={wnw: solph.Flow(
-                        nominal_value=1,
-                        max=data['Q_EHK'],
-                        min=0,
-                        variable_costs=(
-                            param['EHK']['op_cost_var']
-                            + param['param']['elec_consumer_charges_self']))},
-                    conversion_factors={wnw: param['EHK']['eta']})
-
-                es_ref.add(ehk)
+    es_ref.add(
+        electric_boiler(param, data, busses),
+        peak_load_boiler(param, data, busses),
+        internal_combustion_engine(param, data, busses),
+        combined_cycle_extraction_turbine(param, data, busses),
+        back_pressure_turbine(param, data, busses),
+        )
 
     if param['SLK']['active']:
         if param['SLK']['type'] == 'constant':
