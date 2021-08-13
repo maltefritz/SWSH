@@ -26,8 +26,10 @@ from oemof.solph import views
 from help_funcs import liste, topology_check, result_labelling
 from eco_funcs import invest_sol, invest_stes, chp_bonus
 from components import (
-    gas_source, elec_source, solar_thermal_source, must_run_source
+    gas_source, elec_source, solar_thermal_source, must_run_source, elec_sink,
+    heat_sink, ht_ec_sink, sol_ec_sink
     )
+
 
 def main(data, param, mipgap='0.1'):
     """Execute main script.
@@ -77,44 +79,12 @@ def main(data, param, mipgap='0.1'):
 
         # %% Sinks
 
-    elec_sink = solph.Sink(
-        label='Spotmarkt',
-        inputs={enw: solph.Flow(
-            variable_costs=(-data['el_spot_price']
-                            - param['param']['vNNE']))})
-
-    heat_sink = solph.Sink(
-        label='Wärmebedarf',
-        inputs={wnw: solph.Flow(
-            variable_costs=-param['param']['heat_price'],
-            nominal_value=(
-                max(data['heat_demand'] * param['param']['rel_demand'])
-                ),
-            fix=(
-                data['heat_demand'] * param['param']['rel_demand']
-                / max(data['heat_demand'] * param['param']['rel_demand'])
-                )
-            )})
-
-    es_ref.add(elec_sink, heat_sink)
-
-    if param['HT-EC']['active']:
-        ht_ec_sink = solph.Sink(label='HT-EC',
-                                inputs={
-                                    wnw: solph.Flow(
-                                        variable_costs=param['TES']['op_cost_var'])}
-                                )
-
-        es_ref.add(ht_ec_sink)
-
-    if param['Sol EC']['active']:
-        sol_ec_sink = solph.Sink(label='Sol EC',
-                                 inputs={
-                                     sol_node: solph.Flow(
-                                         variable_costs=param['TES']['op_cost_var'])}
-                                )
-
-        es_ref.add(sol_ec_sink)
+    es_ref.add(
+        elec_sink(param, busses),
+        heat_sink(param, data, busses),
+        ht_ec_sink(param, busses),
+        sol_ec_sink(param, busses)
+        )
 
         # %% Transformer
 

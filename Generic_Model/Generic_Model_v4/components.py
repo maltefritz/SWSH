@@ -26,13 +26,20 @@ def gas_source(param, busses):
     - 'gas_price' is the constant price of gas in €/MWh
     - 'co2_price' is the constant price of caused emissions in €/t_co2
     - 'ef_gas' is the constant emission factor of gas in t_co2/MWh
+
+    Topology
+    --------
+    Input: none
+
+    Output: Gas network (gnw)
     """
     gas_source = solph.Source(
         label='Gasquelle',
         outputs={busses['gnw']: solph.Flow(
             variable_costs=(param['param']['gas_price']
                             + (param['param']['co2_price']
-                               * param['param']['ef_gas'])))})
+                               * param['param']['ef_gas'])))}
+        )
     return gas_source
 
 
@@ -62,6 +69,12 @@ def elec_source(param, data, busses):
     - 'co2_price' is the constant price of caused emissions in €/t_co2
     - 'ef_om' is the time series of emission factors of overall electricity mix
       in t_co2/MWh
+
+    Topology
+    --------
+    Input: none
+
+    Output: Electricity network (enw)
     """
     elec_source = solph.Source(
         label='Stromquelle',
@@ -70,7 +83,8 @@ def elec_source(param, data, busses):
                             - param['param']['elec_consumer_charges_self']
                             + data['el_spot_price']
                             + (param['param']['co2_price']
-                               * data['ef_om'])))})
+                               * data['ef_om'])))}
+        )
     return elec_source
 
 
@@ -100,6 +114,12 @@ def solar_thermal_source(param, data, busses):
       in MWh/m^2
     - 'solar_data_HT' is the time series of high temperature solar thermal heat
       in MWh/m^2
+
+    Topology
+    --------
+    Input: none
+
+    Output: Solar thermal node (sol_node)
     """
     if param['Sol']['active']:
         if param['Sol']['usage'] == 'LT':
@@ -109,7 +129,8 @@ def solar_thermal_source(param, data, busses):
                     variable_costs=param['Sol']['op_cost_var'],
                     nominal_value=(
                         max(data['solar_data']) * param['Sol']['A']),
-                    fix=data['solar_data'] / max(data['solar_data']))})
+                    fix=data['solar_data'] / max(data['solar_data']))}
+                )
         elif param['Sol']['usage'] == 'HT':
             solar_thermal_source = solph.Source(
                 label='Solarthermie',
@@ -117,7 +138,8 @@ def solar_thermal_source(param, data, busses):
                     variable_costs=param['Sol']['op_cost_var'],
                     nominal_value=(
                         max(data['solar_data_HT']) * param['Sol']['A']),
-                    fix=data['solar_data_HT'] / max(data['solar_data_HT']))})
+                    fix=data['solar_data_HT'] / max(data['solar_data_HT']))}
+                )
         return solar_thermal_source
 
 
@@ -144,6 +166,12 @@ def must_run_source(param, data, busses):
     - 'op_cost_var' are the variable operational costs in €/MWh
     - 'Q_N' is the constant nominal value in MWh
     - 'Q_MR' is the time series of nominal value in MWh
+
+    Topology
+    --------
+    Input: none
+
+    Output: High temperature heat network (wnw)
     """
     if param['MR']['active']:
         if param['MR']['type'] == 'constant':
@@ -163,3 +191,151 @@ def must_run_source(param, data, busses):
                     actual_value=data['Q_MR'])}
                 )
     return must_run_source
+
+
+def elec_sink(param, data, busses):
+    r"""
+    Get electricity sink for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict
+        Busses of the energy system.
+
+    Note
+    ----
+    Electricity sink uses the following parameters:
+    - 'el_spot_price' is the time series of spot market price in €/MWh
+    - 'vNNE' is the price for avoided grid usage fees in €/MWh
+
+    Topology
+    --------
+    Input: Electricity network (enw)
+
+    Output: none
+    """
+    elec_sink = solph.Sink(
+        label='Spotmarkt',
+        inputs={busses['enw']: solph.Flow(
+            variable_costs=(-data['el_spot_price'] - param['param']['vNNE']))}
+        )
+    return elec_sink
+
+
+def heat_sink(param, data, busses):
+    r"""
+    Get heat sink for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict
+        Busses of the energy system.
+
+    Note
+    ----
+    Heat sink uses the following parameters:
+    - 'heat_price' is the constant price of the heat sold €/MWh
+    - 'heat_demand' is the time series of the heat to be covered in MWh
+    - 'rel_demand' is a scaling factor for the heat demand
+
+    Topology
+    --------
+    Input: High temperature heat network (wnw)
+
+    Output: none
+    """
+    heat_sink = solph.Sink(
+        label='Wärmebedarf',
+        inputs={busses['wnw']: solph.Flow(
+            variable_costs=-param['param']['heat_price'],
+            nominal_value=(
+                max(data['heat_demand'] * param['param']['rel_demand'])
+                ),
+            fix=(
+                data['heat_demand'] * param['param']['rel_demand']
+                / max(data['heat_demand'] * param['param']['rel_demand'])))}
+        )
+    return heat_sink
+
+
+def ht_ec_sink(param, busses):
+    r"""
+    Get high temperature emergency cooling sink for Generic Model energy
+    system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    busses : dict
+        Busses of the energy system.
+
+    Note
+    ----
+    High temperature emergency cooling sink uses the following parameters:
+    - 'op_cost_var' are the variable operational costs for emergency cooling in
+      €/MWh
+
+    Topology
+    --------
+    Input: High temperature heat network (wnw)
+
+    Output: none
+    """
+    if param['HT-EC']['active']:
+        ht_ec_sink = solph.Sink(
+            label='HT-EC',
+            inputs={
+                busses['wnw']: solph.Flow(
+                    variable_costs=param['TES']['op_cost_var'])}
+            )
+        return ht_ec_sink
+
+
+def sol_ec_sink(param, data, busses):
+    r"""
+    Get solar thermal emergency cooling sink for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict
+        Busses of the energy system.
+
+    Note
+    ----
+    Solar thermal emergency cooling sink uses the following parameters:
+    - 'op_cost_var' are the variable operational costs for emergency cooling in
+      €/MWh
+
+    Topology
+    --------
+    Input: Solar thermal node (sol_node)
+
+    Output: none
+    """
+    if param['Sol EC']['active']:
+        sol_ec_sink = solph.Sink(
+            label='Sol EC',
+            inputs={['sol_node']: solph.Flow(
+                variable_costs=param['TES']['op_cost_var'])}
+            )
+    return sol_ec_sink
