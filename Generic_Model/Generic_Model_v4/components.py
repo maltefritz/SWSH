@@ -6,7 +6,7 @@ Created on Wed Aug 11 11:04:43 2021
 """
 
 import oemof.solph as solph
-from help_funcs import liste
+from help_funcs import liste, ComponentTypeError
 
 
 def gas_source(param, busses):
@@ -406,6 +406,8 @@ def electric_boiler(param, data, busses):
                             + param['param']['elec_consumer_charges_self']))},
                     conversion_factors={busses['wnw']: param['EHK']['eta']})
                 return ehk
+        else:
+            raise ComponentTypeError(param['EHK']['type'], 'EHK')
 
 
 def peak_load_boiler(param, data, busses):
@@ -470,6 +472,8 @@ def peak_load_boiler(param, data, busses):
                             + param['param']['energy_tax']))},
                     conversion_factors={busses['wnw']: param['SLK']['eta']})
                 return slk
+        else:
+            raise ComponentTypeError(param['SLK']['type'], 'SLK')
 
 
 def internal_combustion_engine(param, data, busses, periods):
@@ -559,6 +563,8 @@ def internal_combustion_engine(param, data, busses, periods):
                     Beta=liste(0, periods),
                     back_pressure=False)
                 return bhkw
+        else:
+            raise ComponentTypeError(param['BHKW']['type'], 'BHKW')
 
 
 def combined_cycle_extraction_turbine(param, data, busses, periods):
@@ -648,6 +654,8 @@ def combined_cycle_extraction_turbine(param, data, busses, periods):
                     Beta=data['CCET_beta'].tolist(),
                     back_pressure=False)
                 return gud
+        else:
+            raise ComponentTypeError(param['GuD']['type'], 'GuD')
 
 
 def back_pressure_turbine(param, data, busses, periods):
@@ -734,6 +742,8 @@ def back_pressure_turbine(param, data, busses, periods):
                     Beta=liste(0, periods),
                     back_pressure=True)
                 return bpt
+        else:
+            raise ComponentTypeError(param['bpt']['type'], 'bpt')
 
 
 def ht_heat_pump(param, data, busses):
@@ -806,6 +816,8 @@ def ht_heat_pump(param, data, busses):
                         variable_costs=param['HP']['op_cost_var'])},
                     coefficients=[data['c_0_hp'], data['c_1_hp']])
                 return ht_hp
+        else:
+            raise ComponentTypeError(param['HP']['type'], 'HP')
 
 
 def lt_heat_pump(param, data, busses):
@@ -880,3 +892,5 @@ def lt_heat_pump(param, data, busses):
                         busses['lt_wnw']: (data['cop_lthp']-1)/data['cop_lthp']
                         })
                 return lt_hp
+        else:
+            raise ComponentTypeError(param['LT-HP']['type'], 'LT-HP')

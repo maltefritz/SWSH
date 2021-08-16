@@ -27,8 +27,8 @@ def topology_check(param):
     elif (not param['LT-HP']['active']
           and (param['Sol']['active']
           or param['TES']['active'])):
-        print("WARNING: You can't use TES or solar heat without using the low ",
-              "temp heat pump.")
+        print("WARNING: You can't use TES or solar heat without using the low",
+              " temp heat pump.")
         exit()
 
 
@@ -39,3 +39,22 @@ def result_labelling(dataframe, labeldict):
             dataframe.rename(columns={col: labeldict[col]}, inplace=True)
         else:
             print(col, ' not in labeldict')
+
+
+class ComponentTypeError(Exception):
+    """Exception raised for errors with component type."""
+
+    def __init__(self, user_type, component):
+        self.user_type = user_type
+        self.component = component
+        super().__init__()
+
+    def __str__(self):
+        return (
+            f"The chosen component type '{self.user_type}' of {self.component}"
+            + " is neither 'constant' nor a 'time series'."
+            )
+
+
+if __name__ == '__main__':
+    raise ComponentTypeError('Nur der HSV', 'BHKW')
