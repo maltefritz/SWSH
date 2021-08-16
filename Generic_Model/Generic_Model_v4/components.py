@@ -6,7 +6,7 @@ Created on Wed Aug 11 11:04:43 2021
 """
 
 import oemof.solph as solph
-from help_funcs import liste, ComponentTypeError
+from help_funcs import liste, ComponentTypeError, SolarUsageError
 
 
 def gas_source(param, busses):
@@ -142,6 +142,8 @@ def solar_thermal_source(param, data, busses):
                         max(data['solar_data_HT']) * param['Sol']['A']),
                     fix=data['solar_data_HT'] / max(data['solar_data_HT']))}
                 )
+        else:
+            raise SolarUsageError(param['Sol']['usage'])
         return solar_thermal_source
 
 

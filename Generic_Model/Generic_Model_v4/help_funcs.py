@@ -56,5 +56,19 @@ class ComponentTypeError(Exception):
             )
 
 
+class SolarUsageError(Exception):
+    """Exception raised for errors with usage solar thermal source."""
+
+    def __init__(self, user_usage):
+        self.user_usage = user_usage
+        super().__init__()
+
+    def __str__(self):
+        return (
+            f"The chosen usage '{self.user_usage}' of the solar thermal source"
+            + " is neither 'HT' nor a 'LT'."
+            )
+
+
 if __name__ == '__main__':
-    raise ComponentTypeError('Nur der HSV', 'BHKW')
+    raise SolarUsageError('user_usage')
