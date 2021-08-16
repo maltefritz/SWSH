@@ -30,7 +30,7 @@ from components import (
     electricity_sink, heat_sink, ht_emergency_cooling_sink,
     sol_emergency_cooling_sink, electric_boiler, peak_load_boiler,
         internal_combustion_engine, combined_cycle_extraction_turbine,
-        back_pressure_turbine
+        back_pressure_turbine, ht_heat_pump, lt_heat_pump
     )
 
 
@@ -97,82 +97,9 @@ def main(data, param, mipgap='0.1'):
         internal_combustion_engine(param, data, busses, periods),
         combined_cycle_extraction_turbine(param, data, busses, periods),
         back_pressure_turbine(param, data, busses, periods),
+        ht_heat_pump(param, data, busses),
+        lt_heat_pump(param, data, busses)
         )
-
-    # 30% m-Teillast bei 65-114°C und 50% m-Teillast bei 115-124°C
-    if param['HP']['active']:
-        if param['HP']['type'] == 'constant':
-            for i in range(1, param['HP']['amount']+1):
-                hp = solph.components.OffsetTransformer(
-                    label='HP_' + str(i),
-                    inputs={enw: solph.Flow(
-                        nominal_value=param['HP']['P_max'],
-                        max=1,
-                        min=param['HP']['P_min']/param['HP']['P_max'],
-                        variable_costs=(
-                            param['param']['elec_consumer_charges_self']),
-                        nonconvex=solph.NonConvex())},
-                    outputs={wnw: solph.Flow(
-                        variable_costs=(
-                            param['HP']['op_cost_var'])
-                        )},
-                    coefficients=[param['HP']['c_0'], param['HP']['c_1']])
-
-                es_ref.add(hp)
-
-        elif param['HP']['type'] == 'time series':
-            for i in range(1, param['HP']['amount']+1):
-                hp = solph.components.OffsetTransformer(
-                    label='HP_' + str(i),
-                    inputs={enw: solph.Flow(
-                        nominal_value=1,
-                        max=data['P_max_hp'],
-                        min=data['P_min_hp'],
-                        variable_costs=(
-                            param['param']['elec_consumer_charges_self']),
-                        nonconvex=solph.NonConvex())},
-                    outputs={wnw: solph.Flow(
-                        variable_costs=(
-                            param['HP']['op_cost_var'])
-                        )},
-                    coefficients=[data['c_0_hp'], data['c_1_hp']])
-
-                es_ref.add(hp)
-
-    # Low temperature heat pump
-    if param['LT-HP']['active']:
-        if param['LT-HP']['type'] == 'constant':
-            for i in range(1, param['LT-HP']['amount']+1):
-                lthp = solph.Transformer(
-                    label="LT-HP_" + str(i),
-                    inputs={lt_wnw: solph.Flow(),
-                            enw: solph.Flow(
-                                variable_costs=(
-                                    param['param']['elec_consumer_charges_self']))},
-                    outputs={wnw: solph.Flow(
-                        variable_costs=(
-                            param['HP']['op_cost_var']))},
-                    conversion_factors={enw: 1/param['LT-HP']['cop'],
-                                        lt_wnw: ((param['LT-HP']['cop']-1)
-                                                 / param['LT-HP']['cop'])})
-
-                es_ref.add(lthp)
-
-        elif param['LT-HP']['type'] == 'time series':
-            for i in range(1, param['LT-HP']['amount']+1):
-                lthp = solph.Transformer(
-                    label="LT-HP_" + str(i),
-                    inputs={lt_wnw: solph.Flow(),
-                            enw: solph.Flow(
-                                variable_costs=(
-                                    param['param']['elec_consumer_charges_self']))},
-                    outputs={wnw: solph.Flow(
-                        variable_costs=(
-                            param['HP']['op_cost_var']))},
-                    conversion_factors={enw: 1/data['cop_lthp'],
-                                        lt_wnw: (data['cop_lthp']-1)/data['cop_lthp']})
-
-                es_ref.add(lthp)
 
     # TES node
     ht_to_node = solph.Transformer(

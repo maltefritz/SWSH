@@ -434,7 +434,7 @@ def peak_load_boiler(param, data, busses):
     - 'Q_min_rel' is a scaling factor for minimal heat output
     - 'energy_tax' is the tax for the primary energy uses in €/MWh
     - 'eta' is the conversion factor for energy transformation
-    - 'Q_EHK' is the time series of nominal value in MWh
+    - 'Q_SLK' is the time series of nominal value in MWh
 
     Topology
     --------
@@ -509,7 +509,7 @@ def internal_combustion_engine(param, data, busses, periods):
     --------
     Input: Gas network (gnw)
 
-    Output: High temperature heat network (wnw) and electricity network (enw)
+    Output: High temperature heat network (wnw), electricity network (enw)
     """
     if param['BHKW']['active']:
         if param['BHKW']['type'] == 'constant':
@@ -598,7 +598,7 @@ def combined_cycle_extraction_turbine(param, data, busses, periods):
     --------
     Input: Gas network (gnw)
 
-    Output: High temperature heat network (wnw) electricity network (enw)
+    Output: High temperature heat network (wnw), electricity network (enw)
     """
     if param['GuD']['active']:
         if param['GuD']['type'] == 'constant':
@@ -687,7 +687,7 @@ def back_pressure_turbine(param, data, busses, periods):
     --------
     Input: Gas network (gnw)
 
-    Output: High temperature heat network (wnw) electricity network (enw)
+    Output: High temperature heat network (wnw), electricity network (enw)
     """
     if param['BPT']['active']:
         if param['BPT']['type'] == 'constant':
@@ -734,3 +734,149 @@ def back_pressure_turbine(param, data, busses, periods):
                     Beta=liste(0, periods),
                     back_pressure=True)
                 return bpt
+
+
+def ht_heat_pump(param, data, busses):
+    r"""
+    Get high temperature heat pump for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict
+        Busses of the energy system.
+
+    Note
+    ----
+    High temperature heat pump uses the following parameters:
+    - 'active' is a binary parameter wether is used or not
+    - 'type' defines wether it is used constant or time dependent
+    - 'amount' is the amount of this components installed
+
+    - 'P_max' is the constant maximum output power in MW
+    - 'P_min' is the constant minimum output power in MW
+    - 'c_1' is the linear coefficicient 1 (slope)
+    - 'c_0' is the linear coefficicient 0 (y-intersection)
+
+    - 'P_max_hp' is the time series of maximum output power in MW
+    - 'P_min_hp' is the time series minimum output power in MW
+
+    - 'elec_consumer_charges_self' are the constant consumer charges for
+       internal electricity usage in €/MWh
+    - 'op_cost_var' are the variable operational costs in €/MWh
+
+    Topology
+    --------
+    Input: Electricity network (enw)
+
+    Output: High temperature heat network (wnw)
+    """
+    if param['HP']['active']:
+        if param['HP']['type'] == 'constant':
+            for i in range(1, param['HP']['amount']+1):
+                ht_hp = solph.components.OffsetTransformer(
+                    label='HP_' + str(i),
+                    inputs={busses['enw']: solph.Flow(
+                        nominal_value=param['HP']['P_max'],
+                        max=1,
+                        min=param['HP']['P_min'] / param['HP']['P_max'],
+                        variable_costs=(
+                            param['param']['elec_consumer_charges_self']),
+                        nonconvex=solph.NonConvex())},
+                    outputs={busses['wnw']: solph.Flow(
+                        variable_costs=param['HP']['op_cost_var'])},
+                    coefficients=[param['HP']['c_0'], param['HP']['c_1']])
+        elif param['HP']['type'] == 'time series':
+            for i in range(1, param['HP']['amount']+1):
+                ht_hp = solph.components.OffsetTransformer(
+                    label='HP_' + str(i),
+                    inputs={busses['enw']: solph.Flow(
+                        nominal_value=1,
+                        max=data['P_max_hp'],
+                        min=data['P_min_hp'],
+                        variable_costs=(
+                            param['param']['elec_consumer_charges_self']),
+                        nonconvex=solph.NonConvex())},
+                    outputs={busses['wnw']: solph.Flow(
+                        variable_costs=param['HP']['op_cost_var'])},
+                    coefficients=[data['c_0_hp'], data['c_1_hp']])
+                return ht_hp
+
+
+def lt_heat_pump(param, data, busses):
+    r"""
+    Get low temperature heat pump for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict
+        Busses of the energy system.
+
+    Note
+    ----
+    Low temperature heat pump uses the following parameters:
+    - 'active' is a binary parameter wether is used or not
+    - 'type' defines wether it is used constant or time dependent
+    - 'amount' is the amount of this components installed
+
+    - 'cop' is the constant coefficient of performance
+
+    - 'cop_lthp' is the time series of coefficient of performance
+
+    - 'elec_consumer_charges_self' are the constant consumer charges for
+       internal electricity usage in €/MWh
+    - 'op_cost_var' are the variable operational costs in €/MWh
+
+    Topology
+    --------
+    Input: Electricity network (enw), low temperature heat network (lt_wnw)
+
+    Output: High temperature heat network (wnw)
+    """
+    if param['LT-HP']['active']:
+        if param['LT-HP']['type'] == 'constant':
+            for i in range(1, param['LT-HP']['amount']+1):
+                lt_hp = solph.Transformer(
+                    label="LT-HP_" + str(i),
+                    inputs={
+                        busses['lt_wnw']: solph.Flow(),
+                        busses['enw']: solph.Flow(
+                            variable_costs=(
+                                param['param']['elec_consumer_charges_self'])
+                            )},
+                    outputs={busses['wnw']: solph.Flow(
+                        variable_costs=(
+                            param['HP']['op_cost_var']))},
+                    conversion_factors={
+                        busses['enw']: 1 / param['LT-HP']['cop'],
+                        busses['lt_wnw']: ((param['LT-HP']['cop']-1)
+                                           / param['LT-HP']['cop'])})
+        elif param['LT-HP']['type'] == 'time series':
+            for i in range(1, param['LT-HP']['amount']+1):
+                lt_hp = solph.Transformer(
+                    label="LT-HP_" + str(i),
+                    inputs={
+                        busses['lt_wnw']: solph.Flow(),
+                        busses['enw']: solph.Flow(
+                            variable_costs=(
+                                param['param']['elec_consumer_charges_self'])
+                            )},
+                    outputs={busses['wnw']: solph.Flow(
+                        variable_costs=(
+                            param['HP']['op_cost_var']))},
+                    conversion_factors={
+                        busses['enw']: 1/data['cop_lthp'],
+                        busses['lt_wnw']: (data['cop_lthp']-1)/data['cop_lthp']
+                        })
+                return lt_hp
