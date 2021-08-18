@@ -26,11 +26,11 @@ from oemof.solph import views
 from help_funcs import topology_check, result_labelling
 from eco_funcs import invest_sol, invest_stes, chp_bonus
 from components import (
-    gas_source, electricity_source, solar_thermal_source, must_run_source,
-    electricity_sink, heat_sink, ht_emergency_cooling_sink,
-    sol_emergency_cooling_sink, electric_boiler, peak_load_boiler,
-        internal_combustion_engine, combined_cycle_extraction_turbine,
-        back_pressure_turbine, ht_heat_pump, lt_heat_pump
+    gas_source, electricity_source, solar_thermal_strand, must_run_source,
+    electricity_sink, heat_sink, ht_emergency_cooling_sink, electric_boiler,
+    peak_load_boiler, internal_combustion_engine,
+    combined_cycle_extraction_turbine, back_pressure_turbine, ht_heat_pump,
+    lt_heat_pump
     )
 
 
@@ -76,8 +76,8 @@ def main(data, param, mipgap='0.1'):
     es_ref.add(
         gas_source(param, busses),
         electricity_source(param, data, busses),
-        solar_thermal_source(param, data, busses),
-        must_run_source(param, data, busses)
+        must_run_source(param, data, busses),
+        *solar_thermal_strand(param, data, busses)
         )
 
         # %% Sinks
@@ -85,8 +85,7 @@ def main(data, param, mipgap='0.1'):
     es_ref.add(
         electricity_sink(param, busses),
         heat_sink(param, data, busses),
-        ht_emergency_cooling_sink(param, busses),
-        sol_emergency_cooling_sink(param, busses)
+        ht_emergency_cooling_sink(param, busses)
         )
 
         # %% Transformer
@@ -102,54 +101,32 @@ def main(data, param, mipgap='0.1'):
         )
 
     # TES node
-    ht_to_node = solph.Transformer(
-        label='HT_to_node',
-        inputs={wnw: solph.Flow()},
-        outputs={wnw_node: solph.Flow(
-            nominal_value=9999,
-            max=1.0,
-            min=0.0)},
-        conversion_factors={wnw_node: 1}
-        )
 
-    lt_to_node = solph.Transformer(
-        label='LT_to_node',
-        inputs={lt_wnw: solph.Flow()},
-        outputs={wnw_node: solph.Flow(
-            nominal_value=9999,
-            max=1.0,
-            min=0.0)},
-        conversion_factors={wnw_node: 1}
-        )
+    if param['TES']['active'] == 'True':
+        ht_to_node = solph.Transformer(
+            label='HT_to_node',
+            inputs={busses['wnw']: solph.Flow()},
+            outputs={busses['wnw_node']: solph.Flow(
+                nominal_value=9999,
+                max=1.0,
+                min=0.0)},
+            conversion_factors={busses['wnw_node']: 1}
+            )
+        return ht_to_node
+
+    if param['Sol']['active'] == 'True' and param['Sol']['usage'] == 'LT':
+        lt_to_node = solph.Transformer(
+            label='LT_to_node',
+            inputs={lt_wnw: solph.Flow()},
+            outputs={wnw_node: solph.Flow(
+                nominal_value=9999,
+                max=1.0,
+                min=0.0)},
+            conversion_factors={wnw_node: 1}
+            )
 
     es_ref.add(ht_to_node, lt_to_node)
 
-    # Sol node
-    if param['Sol']['usage'] == 'HT':
-        sol_to_ht = solph.Transformer(
-            label='Sol_to_HT',
-            inputs={sol_node: solph.Flow()},
-            outputs={wnw: solph.Flow(
-                nominal_value=9999,
-                max=1.0,
-                min=0.0)},
-            conversion_factors={wnw: 1}
-            )
-
-        es_ref.add(sol_to_ht)
-
-    if param['Sol']['usage'] == 'LT':
-        sol_to_lt = solph.Transformer(
-            label='Sol_to_LT',
-            inputs={sol_node: solph.Flow()},
-            outputs={lt_wnw: solph.Flow(
-                nominal_value=9999,
-                max=1.0,
-                min=0.0)},
-            conversion_factors={lt_wnw: 1}
-            )
-
-        es_ref.add(sol_to_lt)
 
         # %% Speicher
 
@@ -392,6 +369,7 @@ def main(data, param, mipgap='0.1'):
             labeldict[(('Elektrizitätsnetzwerk', label_id), 'status')] = 'Status_' + label_id
 
     if param['LT-HP']['active']:
+        label_id = 'LT-HP_' + str(i)
         LT_HP_Q_N = data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].mean()
 
         for i in range(1, param['LT-HP']['amount']+1):

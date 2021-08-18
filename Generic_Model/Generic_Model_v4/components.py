@@ -18,7 +18,7 @@ def gas_source(param, busses):
     param : dict
         JSON parameter file of user defined constants.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     Note
@@ -56,7 +56,7 @@ def electricity_source(param, data, busses):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     Note
@@ -90,63 +90,6 @@ def electricity_source(param, data, busses):
     return elec_source
 
 
-def solar_thermal_source(param, data, busses):
-    r"""
-    Get solar thermal source for Generic Model energy system.
-
-    Parameters
-    ----------
-    param : dict
-        JSON parameter file of user defined constants.
-
-    data : pandas.DataFrame
-        csv file of user defined time dependent parameters.
-
-    busses : dict
-        Busses of the energy system.
-
-    Note
-    ----
-    Solar thermal source uses the following parameters:
-    - 'active' is a binary parameter wether is used or not
-    - 'usage' is parameter wether solar thermal is used in high temperature
-      network or low temperature network
-    - 'op_cost_var' are the variable operational costs in €/MWh
-    - 'solar_data_LT' is the time series of low temperature solar thermal heat
-      in MWh/m^2
-    - 'solar_data_HT' is the time series of high temperature solar thermal heat
-      in MWh/m^2
-
-    Topology
-    --------
-    Input: none
-
-    Output: Solar thermal node (sol_node)
-    """
-    if param['Sol']['active']:
-        if param['Sol']['usage'] == 'LT':
-            solar_thermal_source = solph.Source(
-                label='Solarthermie',
-                outputs={busses['sol_node']: solph.Flow(
-                    variable_costs=param['Sol']['op_cost_var'],
-                    nominal_value=(
-                        max(data['solar_data']) * param['Sol']['A']),
-                    fix=data['solar_data'] / max(data['solar_data']))}
-                )
-        elif param['Sol']['usage'] == 'HT':
-            solar_thermal_source = solph.Source(
-                label='Solarthermie',
-                outputs={busses['sol_node']: solph.Flow(
-                    variable_costs=param['Sol']['op_cost_var'],
-                    nominal_value=(
-                        max(data['solar_data_HT']) * param['Sol']['A']),
-                    fix=data['solar_data_HT'] / max(data['solar_data_HT']))}
-                )
-        else:
-            raise SolarUsageError(param['Sol']['usage'])
-        return solar_thermal_source
-
-
 def must_run_source(param, data, busses):
     r"""
     Get must run source for Generic Model energy system.
@@ -159,7 +102,7 @@ def must_run_source(param, data, busses):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     Note
@@ -197,6 +140,155 @@ def must_run_source(param, data, busses):
     return must_run_source
 
 
+def solar_thermal_strand(param, data, busses):
+    r"""
+    Get solar thermal strand for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict of solph.Bus
+        Busses of the energy system.
+
+    Topology
+    --------
+    solar thermal source
+    -> solar thermal node
+        -> solar thermal emergency_cooling
+        -> auxillary transformer ht
+        -> auxillary transformer lt
+    """
+    if param['Sol']['active']:
+        solar_source = solar_thermal_source(param, data, busses)
+        solar_ec = solar_thermal_emergency_cooling(param, busses)
+        if param['Sol']['usage'] == 'LT':
+            aux_trafo = auxiliary_transformer(
+                'Sol_to_LT', busses['sol_node'], busses['lt_wnw']
+                )
+        elif param['Sol']['usage'] == 'HT':
+            aux_trafo = auxiliary_transformer(
+                'Sol_to_LT', busses['sol_node'], busses['wnw']
+                )
+        else:
+            raise SolarUsageError(param['Sol']['usage'])
+        return solar_source, solar_ec, aux_trafo
+
+
+def solar_thermal_source(param, data, busses):
+    r"""
+    Get solar thermal source for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict of solph.Bus
+        Busses of the energy system.
+
+    Note
+    ----
+    Solar thermal source uses the following parameters:
+    - 'usage' is parameter wether solar thermal is used in high temperature
+      network or low temperature network in in MWh/m^2
+    - 'op_cost_var' are the variable operational costs in €/MWh
+
+    Topology
+    --------
+    Input: none
+
+    Output: Solar thermal node (sol_node)
+    """
+    solar_thermal_source = solph.Source(
+        label='Solarthermie',
+        outputs={busses['sol_node']: solph.Flow(
+            variable_costs=param['Sol']['op_cost_var'],
+            nominal_value=(max((data['solar_data_' + param['Sol']['usage']])
+                               * param['Sol']['A'])),
+            fix=(data['solar_data_' + param['Sol']['usage']]
+                 / max(data['solar_data_' + param['Sol']['usage']])))}
+        )
+    return solar_thermal_source
+
+
+def solar_thermal_emergency_cooling(param, busses):
+    r"""
+    Get solar thermal emergency cooling sink for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    busses : dict of solph.Bus
+        Busses of the energy system.
+
+    Note
+    ----
+    Solar thermal emergency cooling sink uses the following parameters:
+    - 'op_cost_var' are the variable operational costs for emergency cooling in
+      €/MWh
+
+    Topology
+    --------
+    Input: Solar thermal node (sol_node)
+
+    Output: none
+    """
+    sol_ec_sink = solph.Sink(
+        label='Sol EC',
+        inputs={['sol_node']: solph.Flow(
+            variable_costs=param['Sol-EC']['op_cost_var'])}
+        )
+    return sol_ec_sink
+
+
+def ht_emergency_cooling_sink(param, busses):
+    r"""
+    Get high temperature emergency cooling sink for Generic Model energy
+    system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    busses : dict of solph.Bus
+        Busses of the energy system.
+
+    Note
+    ----
+    High temperature emergency cooling sink uses the following parameters:
+    - 'op_cost_var' are the variable operational costs for emergency cooling in
+      €/MWh
+
+    Topology
+    --------
+    Input: High temperature heat network (wnw)
+
+    Output: none
+    """
+    if param['HT-EC']['active']:
+        ht_ec_sink = solph.Sink(
+            label='HT-EC',
+            inputs={
+                busses['wnw']: solph.Flow(
+                    variable_costs=param['HT-EC']['op_cost_var'])}
+            )
+        return ht_ec_sink
+
+
 def electricity_sink(param, data, busses):
     r"""
     Get electricity sink for Generic Model energy system.
@@ -209,7 +301,7 @@ def electricity_sink(param, data, busses):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     Note
@@ -232,7 +324,7 @@ def electricity_sink(param, data, busses):
     return elec_sink
 
 
-def ht_emergency_cooling_sink(param, data, busses):
+def heat_sink(param, data, busses):
     r"""
     Get heat sink for Generic Model energy system.
 
@@ -244,7 +336,7 @@ def ht_emergency_cooling_sink(param, data, busses):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     Note
@@ -274,75 +366,41 @@ def ht_emergency_cooling_sink(param, data, busses):
     return heat_sink
 
 
-def sol_emergency_cooling_sink(param, busses):
+def auxiliary_transformer(label, input_bus, output_bus):
     r"""
-    Get high temperature emergency cooling sink for Generic Model energy
-    system.
+    Get auxiliary transformer for Generic Model energy system.
 
     Parameters
     ----------
-    param : dict
-        JSON parameter file of user defined constants.
+    label : str
+        Spezific label to reference transformer.
 
-    busses : dict
-        Busses of the energy system.
+    input_bus : solph.Bus
+        Spezific input bus to reference transformer.
 
-    Note
-    ----
-    High temperature emergency cooling sink uses the following parameters:
-    - 'op_cost_var' are the variable operational costs for emergency cooling in
-      €/MWh
-
-    Topology
-    --------
-    Input: High temperature heat network (wnw)
-
-    Output: none
-    """
-    if param['HT-EC']['active']:
-        ht_ec_sink = solph.Sink(
-            label='HT-EC',
-            inputs={
-                busses['wnw']: solph.Flow(
-                    variable_costs=param['TES']['op_cost_var'])}
-            )
-        return ht_ec_sink
-
-
-def sol_ec_sink(param, data, busses):
-    r"""
-    Get solar thermal emergency cooling sink for Generic Model energy system.
-
-    Parameters
-    ----------
-    param : dict
-        JSON parameter file of user defined constants.
-
-    data : pandas.DataFrame
-        csv file of user defined time dependent parameters.
-
-    busses : dict
-        Busses of the energy system.
+    output_bus : solph.Bus
+        Spezific output bus to reference transformer.
 
     Note
     ----
-    Solar thermal emergency cooling sink uses the following parameters:
-    - 'op_cost_var' are the variable operational costs for emergency cooling in
-      €/MWh
+    Auxiliary transformers are used to represent more complex networks. In
+    solph individual busses have to be connected by a componente, in this case
+    by 'auxiliary transformer'. In the Generic Model, these are used for the
+    solar thermal and storage strand.
 
-    Topology
-    --------
-    Input: Solar thermal node (sol_node)
-
-    Output: none
+    The flow is not transformed, but transferred in an auxiliary way to make
+    the calculation feasible.
     """
-    if param['Sol EC']['active']:
-        sol_ec_sink = solph.Sink(
-            label='Sol EC',
-            inputs={['sol_node']: solph.Flow(
-                variable_costs=param['TES']['op_cost_var'])}
-            )
-    return sol_ec_sink
+    auxiliary_transformer = solph.Transformer(
+        label=label,
+        inputs={input_bus: solph.Flow()},
+        outputs={output_bus: solph.Flow(
+            nominal_value=9999,
+            max=1.0,
+            min=0.0)},
+        conversion_factors={output_bus: 1}
+        )
+    return auxiliary_transformer
 
 
 def electric_boiler(param, data, busses):
@@ -357,7 +415,7 @@ def electric_boiler(param, data, busses):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     Note
@@ -424,7 +482,7 @@ def peak_load_boiler(param, data, busses):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     Note
@@ -490,7 +548,7 @@ def internal_combustion_engine(param, data, busses, periods):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     periods: int
@@ -581,7 +639,7 @@ def combined_cycle_extraction_turbine(param, data, busses, periods):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     periods: int
@@ -672,7 +730,7 @@ def back_pressure_turbine(param, data, busses, periods):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     periods: int
@@ -760,7 +818,7 @@ def ht_heat_pump(param, data, busses):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     Note
@@ -834,7 +892,7 @@ def lt_heat_pump(param, data, busses):
     data : pandas.DataFrame
         csv file of user defined time dependent parameters.
 
-    busses : dict
+    busses : dict of solph.Bus
         Busses of the energy system.
 
     Note
