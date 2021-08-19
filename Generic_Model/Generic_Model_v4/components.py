@@ -424,13 +424,15 @@ def electric_boiler(param, data, busses):
     - 'active' is a binary parameter wether is used or not
     - 'type' defines wether it is used constant or time dependent
     - 'amount' is the amount of this components installed
+
     - 'Q_N' is the constant nominal value in MWh
-    - 'op_cost_var' are the variable operational costs in €/MWh
     - 'Q_min_rel' is a scaling factor for minimal heat output
-    - 'elec_consumer_charges_self' are the constant consumer charges for
-       internal electricity usage in €/MWh
     - 'eta' is the conversion factor for energy transformation
     - 'Q_EHK' is the time series of nominal value in MWh
+
+    - 'op_cost_var' are the variable operational costs in €/MWh
+    - 'elec_consumer_charges_self' are the constant consumer charges for
+       internal electricity usage in €/MWh
 
     Topology
     --------
@@ -491,12 +493,14 @@ def peak_load_boiler(param, data, busses):
     - 'active' is a binary parameter wether is used or not
     - 'type' defines wether it is used constant or time dependent
     - 'amount' is the amount of this components installed
+
     - 'Q_N' is the constant nominal value in MWh
-    - 'op_cost_var' are the variable operational costs in €/MWh
     - 'Q_min_rel' is a scaling factor for minimal heat output
-    - 'energy_tax' is the tax for the primary energy uses in €/MWh
     - 'eta' is the conversion factor for energy transformation
     - 'Q_SLK' is the time series of nominal value in MWh
+
+    - 'op_cost_var' are the variable operational costs in €/MWh
+    - 'energy_tax' is the tax for the primary energy uses in €/MWh
 
     Topology
     --------
@@ -560,6 +564,7 @@ def internal_combustion_engine(param, data, busses, periods):
     - 'active' is a binary parameter wether is used or not
     - 'type' defines wether it is used constant or time dependent
     - 'amount' is the amount of this components installed
+
     - 'op_cost_var' are the variable operational costs in €/MWh
     - 'chp_bonus' is the revenue for the electricity sold by chp
     - 'TEHG_bonus' is the revenue for participation in the Emmisions Trading
@@ -954,3 +959,172 @@ def lt_heat_pump(param, data, busses):
                 return lt_hp
         else:
             raise ComponentTypeError(param['LT-HP']['type'], 'LT-HP')
+
+
+def seasonal_thermal_energy_storage_strand(param, busses):
+    r"""
+    Get low temperature heat pump for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    busses : dict of solph.Bus
+        Busses of the energy system.
+
+    Topology
+    --------
+    Input: Electricity network (enw), low temperature heat network (lt_wnw)
+
+    Output: High temperature heat network (wnw)
+    """
+    if param['TES']['active']:
+        stes = seasonal_thermal_energy_storage(param, busses)
+        aux_trafo_1 = auxiliary_transformer(
+            'HT_to_TES_node', busses['wnw'], busses['wnw_node']
+                )
+        aux_trafo_2 = auxiliary_transformer(
+            'LT_to_TES_node', busses['lt_wnw'], busses['wnw_node']
+                )
+    return stes, aux_trafo_1, aux_trafo_2
+
+
+def seasonal_thermal_energy_storage(param, busses):
+    r"""
+    Get seasonal thermal energy storage for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    busses : dict of solph.Bus
+        Busses of the energy system.
+
+    Note
+    ----
+    Seasonal thermal energy storage uses the following parameters:
+    - 'active' is a binary parameter wether is used or not
+    - 'amount' is the amount of this components installed
+
+    - 'Q_N_in' is the constant nominal input value in MWh
+    - 'Q_N_out' is the constant nominal output value in MWh
+    - 'Q_rel_in_max' is a scaling factor for maximal heat input
+    - 'Q_rel_in_min' is a scaling factor for minimal heat input
+    - 'Q_rel_out_max' is a scaling factor for maximal heat output
+    - 'Q_rel_out_min' is a scaling factor for minimal heat output
+    - 'min_uptime' is the amount of time steps the storage has to be on during
+      operation
+    - 'init_status' is the value wheter the state of charge is active at the
+      beginning
+    - 'init_storage' is the start value of the state of charge
+    - 'balanced' is the condition whether the state of charge at the end of
+      the optimiziation period is the same as at the beginning
+    - 'Q_rel_loss' is the constant loss rate to environment
+    - 'inflow_conv' is the constant inflow conversion factor
+    - 'outflow_conv' is the constant outflow conversion factor
+
+    - 'op_cost_var' are the variable operational costs in €/MWh
+
+    Topology
+    --------
+    Input: Thermal energy storage node (wnw_node) (tes_node)
+
+    Output: Low temperature heat network (lt_wnw)
+    """
+    for i in range(1, param['TES']['amount']+1):
+        stes = solph.components.GenericStorage(
+            label='TES_' + str(i),
+            nominal_storage_capacity=param['TES']['Q'],
+            inputs={busses['wnw_node']: solph.Flow(
+                storageflowlimit=True,
+                nominal_value=param['TES']['Q_N_in'],
+                max=param['TES']['Q_rel_in_max'],
+                min=param['TES']['Q_rel_in_min'],
+                variable_costs=param['TES']['op_cost_var'],
+                nonconvex=solph.NonConvex(
+                    minimum_uptime=int(param['TES']['min_uptime']),
+                    initial_status=int(param['TES']['init_status'])))},
+            outputs={busses['lt_wnw']: solph.Flow(
+                storageflowlimit=True,
+                nominal_value=param['TES']['Q_N_out'],
+                max=param['TES']['Q_rel_out_max'],
+                min=param['TES']['Q_rel_out_min'],
+                nonconvex=solph.NonConvex(
+                    minimum_uptime=int(param['TES']['min_uptime'])))},
+            initial_storage_level=param['TES']['init_storage'],
+            balanced=param['TES']['balanced'],
+            loss_rate=param['TES']['Q_rel_loss'],
+            inflow_conversion_factor=param['TES']['inflow_conv'],
+            outflow_conversion_factor=param['TES']['outflow_conv'])
+    return stes
+
+
+def short_term_thermal_energy_storage(param, busses):
+    r"""
+    Get short term thermal energy storage for Generic Model energy system.
+
+    Parameters
+    ----------
+    param : dict
+        JSON parameter file of user defined constants.
+
+    busses : dict of solph.Bus
+        Busses of the energy system.
+
+    Note
+    ----
+    Short term thermal energy storage uses the following parameters:
+    - 'active' is a binary parameter wether is used or not
+    - 'amount' is the amount of this components installed
+
+    - 'Q_N_in' is the constant nominal input value in MWh
+    - 'Q_N_out' is the constant nominal output value in MWh
+    - 'Q_rel_in_max' is a scaling factor for maximal heat input
+    - 'Q_rel_in_min' is a scaling factor for minimal heat input
+    - 'Q_rel_out_max' is a scaling factor for maximal heat output
+    - 'Q_rel_out_min' is a scaling factor for minimal heat output
+    - 'min_uptime' is the amount of time steps the storage has to be on during
+      operation
+    - 'init_status' is the value wheter the state of charge is active at the
+      beginning
+    - 'init_storage' is the start value of the state of charge
+    - 'balanced' is the condition whether the state of charge at the end of
+      the optimiziation period is the same as at the beginning
+    - 'Q_rel_loss' is the constant loss rate to environment
+    - 'inflow_conv' is the constant inflow conversion factor
+    - 'outflow_conv' is the constant outflow conversion factor
+
+    - 'op_cost_var' are the variable operational costs in €/MWh
+
+    Topology
+    --------
+    Input: High temperature heat network (wnw)
+
+    Output: High temperature heat network (wnw)
+    """
+    if param['ST-TES']['active']:
+        for i in range(1, param['ST-TES']['amount']+1):
+            st_tes = solph.components.GenericStorage(
+                label='ST-TES_' + str(i),
+                nominal_storage_capacity=param['ST-TES']['Q'],
+                inputs={busses['wnw']: solph.Flow(
+                    storageflowlimit=True,
+                    nominal_value=param['ST-TES']['Q_N_in'],
+                    max=param['ST-TES']['Q_rel_in_max'],
+                    min=param['ST-TES']['Q_rel_in_min'],
+                    variable_costs=param['ST-TES']['op_cost_var'],
+                    nonconvex=solph.NonConvex(
+                        initial_status=int(param['ST-TES']['init_status'])))},
+                outputs={busses['wnw']: solph.Flow(
+                    storageflowlimit=True,
+                    nominal_value=param['ST-TES']['Q_N_out'],
+                    max=param['ST-TES']['Q_rel_out_max'],
+                    min=param['ST-TES']['Q_rel_out_min'],
+                    nonconvex=solph.NonConvex())},
+                initial_storage_level=param['ST-TES']['init_storage'],
+                loss_rate=param['ST-TES']['Q_rel_loss'],
+                inflow_conversion_factor=param['ST-TES']['inflow_conv'],
+                outflow_conversion_factor=param['ST-TES']['outflow_conv'])
+    return st_tes

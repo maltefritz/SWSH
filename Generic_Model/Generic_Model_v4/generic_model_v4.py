@@ -30,7 +30,8 @@ from components import (
     electricity_sink, heat_sink, ht_emergency_cooling_sink, electric_boiler,
     peak_load_boiler, internal_combustion_engine,
     combined_cycle_extraction_turbine, back_pressure_turbine, ht_heat_pump,
-    lt_heat_pump
+    lt_heat_pump, seasonal_thermal_energy_storage_strand,
+    short_term_thermal_energy_storage
     )
 
 
@@ -100,92 +101,12 @@ def main(data, param, mipgap='0.1'):
         lt_heat_pump(param, data, busses)
         )
 
-    # TES node
-
-    if param['TES']['active'] == 'True':
-        ht_to_node = solph.Transformer(
-            label='HT_to_node',
-            inputs={busses['wnw']: solph.Flow()},
-            outputs={busses['wnw_node']: solph.Flow(
-                nominal_value=9999,
-                max=1.0,
-                min=0.0)},
-            conversion_factors={busses['wnw_node']: 1}
-            )
-        return ht_to_node
-
-    if param['Sol']['active'] == 'True' and param['Sol']['usage'] == 'LT':
-        lt_to_node = solph.Transformer(
-            label='LT_to_node',
-            inputs={lt_wnw: solph.Flow()},
-            outputs={wnw_node: solph.Flow(
-                nominal_value=9999,
-                max=1.0,
-                min=0.0)},
-            conversion_factors={wnw_node: 1}
-            )
-
-    es_ref.add(ht_to_node, lt_to_node)
-
-
         # %% Speicher
 
-    # Saisonaler Speicher
-    if param['TES']['active']:
-        for i in range(1, param['TES']['amount']+1):
-            tes = solph.components.GenericStorage(
-                label='TES_' + str(i),
-                nominal_storage_capacity=param['TES']['Q'],
-                inputs={wnw_node: solph.Flow(
-                    storageflowlimit=True,
-                    nominal_value=param['TES']['Q_N_in'],
-                    max=param['TES']['Q_rel_in_max'],
-                    min=param['TES']['Q_rel_in_min'],
-                    variable_costs=param['TES']['op_cost_var'],
-                    nonconvex=solph.NonConvex(
-                        minimum_uptime=int(param['TES']['min_uptime']),
-                        initial_status=int(param['TES']['init_status'])))},
-                outputs={lt_wnw: solph.Flow(
-                    storageflowlimit=True,
-                    nominal_value=param['TES']['Q_N_out'],
-                    max=param['TES']['Q_rel_out_max'],
-                    min=param['TES']['Q_rel_out_min'],
-                    nonconvex=solph.NonConvex(
-                        minimum_uptime=int(param['TES']['min_uptime'])))},
-                initial_storage_level=param['TES']['init_storage'],
-                balanced=param['TES']['balanced'],
-                loss_rate=param['TES']['Q_rel_loss'],
-                inflow_conversion_factor=param['TES']['inflow_conv'],
-                outflow_conversion_factor=param['TES']['outflow_conv'])
-
-            es_ref.add(tes)
-
-    # Kurzzeitspeicher
-    if param['ST-TES']['active']:
-        for i in range(1, param['ST-TES']['amount']+1):
-            st_tes = solph.components.GenericStorage(
-                label='ST-TES_' + str(i),
-                nominal_storage_capacity=param['ST-TES']['Q'],
-                inputs={wnw: solph.Flow(
-                    storageflowlimit=True,
-                    nominal_value=param['ST-TES']['Q_N_in'],
-                    max=param['ST-TES']['Q_rel_in_max'],
-                    min=param['ST-TES']['Q_rel_in_min'],
-                    variable_costs=param['ST-TES']['op_cost_var'],
-                    nonconvex=solph.NonConvex(
-                        initial_status=int(param['ST-TES']['init_status'])))},
-                outputs={wnw: solph.Flow(
-                    storageflowlimit=True,
-                    nominal_value=param['ST-TES']['Q_N_out'],
-                    max=param['ST-TES']['Q_rel_out_max'],
-                    min=param['ST-TES']['Q_rel_out_min'],
-                    nonconvex=solph.NonConvex())},
-                initial_storage_level=param['ST-TES']['init_storage'],
-                loss_rate=param['ST-TES']['Q_rel_loss'],
-                inflow_conversion_factor=param['ST-TES']['inflow_conv'],
-                outflow_conversion_factor=param['ST-TES']['outflow_conv'])
-
-            es_ref.add(st_tes)
+    es_ref.add(
+        *seasonal_thermal_energy_storage_strand(param, busses),
+        short_term_thermal_energy_storage(param, busses)
+        )
 
     # %% Processing
 
