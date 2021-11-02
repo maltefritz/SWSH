@@ -22,15 +22,12 @@ from sklearn.linear_model import LinearRegression
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 import pandas as pd
+import SWSHplotting as shplt
 
-plt.rcParams['pdf.fonttype'] = 42
-mpl.rcParams['savefig.bbox'] = 'tight'
-mpl.rcParams['savefig.pad_inches'] = 0.1
-mpl.rcParams['font.family'] = 'Carlito'
-mpl.rcParams['font.size'] = 20
-mpl.rcParams['figure.max_open_warning'] = 50
+shplt.init_params()
 
-Q_N = abs(float(input('Gib die Nennwaermeleistung in MW ein: ')))*-1e6
+# Q_N = abs(float(input('Gib die Nennwaermeleistung in MW ein: ')))*-1e6
+Q_N = -189e6
 
 # %% network
 fluid_list = ['Ar', 'N2', 'O2', 'CO2', 'CH4', 'H2O']
@@ -342,26 +339,25 @@ nw.print_results()
 
 # Q_in = Q_ti[-1]
 
-solphparams = pd.DataFrame(columns=['P_max_woDH', 'eta_el_max',
-                                    'P_min_woDH', 'eta_el_min',
-                                    'H_L_FG_share_max',
-                                    'Q_CW_min',
-                                    'beta'])
+solphparams = pd.DataFrame(columns=[
+    'CCET_P_max_woDH', 'CCET_eta_el_max', 'CCET_P_min_woDH', 'CCET_eta_el_min',
+    'CCET_H_L_FG_share_max', 'CCET_Q_CW_min', 'CCET_beta'
+    ])
 
 QPjson = dict()
 
 cmap_list = []
 # ausnahmeWert = 74.4
 # T_range = [*range(65, 74), ausnahmeWert, *range(75, 125)]
-# T_range = [*range(65, 125)]
+T_range = [*range(66, 125)]
 # T_range = [*range(65, 125, 2)]
 # T_range = [121, 122, 123, 124]
-T_range = [95, 96, 97, 98]
-unsolvableVals = [74, 75, 76, 79]
+# T_range = [90]
+# unsolvableVals = [74, 75, 76, 79]
 
-for val in unsolvableVals:
-    if val in T_range:
-        T_range.remove(val)
+# for val in unsolvableVals:
+#     if val in T_range:
+#         T_range.remove(val)
 
 for Tval in T_range:
     start_time = time()
@@ -463,7 +459,8 @@ for Tval in T_range:
     end_time = time()
     elapsed_time = end_time - start_time
 
-    QPjson[Tval] = {'Q': Q, 'P': P,
+    QPjson[Tval] = {'Q': [x/1e6 for x in Q],
+                    'P': [y/1e6 for y in P],
                     'Laufzeit': elapsed_time}
 
     # lineare Regression
@@ -504,14 +501,14 @@ for Tval in T_range:
     print('{:.3f}'.format(H_L), '{:.1f}'.format(Q_CW/1e6),
           '{:.3f}'.format(ratio))
 
-    solphparams.loc[Tval, 'Q_in'] = Q_in_t_l_linreg/1e6
-    solphparams.loc[Tval, 'P_max_woDH'] = P_t_l/1e6
-    solphparams.loc[Tval, 'eta_el_max'] = P_t_l/Q_in_t_l_linreg
-    solphparams.loc[Tval, 'P_min_woDH'] = P_b_l/1e6
-    solphparams.loc[Tval, 'eta_el_min'] = P_b_l/Q_in_b_l_linreg
+    solphparams.loc[Tval, 'CCET_Q_in'] = Q_in_t_l_linreg/1e6
+    solphparams.loc[Tval, 'CCET_P_max_woDH'] = P_t_l/1e6
+    solphparams.loc[Tval, 'CCET_eta_el_max'] = P_t_l/Q_in_t_l_linreg
+    solphparams.loc[Tval, 'CCET_P_min_woDH'] = P_b_l/1e6
+    solphparams.loc[Tval, 'CCET_eta_el_min'] = P_b_l/Q_in_b_l_linreg
     beta_unten = abs((P_b_r - P_b_l) / Q_b_r)
     beta_oben = abs((P_t_r - P_t_l) / Q_t_r)
-    solphparams.loc[Tval, 'beta'] = (beta_oben + beta_unten) / 2
+    solphparams.loc[Tval, 'CCET_beta'] = (beta_oben + beta_unten) / 2
 
     # not_used_high = Q_in_t - P_t_l - Q_t_r * (1-solphparams.loc[Tval, 'beta'])
     # not_used_low = Q_in_b - P_b_l - Q_b_r * (1-solphparams.loc[Tval, 'beta'])
@@ -533,8 +530,8 @@ for Tval in T_range:
     # solphparams.loc[Tval, 'H_L_FG_share_max'] = (H_L_FG_t_r + H_L_FG_b_r) / 2
     # solphparams.loc[Tval, 'H_L_FG_share_max'] = H_L_FG_t_r
     # solphparams.loc[Tval, 'Q_CW_min'] = Q_cond_t_r
-    solphparams.loc[Tval, 'H_L_FG_share_max'] = H_L
-    solphparams.loc[Tval, 'Q_CW_min'] = Q_CW
+    solphparams.loc[Tval, 'CCET_H_L_FG_share_max'] = H_L
+    solphparams.loc[Tval, 'CCET_Q_CW_min'] = Q_CW/1e6
 
     print('_____________________________')
     print('#############################')
@@ -559,11 +556,12 @@ for Tval in T_range:
     # print('_____________________________')
     # print('#############################')
 
-with open('ccet_QPdata.json', 'w') as file:
+dir_path = abspath(join(__file__, "..\\..\\..", 'Eingangsdaten'))
+
+with open(f'{dir_path}\\ccet_QPdata_{Q_N/-1e6:.0f}.json', 'w') as file:
     json.dump(QPjson, file, indent=4)
 
-dir_path = abspath(join(__file__, "..\\..\\.."))
-save_path = join(dir_path, 'Eingangsdaten', 'ccet_parameters.csv')
+save_path = f'{dir_path}\\ccet_parameters_{Q_N/-1e6:.0f}.csv'
 
 solphparams.to_csv(save_path, sep=';')
 
