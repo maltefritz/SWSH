@@ -15,42 +15,52 @@ Komponenten:
 Wärmebedarf Flensburgs aus dem Jahr 2016
 
 """
-import os
-import json
-
 import pandas as pd
 import numpy as np
 
 import oemof.solph as solph
 from oemof.solph import views
-from help_funcs import topology_check, result_labelling
-from eco_funcs import invest_sol, invest_stes, chp_bonus
+from help_funcs import topology_check, generate_labeldict, result_labelling
+from eco_funcs import invest_sol, invest_stes
 from components import (
-    gas_source, electricity_source, solar_thermal_strand, must_run_source,
-    electricity_sink, heat_sink, ht_emergency_cooling_sink, electric_boiler,
-    peak_load_boiler, internal_combustion_engine,
-    combined_cycle_extraction_turbine, back_pressure_turbine, ht_heat_pump,
-    lt_heat_pump, seasonal_thermal_energy_storage_strand,
+    gas_source, electricity_source, solar_thermal_strand, must_run_source
+    )
+from components import (
+    electricity_sink, heat_sink, ht_emergency_cooling_sink
+    )
+from components import electric_boiler, peak_load_boiler
+from components import (
+    internal_combustion_engine, combined_cycle_extraction_turbine,
+    back_pressure_turbine
+    )
+from components import ht_heat_pump, lt_heat_pump
+from components import (
+    seasonal_thermal_energy_storage_strand,
     short_term_thermal_energy_storage
     )
 
 
 def main(data, param, mipgap='0.1'):
-    """Execute main script.
-
-    __________
-    Parameters:
-
-    data: (DataFrame) time series data for simulation
-    param: (JSON dict) scalar simulation parameters
     """
+    Execute main script.
 
+    Parameters
+    ----------
+    data : pandas.DataFrame
+        csv file of user defined time dependent parameters.
+
+    param : dict
+        JSON parameter file of user defined constants.
+
+    mipgap : str
+        termination criterion for gap between current and optimal solution.
+    """
     # %% Initialize energy system
 
     periods = len(data)
     date_time_index = pd.date_range(data.index[0], periods=periods, freq='h')
 
-    es_ref = solph.EnergySystem(timeindex=date_time_index)
+    energysystem = solph.EnergySystem(timeindex=date_time_index)
 
     topology_check(param)
 
@@ -65,7 +75,7 @@ def main(data, param, mipgap='0.1'):
     wnw_node = solph.Bus(label='TES Knoten')
     sol_node = solph.Bus(label='Sol Knoten')
 
-    es_ref.add(gnw, enw, wnw, lt_wnw, wnw_node, sol_node)
+    energysystem.add(gnw, enw, wnw, lt_wnw, wnw_node, sol_node)
 
     busses = {
         'gnw': gnw, 'enw': enw, 'wnw': wnw, 'lt_wnw': lt_wnw,
@@ -74,7 +84,7 @@ def main(data, param, mipgap='0.1'):
 
         # %% Soruces
 
-    es_ref.add(
+    energysystem.add(
         gas_source(param, busses),
         electricity_source(param, data, busses),
         must_run_source(param, data, busses),
@@ -83,7 +93,7 @@ def main(data, param, mipgap='0.1'):
 
         # %% Sinks
 
-    es_ref.add(
+    energysystem.add(
         electricity_sink(param, busses),
         heat_sink(param, data, busses),
         ht_emergency_cooling_sink(param, busses)
@@ -91,7 +101,7 @@ def main(data, param, mipgap='0.1'):
 
         # %% Transformer
 
-    es_ref.add(
+    energysystem.add(
         electric_boiler(param, data, busses),
         peak_load_boiler(param, data, busses),
         internal_combustion_engine(param, data, busses, periods),
@@ -103,7 +113,7 @@ def main(data, param, mipgap='0.1'):
 
         # %% Speicher
 
-    es_ref.add(
+    energysystem.add(
         *seasonal_thermal_energy_storage_strand(param, busses),
         short_term_thermal_energy_storage(param, busses)
         )
@@ -113,7 +123,7 @@ def main(data, param, mipgap='0.1'):
         # %% Solve
 
     # Was bedeutet tee?
-    model = solph.Model(es_ref)
+    model = solph.Model(energysystem)
     solph.constraints.limit_active_flow_count_by_keyword(
         model, 'storageflowlimit', lower_limit=0, upper_limit=1)
     # model.write('my_model.lp', io_options={'symbolic_solver_labels': True})
@@ -126,8 +136,8 @@ def main(data, param, mipgap='0.1'):
     results = solph.processing.results(model)
 
     # Main- und Metaergebnisse
-    es_ref.results['main'] = solph.processing.results(model)
-    es_ref.results['meta'] = solph.processing.meta_results(model)
+    energysystem.results['main'] = solph.processing.results(model)
+    energysystem.results['meta'] = solph.processing.meta_results(model)
 
     cost_df = pd.DataFrame()
     labeldict = {}
@@ -140,32 +150,16 @@ def main(data, param, mipgap='0.1'):
     data_wnw_node = views.node(results, 'TES Knoten')['sequences']
     data_sol_node = views.node(results, 'Sol Knoten')['sequences']
 
-    labeldict[(('Gasquelle', 'Gasnetzwerk'), 'flow')] = 'H_source'
-    labeldict[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')] = 'P_spot_market'
-    labeldict[(('Stromquelle', 'Elektrizitätsnetzwerk'), 'flow')] = 'P_source'
-    labeldict[(('Wärmenetzwerk', 'Wärmebedarf'), 'flow')] = 'Q_demand'
-    labeldict[(('Wärmenetzwerk', 'HT_to_node'), 'flow')] = 'Q_HT_TES'
-    labeldict[(('LT-Wärmenetzwerk', 'LT_to_node'), 'flow')] = 'Q_LT_TES'
-
     if param['Sol']['active']:
         data_solar_source = views.node(results, 'Solarthermie')['sequences']
-        cost_df.loc['invest', 'Sol'] = invest_solar
+        cost_df.loc['invest', 'Sol'] = (
+            invest_sol(param['Sol']['A'], col_type='flat')
+            )
         cost_df.loc['op_cost', 'Sol'] = (
             data_solar_source[(('Solarthermie', 'Sol Knoten'), 'flow')].sum()
-            * (0.01 * invest_solar)/(param['Sol']['A']*data['solar_data'].sum())
+            * 0.01 * cost_df.loc['invest', 'Sol']
+            / param['Sol']['A']*data['solar_data'].sum()
             )
-        labeldict[(('Solarthermie', 'Sol Knoten'), 'flow')] = 'Q_Sol_zu'
-        labeldict[(('Sol Knoten', 'Sol_to_LT'), 'flow')] = 'Q_Sol_node_LT'
-        labeldict[(('Sol Knoten', 'Sol_to_HT'), 'flow')] = 'Q_Sol_node_HT'
-
-    if param['MR']['active']:
-        labeldict[(('Mustrun', 'Wärmenetzwerk'), 'flow')] = 'Q_MR'
-
-    if param['HT-EC']['active']:
-        labeldict[(('Wärmenetzwerk', 'HT-EC'), 'flow')] = 'Q_HT_EC'
-
-    if param['Sol EC']['active']:
-        labeldict[(('Sol Knoten', 'Sol EC'), 'flow')] = 'Q_Sol_EC'
 
     # Transformer
     if param['EHK']['active']:
@@ -185,9 +179,6 @@ def main(data, param, mipgap='0.1'):
                    * param['EHK']['Q_N'])
                 )
 
-            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_EHK_' + str(i)
-            labeldict[(('Elektrizitätsnetzwerk', label_id), 'flow')] = 'P_zu_EHK_' + str(i)
-
     if param['SLK']['active']:
         cost_df.loc['invest', 'SLK'] = (
             param['SLK']['inv_spez']
@@ -205,9 +196,6 @@ def main(data, param, mipgap='0.1'):
                 + (param['SLK']['op_cost_fix']
                    * param['SLK']['Q_N'])
                 )
-
-            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_SLK_' + str(i)
-            labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_SLK_' + str(i)
 
     if param['BHKW']['active']:
         if param['BHKW']['type'] == 'constant':
@@ -231,10 +219,6 @@ def main(data, param, mipgap='0.1'):
                    * ICE_P_max_woDH)
                 )
 
-            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_' + label_id
-            labeldict[((label_id, 'Elektrizitätsnetzwerk'), 'flow')] = 'P_' + label_id
-            labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_' + label_id
-
     if param['GuD']['active']:
         if param['GuD']['type'] == 'constant':
             CCET_P_max_woDH = param['GuD']['P_max_woDH']
@@ -256,10 +240,6 @@ def main(data, param, mipgap='0.1'):
                 + (param['GuD']['op_cost_fix']
                    * CCET_P_max_woDH)
                 )
-
-            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_' + label_id
-            labeldict[((label_id, 'Elektrizitätsnetzwerk'), 'flow')] = 'P_' + label_id
-            labeldict[(('Gasnetzwerk', label_id), 'flow')] = 'H_' + label_id
 
     if param['HP']['active']:
         if param['HP']['type'] == 'constant':
@@ -285,12 +265,7 @@ def main(data, param, mipgap='0.1'):
                 + param['HP']['op_cost_fix'] * HP_Q_N
                 )
 
-            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
-            labeldict[(('Elektrizitätsnetzwerk', label_id), 'flow')] = 'P_zu_' + label_id
-            labeldict[(('Elektrizitätsnetzwerk', label_id), 'status')] = 'Status_' + label_id
-
     if param['LT-HP']['active']:
-        label_id = 'LT-HP_' + str(i)
         LT_HP_Q_N = data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].mean()
 
         for i in range(1, param['LT-HP']['amount']+1):
@@ -305,10 +280,6 @@ def main(data, param, mipgap='0.1'):
                 * param['HP']['op_cost_var']
                 + param['HP']['op_cost_fix'] * LT_HP_Q_N
                 )
-
-            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
-            labeldict[(('Elektrizitätsnetzwerk', label_id), 'flow')] = 'P_zu_' + label_id
-            labeldict[(('LT-Wärmenetzwerk', label_id), 'flow')] = 'Q_zu_' + label_id
 
     # Speicher
     data_tes = pd.DataFrame()
@@ -331,12 +302,6 @@ def main(data, param, mipgap='0.1'):
                    * param['TES']['Q'])
                 )
 
-            labeldict[((label_id, 'LT-Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
-            labeldict[((label_id, 'LT-Wärmenetzwerk'), 'status')] = 'Status_ab_' + label_id
-            labeldict[(('TES Knoten', label_id), 'flow')] = 'Q_zu_' + label_id
-            labeldict[(('TES Knoten', label_id), 'status')] = 'Status_zu_' + label_id
-            labeldict[((label_id, 'None'), 'storage_content')] = 'Speicherstand_' + label_id
-
     if param['ST-TES']['active']:
         cost_df.loc['invest', 'ST-TES'] = (
             invest_stes(param['ST-TES']['Q'])
@@ -355,24 +320,6 @@ def main(data, param, mipgap='0.1'):
                 + (param['ST-TES']['op_cost_fix']
                    * param['ST-TES']['Q'])
                 )
-
-            labeldict[((label_id, 'Wärmenetzwerk'), 'flow')] = 'Q_ab_' + label_id
-            labeldict[((label_id, 'Wärmenetzwerk'), 'status')] = 'Status_ab_' + label_id
-            labeldict[(('Wärmenetzwerk', label_id), 'flow')] = 'Q_zu_' + label_id
-            labeldict[(('Wärmenetzwerk', label_id), 'status')] = 'Status_zu_' + label_id
-            labeldict[((label_id, 'None'), 'storage_content')] = 'Speicherstand_' + label_id
-
-    # Knoten
-    labeldict[(('HT_to_node', 'TES Knoten'), 'flow')] = 'Q_HT_node'
-    labeldict[(('LT_to_node', 'TES Knoten'), 'flow')] = 'Q_LT_node'
-    labeldict[(('Sol_to_HT', 'Wärmenetzwerk'), 'flow')] = 'Q_Sol_HT'
-    labeldict[(('Sol_to_LT', 'LT-Wärmenetzwerk'), 'flow')] = 'Q_Sol_LT'
-    labeldict[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')] = 'P_spot_market'
-
-        # %% Zahlungsströme Ergebnis
-
-    objective = abs(es_ref.results['meta']['objective'])
-
 
         # %% Geldflüsse
 
@@ -396,8 +343,12 @@ def main(data, param, mipgap='0.1'):
     cost_el_grid = cost_el_grid.sum()
 
     cost_el_internal = ((
-        data_enw.loc[:, ['BHKW' in col for col in data_enw.columns]].to_numpy().sum()
-        + data_enw.loc[:, ['GuD' in col for col in data_enw.columns]].to_numpy().sum()
+        data_enw.loc[
+            :, ['BHKW' in col for col in data_enw.columns]
+            ].to_numpy().sum()
+        + data_enw.loc[
+            :, ['GuD' in col for col in data_enw.columns]
+            ].to_numpy().sum()
         - data_enw[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')].sum()
         ) * param['param']['elec_consumer_charges_self'])
 
@@ -436,7 +387,6 @@ def main(data, param, mipgap='0.1'):
         - cost_Anlagen - cost_gas - cost_el
         )
 
-
         # %% Output Ergebnisse
 
     # Umbenennen der Spaltennamen der Ergebnisdataframes
@@ -445,8 +395,9 @@ def main(data, param, mipgap='0.1'):
         data_enw, data_gnw
         ]
 
+    labeldict = generate_labeldict(param)
     for df in result_dfs:
-        result_labelling(df, labeldict)
+        result_labelling(labeldict, df, export_missing_labels=False)
 
     # Name des Modells
     # modelname = os.path.basename(__file__)[:-3]
@@ -487,7 +438,7 @@ def main(data, param, mipgap='0.1'):
     #     dirpath, 'Ergebnisse', modelname, 'data_CO2.csv'),
     #            sep=";")
 
-    return df1, df2, df3, cost_df, es_ref.results['meta']
+    return df1, df2, df3, cost_df, energysystem.results['meta']
 
 
 if __name__ == '__main__':

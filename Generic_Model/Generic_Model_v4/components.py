@@ -5,6 +5,7 @@ Created on Wed Aug 11 11:04:43 2021
 @author: Malte Fritz
 """
 
+from math import inf
 import oemof.solph as solph
 from help_funcs import liste, ComponentTypeError, SolarUsageError
 
@@ -172,11 +173,11 @@ def solar_thermal_strand(param, data, busses):
                 )
         elif param['Sol']['usage'] == 'HT':
             aux_trafo = auxiliary_transformer(
-                'Sol_to_LT', busses['sol_node'], busses['wnw']
+                'Sol_to_HT', busses['sol_node'], busses['wnw']
                 )
         else:
             raise SolarUsageError(param['Sol']['usage'])
-        return solar_source, solar_ec, aux_trafo
+        return (solar_source, solar_ec, aux_trafo)
 
 
 def solar_thermal_source(param, data, busses):
@@ -256,8 +257,7 @@ def solar_thermal_emergency_cooling(param, busses):
 
 def ht_emergency_cooling_sink(param, busses):
     r"""
-    Get high temperature emergency cooling sink for Generic Model energy
-    system.
+    Get high temp. emergency cooling sink for Generic Model energy system.
 
     Parameters
     ----------
@@ -395,7 +395,7 @@ def auxiliary_transformer(label, input_bus, output_bus):
         label=label,
         inputs={input_bus: solph.Flow()},
         outputs={output_bus: solph.Flow(
-            nominal_value=9999,
+            nominal_value=inf,
             max=1.0,
             min=0.0)},
         conversion_factors={output_bus: 1}
@@ -987,7 +987,7 @@ def seasonal_thermal_energy_storage_strand(param, busses):
         aux_trafo_2 = auxiliary_transformer(
             'LT_to_TES_node', busses['lt_wnw'], busses['wnw_node']
                 )
-    return stes, aux_trafo_1, aux_trafo_2
+    return (stes, aux_trafo_1, aux_trafo_2)
 
 
 def seasonal_thermal_energy_storage(param, busses):
