@@ -101,26 +101,26 @@ def emission_calc(data_emission):
     return dfEm
 
 
-    def invest_sol(A, col_type=''):
-        """Pehnt et al. 2017, Markus [38].
+def invest_sol(A, col_type=''):
+    """Pehnt et al. 2017, Markus [38].
 
-        A:                Kollektorfläche der Solarthermie
-        col_type:         Kollektortyp der Solarthermie
-        specific_coasts:  Spezifische Kosten
-        invest:           Investitionskosten
-        """
-        if col_type == 'flat':
-            specific_costs = -34.06 * np.log(A) + 592.48
-            invest = A * specific_costs
-            return invest
-        elif col_type == 'vacuum':
-            specific_costs = -40.63 * np.log(A) + 726.64
-            invest = A * specific_costs
-            return invest
-        else:
-            raise ValueError(
-                "Choose a valid collector type: 'flat' or 'vacuum'"
-                )
+    A:                Kollektorfläche der Solarthermie
+    col_type:         Kollektortyp der Solarthermie
+    specific_coasts:  Spezifische Kosten
+    invest:           Investitionskosten
+    """
+    if col_type == 'flat':
+        specific_costs = -34.06 * np.log(A) + 592.48
+        invest = A * specific_costs
+        return invest
+    elif col_type == 'vacuum':
+        specific_costs = -40.63 * np.log(A) + 726.64
+        invest = A * specific_costs
+        return invest
+    else:
+        raise ValueError(
+            "Choose a valid collector type: 'flat' or 'vacuum'"
+            )
 
 
 def invest_stes(Q):

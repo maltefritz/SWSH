@@ -130,6 +130,7 @@ def must_run_source(param, data, busses):
                     nominal_value=float(param['MR']['Q_N']),
                     actual_value=1)}
                 )
+            return must_run_source
         elif param['MR']['type'] == 'time series':
             must_run_source = solph.Source(
                 label='Mustrun',
@@ -138,7 +139,7 @@ def must_run_source(param, data, busses):
                     nominal_value=1,
                     actual_value=data['Q_MR'])}
                 )
-    return must_run_source
+            return must_run_source
 
 
 def solar_thermal_strand(param, data, busses):
@@ -249,7 +250,7 @@ def solar_thermal_emergency_cooling(param, busses):
     """
     sol_ec_sink = solph.Sink(
         label='Sol EC',
-        inputs={['sol_node']: solph.Flow(
+        inputs={busses['sol_node']: solph.Flow(
             variable_costs=param['Sol-EC']['op_cost_var'])}
         )
     return sol_ec_sink
@@ -516,7 +517,7 @@ def peak_load_boiler(param, data, busses):
                     inputs={busses['gnw']: solph.Flow()},
                     outputs={busses['wnw']: solph.Flow(
                         nominal_value=param['SLK']['Q_N'],
-                        max=1,
+                        max=param['SLK']['Q_max_rel'],
                         min=param['SLK']['Q_min_rel'],
                         variable_costs=(
                             param['SLK']['op_cost_var']

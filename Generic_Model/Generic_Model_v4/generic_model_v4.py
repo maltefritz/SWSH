@@ -38,7 +38,7 @@ from components import (
 from postprocessing import postprocessing
 
 
-def main(param, data, mipgap='0.1'):
+def main(param, data, mipgap='0.1', save_model=''):
     """
     Execute main script.
 
@@ -51,10 +51,12 @@ def main(param, data, mipgap='0.1'):
         csv file of user defined time dependent parameters.
 
     mipgap : str
-        termination criterion for gap between current and optimal solution.
+        Termination criterion for gap between current and optimal solution.
+
+    save_model : str
+        If not an empty string, the model is saved with the given name.
     """
     # %% Initialize energy system
-
     periods = len(data)
     date_time_index = pd.date_range(data.index[0], periods=periods, freq='h')
 
@@ -62,10 +64,7 @@ def main(param, data, mipgap='0.1'):
 
     topology_check(param)
 
-    # %% Energiesystem
-
-        # %% Busses
-
+    # %% Busses
     gnw = solph.Bus(label='Gasnetzwerk')
     enw = solph.Bus(label='Elektrizitätsnetzwerk')
     wnw = solph.Bus(label='Wärmenetzwerk')
@@ -80,8 +79,7 @@ def main(param, data, mipgap='0.1'):
         'wnw_node': wnw_node, 'sol_node': sol_node
         }
 
-        # %% Soruces
-
+    # %% Soruces
     energysystem.add(
         gas_source(param, busses),
         electricity_source(param, data, busses),
@@ -89,16 +87,14 @@ def main(param, data, mipgap='0.1'):
         *solar_thermal_strand(param, data, busses)
         )
 
-        # %% Sinks
-
+    # %% Sinks
     energysystem.add(
-        electricity_sink(param, busses),
+        electricity_sink(param, data, busses),
         heat_sink(param, data, busses),
         ht_emergency_cooling_sink(param, busses)
         )
 
-        # %% Transformer
-
+    # %% Transformer
     energysystem.add(
         electric_boiler(param, data, busses),
         peak_load_boiler(param, data, busses),
@@ -109,26 +105,24 @@ def main(param, data, mipgap='0.1'):
         lt_heat_pump(param, data, busses)
         )
 
-        # %% Speicher
-
+    # %% Speicher
     energysystem.add(
         *seasonal_thermal_energy_storage_strand(param, busses),
         short_term_thermal_energy_storage(param, busses)
         )
 
-    # %% Processing
-
-        # %% Solve
-
-    # Was bedeutet tee?
+    # %% Solve
     model = solph.Model(energysystem)
     solph.constraints.limit_active_flow_count_by_keyword(
         model, 'storageflowlimit', lower_limit=0, upper_limit=1)
-    # model.write('my_model.lp', io_options={'symbolic_solver_labels': True})
+    if save_model:
+        model.write(
+            f'{save_model}.lp', io_options={'symbolic_solver_labels': True}
+            )
     model.solve(solver='gurobi', solve_kwargs={'tee': True},
                 cmdline_options={"mipgap": mipgap})
 
-        # %% Ergebnisse Energiesystem
+    # %% Ergebnisse Energiesystem
 
     # Ergebnisse in results
     results = solph.processing.results(model)
@@ -148,4 +142,9 @@ def main(param, data, mipgap='0.1'):
 
 
 if __name__ == '__main__':
-    main()
+    import json
+    with open('input\\parameter.json', 'r') as file:
+        param = json.load(file)
+    data = pd.read_csv('input\\simulation_data.csv', sep=';', index_col=0,
+                       parse_dates=True)
+    dhs, invest, emission, cost_units, meta_res = main(param, data)
