@@ -167,7 +167,6 @@ def solar_thermal_strand(param, data, busses):
     """
     if param['Sol']['active']:
         solar_source = solar_thermal_source(param, data, busses)
-        solar_ec = solar_thermal_emergency_cooling(param, busses)
         if param['Sol']['usage'] == 'LT':
             aux_trafo = auxiliary_transformer(
                 'Sol_to_LT', busses['sol_node'], busses['lt_wnw']
@@ -178,7 +177,11 @@ def solar_thermal_strand(param, data, busses):
                 )
         else:
             raise SolarUsageError(param['Sol']['usage'])
-        return (solar_source, solar_ec, aux_trafo)
+        if param['Sol-EC']['active']:
+            solar_ec = solar_thermal_emergency_cooling(param, busses)
+            return (solar_source, solar_ec, aux_trafo)
+        else:
+            return (solar_source, aux_trafo)
 
 
 def solar_thermal_source(param, data, busses):
@@ -249,7 +252,7 @@ def solar_thermal_emergency_cooling(param, busses):
     Output: none
     """
     sol_ec_sink = solph.Sink(
-        label='Sol EC',
+        label='Sol-EC',
         inputs={busses['sol_node']: solph.Flow(
             variable_costs=param['Sol-EC']['op_cost_var'])}
         )
@@ -396,8 +399,8 @@ def auxiliary_transformer(label, input_bus, output_bus):
         label=label,
         inputs={input_bus: solph.Flow()},
         outputs={output_bus: solph.Flow(
-            nominal_value=inf,
-            max=1.0,
+            nominal_value=1,
+            max=inf,
             min=0.0)},
         conversion_factors={output_bus: 1}
         )

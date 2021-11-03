@@ -51,10 +51,7 @@ def main(param, data, mipgap='0.1', save_model=''):
         csv file of user defined time dependent parameters.
 
     mipgap : str
-        Termination criterion for gap between current and optimal solution.
-
-    save_model : str
-        If not an empty string, the model is saved with the given name.
+        termination criterion for gap between current and optimal solution.
     """
     # %% Initialize energy system
     periods = len(data)
@@ -82,34 +79,68 @@ def main(param, data, mipgap='0.1', save_model=''):
     # %% Soruces
     energysystem.add(
         gas_source(param, busses),
-        electricity_source(param, data, busses),
-        must_run_source(param, data, busses),
-        *solar_thermal_strand(param, data, busses)
+        electricity_source(param, data, busses)
         )
+    if param['MR']['active']:
+        energysystem.add(
+            must_run_source(param, data, busses)
+            )
+    if param['Sol']['active']:
+        energysystem.add(
+            *solar_thermal_strand(param, data, busses)
+            )
 
     # %% Sinks
     energysystem.add(
         electricity_sink(param, data, busses),
-        heat_sink(param, data, busses),
-        ht_emergency_cooling_sink(param, busses)
+        heat_sink(param, data, busses)
         )
+    if param['HT-EC']['active']:
+        energysystem.add(
+            ht_emergency_cooling_sink(param, busses)
+            )
 
     # %% Transformer
-    energysystem.add(
-        electric_boiler(param, data, busses),
-        peak_load_boiler(param, data, busses),
-        internal_combustion_engine(param, data, busses, periods),
-        combined_cycle_extraction_turbine(param, data, busses, periods),
-        back_pressure_turbine(param, data, busses, periods),
-        ht_heat_pump(param, data, busses),
-        lt_heat_pump(param, data, busses)
-        )
+    if param['EHK']['active']:
+        energysystem.add(
+            electric_boiler(param, data, busses)
+            )
+    if param['SLK']['active']:
+        energysystem.add(
+            peak_load_boiler(param, data, busses)
+            )
+    if param['BHKW']['active']:
+        energysystem.add(
+            internal_combustion_engine(param, data, busses, periods)
+            )
+    if param['GuD']['active']:
+        energysystem.add(
+            combined_cycle_extraction_turbine(param, data, busses, periods)
+            )
+    if param['BPT']['active']:
+        energysystem.add(
+            back_pressure_turbine(param, data, busses, periods)
+            )
+    if param['HP']['active']:
+        energysystem.add(
+            ht_heat_pump(param, data, busses)
+            )
+    if param['LT-HP']['active']:
+        energysystem.add(
+            lt_heat_pump(param, data, busses)
+            )
 
     # %% Speicher
-    energysystem.add(
-        *seasonal_thermal_energy_storage_strand(param, busses),
-        short_term_thermal_energy_storage(param, busses)
-        )
+    if param['TES']['active']:
+        energysystem.add(
+            *seasonal_thermal_energy_storage_strand(param, busses)
+            )
+    if param['ST-TES']['active']:
+        energysystem.add(
+            short_term_thermal_energy_storage(param, busses)
+            )
+
+    # return energysystem
 
     # %% Solve
     model = solph.Model(energysystem)
@@ -148,3 +179,4 @@ if __name__ == '__main__':
     data = pd.read_csv('input\\simulation_data.csv', sep=';', index_col=0,
                        parse_dates=True)
     dhs, invest, emission, cost_units, meta_res = main(param, data)
+    # energysystem = main(param, data)

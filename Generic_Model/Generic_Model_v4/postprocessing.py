@@ -44,7 +44,8 @@ def postprocessing(results, param, data):
         data_cost_units.loc['op_cost', 'Sol'] = (
             data_solar_source[(('Solarthermie', 'Sol Knoten'), 'flow')].sum()
             * 0.01 * data_cost_units.loc['invest', 'Sol']
-            / param['Sol']['A']*data['solar_data'].sum()
+            / param['Sol']['A']
+            * data['solar_data_' + param['Sol']['usage']].sum()
             )
 
     if param['EHK']['active']:
@@ -245,18 +246,24 @@ def postprocessing(results, param, data):
     revenues_chpbonus = 0
     if param['BHKW']['active']:
         revenues_chpbonus += (
-            data_enw[(('BHKW', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+            data_enw.loc[
+                :, ['BHKW' in col for col in data_enw.columns]
+                ].to_numpy().sum()
             * (param['BHKW']['chp_bonus'] + param['BHKW']['TEHG_bonus'])
             )
     if param['GuD']['active']:
         revenues_chpbonus += (
-            data_enw[(('GuD', 'Elektrizitätsnetzwerk'), 'flow')].sum()
+            data_enw.loc[
+                :, ['GuD' in col for col in data_enw.columns]
+                ].to_numpy().sum()
             * (param['GuD']['chp_bonus'] + param['GuD']['TEHG_bonus'])
             )
-    if param['bpt']['active']:
+    if param['BPT']['active']:
         revenues_chpbonus += (
-            data_enw[(('BPT', 'Elektrizitätsnetzwerk'), 'flow')].sum()
-            * (param['bpt']['chp_bonus'] + param['bpt']['TEHG_bonus'])
+            data_enw.loc[
+                :, ['BPT' in col for col in data_enw.columns]
+                ].to_numpy().sum()
+            * (param['BPT']['chp_bonus'] + param['BPT']['TEHG_bonus'])
             )
 
     revenues_heatdemand = (data_wnw[(('Wärmenetzwerk', 'Wärmebedarf'),
@@ -276,10 +283,9 @@ def postprocessing(results, param, data):
 
     labeldict = generate_labeldict(param)
     for df in result_dfs:
-        result_labelling(labeldict, df, export_missing_labels=False)
+        result_labelling(labeldict, df)
 
     data_dhs = pd.concat(result_dfs, axis=1)
-    data_dhs = data_dhs.loc[:, ~data_dhs.columns.duplicated()]
 
     data_invest = pd.DataFrame(data={
         'invest_ges': [invest_ges],

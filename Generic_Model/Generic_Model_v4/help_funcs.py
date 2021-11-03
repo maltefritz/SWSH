@@ -78,8 +78,8 @@ def generate_labeldict(param):
     if param['HT-EC']['active']:
         labeldict[(('Wärmenetzwerk', 'HT-EC'), 'flow')] = 'Q_HT_EC'
 
-    if param['Sol EC']['active']:
-        labeldict[(('Sol Knoten', 'Sol EC'), 'flow')] = 'Q_Sol_EC'
+    if param['Sol-EC']['active']:
+        labeldict[(('Sol Knoten', 'Sol-EC'), 'flow')] = 'Q_Sol_EC'
 
     if param['EHK']['active']:
         for i in range(1, param['EHK']['amount']+1):
@@ -182,13 +182,15 @@ def generate_labeldict(param):
                 'Speicherstand_' + label_id
                 )
 
-    labeldict[(('HT_to_node', 'TES Knoten'), 'flow')] = 'Q_HT_node'
-    labeldict[(('LT_to_node', 'TES Knoten'), 'flow')] = 'Q_LT_node'
     labeldict[(('Sol_to_HT', 'Wärmenetzwerk'), 'flow')] = 'Q_Sol_HT'
     labeldict[(('Sol_to_LT', 'LT-Wärmenetzwerk'), 'flow')] = 'Q_Sol_LT'
     labeldict[(('Elektrizitätsnetzwerk', 'Spotmarkt'), 'flow')] = (
         'P_spot_market'
         )
+    labeldict[(('Wärmenetzwerk', 'HT_to_TES_node'), 'flow')] = 'Q_HT_node'
+    labeldict[(('LT-Wärmenetzwerk', 'LT_to_TES_node'), 'flow')] = 'Q_LT_node'
+    labeldict[(('HT_to_TES_node', 'TES Knoten'), 'flow')] = 'Q_HT_node'
+    labeldict[(('LT_to_TES_node', 'TES Knoten'), 'flow')] = 'Q_LT_node'
 
     return labeldict
 
