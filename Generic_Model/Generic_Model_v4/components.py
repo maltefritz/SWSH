@@ -455,6 +455,7 @@ def electric_boiler(param, data, busses):
                             param['EHK']['op_cost_var']
                             + param['param']['elec_consumer_charges_self']))},
                     conversion_factors={busses['wnw']: param['EHK']['eta']})
+                return ehk
         elif param['EHK']['type'] == 'time series':
             for i in range(1, param['EHK']['amount']+1):
                 ehk = solph.Transformer(
@@ -523,6 +524,7 @@ def peak_load_boiler(param, data, busses):
                             param['SLK']['op_cost_var']
                             + param['param']['energy_tax']))},
                     conversion_factors={busses['wnw']: param['SLK']['eta']})
+                return slk
         elif param['SLK']['type'] == 'time series':
             for i in range(1, param['SLK']['amount']+1):
                 slk = solph.Transformer(
@@ -607,6 +609,7 @@ def internal_combustion_engine(param, data, busses, periods):
                         Q_CW_min=liste(0, periods))},
                     Beta=liste(0, periods),
                     back_pressure=False)
+                return bhkw
         elif param['BHKW']['type'] == 'time series':
             for i in range(1, param['BHKW']['amount']+1):
                 bhkw = solph.components.GenericCHP(
@@ -698,6 +701,7 @@ def combined_cycle_extraction_turbine(param, data, busses, periods):
                         Q_CW_min=liste(param['GuD']['Q_CW_min'], periods))},
                     Beta=liste(param['GuD']['beta'], periods),
                     back_pressure=False)
+                return gud
         elif param['GuD']['type'] == 'time series':
             for i in range(1, param['GuD']['amount']+1):
                 gud = solph.components.GenericCHP(
@@ -787,6 +791,7 @@ def back_pressure_turbine(param, data, busses, periods):
                         Q_CW_min=liste(0, periods))},
                     Beta=liste(0, periods),
                     back_pressure=True)
+                return bpt
         elif param['BPT']['type'] == 'time series':
             for i in range(1, param['BPT']['amount']+1):
                 bpt = solph.components.GenericCHP(
@@ -867,6 +872,7 @@ def ht_heat_pump(param, data, busses):
                     outputs={busses['wnw']: solph.Flow(
                         variable_costs=param['HP']['op_cost_var'])},
                     coefficients=[param['HP']['c_0'], param['HP']['c_1']])
+                return ht_hp
         elif param['HP']['type'] == 'time series':
             for i in range(1, param['HP']['amount']+1):
                 ht_hp = solph.components.OffsetTransformer(
@@ -940,6 +946,7 @@ def lt_heat_pump(param, data, busses):
                         busses['enw']: 1 / param['LT-HP']['cop'],
                         busses['lt_wnw']: ((param['LT-HP']['cop']-1)
                                            / param['LT-HP']['cop'])})
+                return lt_hp
         elif param['LT-HP']['type'] == 'time series':
             for i in range(1, param['LT-HP']['amount']+1):
                 lt_hp = solph.Transformer(

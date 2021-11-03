@@ -279,6 +279,7 @@ def postprocessing(results, param, data):
         result_labelling(labeldict, df, export_missing_labels=False)
 
     data_dhs = pd.concat(result_dfs, axis=1)
+    data_dhs = data_dhs.loc[:, ~data_dhs.columns.duplicated()]
 
     data_invest = pd.DataFrame(data={
         'invest_ges': [invest_ges],
