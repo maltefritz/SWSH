@@ -55,10 +55,11 @@ def postprocessing(results, param, data):
             * param['EHK']['amount']
             )
 
+        data_cost_units.loc['op_cost', 'EHK'] = 0
         for i in range(1, param['EHK']['amount']+1):
             label_id = 'Elektroheizkessel_' + str(i)
 
-            data_cost_units.loc['op_cost', 'EHK'] = (
+            data_cost_units.loc['op_cost', 'EHK'] += (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['EHK']['op_cost_var']
                 + (param['EHK']['op_cost_fix']
@@ -72,10 +73,11 @@ def postprocessing(results, param, data):
             * param['SLK']['amount']
             )
 
+        data_cost_units.loc['op_cost', 'SLK'] = 0
         for i in range(1, param['SLK']['amount']+1):
             label_id = 'Spitzenlastkessel_' + str(i)
 
-            data_cost_units.loc['op_cost', 'SLK'] = (
+            data_cost_units.loc['op_cost', 'SLK'] += (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * (param['SLK']['op_cost_var']
                    + param['param']['energy_tax'])
@@ -95,10 +97,11 @@ def postprocessing(results, param, data):
             * param['BHKW']['amount']
             )
 
+        data_cost_units.loc['op_cost', 'BHKW'] = 0
         for i in range(1, param['BHKW']['amount']+1):
             label_id = 'BHKW_' + str(i)
 
-            data_cost_units.loc['op_cost', 'BHKW'] = (
+            data_cost_units.loc['op_cost', 'BHKW'] += (
                 data_enw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
                 * param['BHKW']['op_cost_var']
                 + (param['BHKW']['op_cost_fix']
@@ -117,10 +120,11 @@ def postprocessing(results, param, data):
             * param['GuD']['amount']
             )
 
+        data_cost_units.loc['op_cost', 'GuD'] = 0
         for i in range(1, param['GuD']['amount']+1):
             label_id = 'GuD_' + str(i)
 
-            data_cost_units.loc['op_cost', 'GuD'] = (
+            data_cost_units.loc['op_cost', 'GuD'] += (
                 data_enw[((label_id, 'Elektrizitätsnetzwerk'), 'flow')].sum()
                 * param['GuD']['op_cost_var']
                 + (param['GuD']['op_cost_fix']
@@ -142,10 +146,12 @@ def postprocessing(results, param, data):
             * HP_Q_N
             * param['HP']['amount']
             )
+
+        data_cost_units.loc['op_cost', 'HP'] = 0
         for i in range(1, param['HP']['amount']+1):
             label_id = 'HP_' + str(i)
 
-            data_cost_units.loc['op_cost', 'HP'] = (
+            data_cost_units.loc['op_cost', 'HP'] += (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['HP']['op_cost_var']
                 + param['HP']['op_cost_fix'] * HP_Q_N
@@ -154,14 +160,16 @@ def postprocessing(results, param, data):
     if param['LT-HP']['active']:
         LT_HP_Q_N = data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].mean()
 
+        data_cost_units.loc['invest', 'LT-HP'] = 0
+        data_cost_units.loc['op_cost', 'LT-HP'] = 0
         for i in range(1, param['LT-HP']['amount']+1):
             label_id = 'LT-HP_' + str(i)
 
-            data_cost_units.loc['invest', 'LT-HP'] = (
+            data_cost_units.loc['invest', 'LT-HP'] += (
                 param['HP']['inv_spez'] * LT_HP_Q_N
                 )
 
-            data_cost_units.loc['op_cost', 'LT-HP'] = (
+            data_cost_units.loc['op_cost', 'LT-HP'] += (
                 data_wnw[((label_id, 'Wärmenetzwerk'), 'flow')].sum()
                 * param['HP']['op_cost_var']
                 + param['HP']['op_cost_fix'] * LT_HP_Q_N
@@ -174,13 +182,14 @@ def postprocessing(results, param, data):
             * param['TES']['amount']
             )
 
+        data_cost_units.loc['op_cost', 'TES'] = 0
         for i in range(1, param['TES']['amount']+1):
             label_id = 'TES_' + str(i)
-            data_tes = pd.concat([data_tes,
-                                  views.node(results, label_id)['sequences']],
-                                 axis=1)
+            data_tes = pd.concat(
+                [data_tes, views.node(results, label_id)['sequences']], axis=1
+                )
 
-            data_cost_units.loc['op_cost', 'TES'] = (
+            data_cost_units.loc['op_cost', 'TES'] += (
                 data_tes[(('TES Knoten', label_id), 'flow')].sum()
                 * param['TES']['op_cost_var']
                 + (param['TES']['op_cost_fix']
@@ -193,13 +202,14 @@ def postprocessing(results, param, data):
             * param['ST-TES']['amount']
             )
 
+        data_cost_units.loc['op_cost', 'ST-TES'] = 0
         for i in range(1, param['ST-TES']['amount']+1):
             label_id = 'ST-TES_' + str(i)
-            data_tes = pd.concat([data_tes,
-                                  views.node(results, label_id)['sequences']],
-                                 axis=1)
+            data_tes = pd.concat(
+                [data_tes, views.node(results, label_id)['sequences']], axis=1
+                )
 
-            data_cost_units.loc['op_cost', 'ST-TES'] = (
+            data_cost_units.loc['op_cost', 'ST-TES'] += (
                 data_tes[(('Wärmenetzwerk', label_id), 'flow')].sum()
                 * param['ST-TES']['op_cost_var']
                 + (param['ST-TES']['op_cost_fix']
